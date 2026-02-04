@@ -76,9 +76,11 @@ model Resume {
   user          User     @relation(fields: [userId], references: [id])
   userId        String
   fileName      String
+  fileUrl       String?
   extractedText String
   score         Int?
   notes         String?
+  isActive      Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

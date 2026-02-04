@@ -22,6 +22,7 @@ export default function Header() {
         </div>
         <nav className="nav">
           <Link href="/">Buscar</Link>
+          {user ? <Link href="/resumes">Curriculos</Link> : null}
           {user ? <Link href="/dashboard">Painel</Link> : null}
       {user ? (
             <>

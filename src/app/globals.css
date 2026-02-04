@@ -119,6 +119,25 @@ a {
   padding: 40px 0;
 }
 
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.card-active {
+  border-color: rgba(25, 209, 230, 0.6);
+  box-shadow: 0 16px 30px rgba(3, 35, 49, 0.55);
+}
+
 .button {
   display: inline-flex;
   align-items: center;
@@ -134,6 +153,44 @@ a {
 
 .button:active {
   transform: translateY(1px);
+}
+
+.button-outline {
+  background: transparent;
+  color: var(--mist);
+  border: 1px solid rgba(179, 205, 215, 0.35);
+  box-shadow: none;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(25, 209, 230, 0.2);
+  color: var(--bright);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .topbar-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav {
+    gap: 10px;
+  }
+
+  .card-header {
+    flex-direction: column;
+  }
+
+  .button {
+    width: 100%;
+  }
 }
 
 .input,

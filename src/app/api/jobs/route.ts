@@ -52,10 +52,14 @@ export async function GET(request: NextRequest) {
   if (!resume) {
     const user = await getCurrentUser();
     if (user) {
-      resume = await prisma.resume.findFirst({
-        where: { userId: user.id },
-        orderBy: { createdAt: "desc" }
-      });
+      resume =
+        (await prisma.resume.findFirst({
+          where: { userId: user.id, isActive: true }
+        })) ??
+        (await prisma.resume.findFirst({
+          where: { userId: user.id },
+          orderBy: { createdAt: "desc" }
+        }));
     }
   }
 
