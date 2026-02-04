@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   const rawText = formData.get("resumeText")?.toString() ?? "";
 
   if (!userId) {
-    return NextResponse.json({ error: "userId obrigatorio" }, { status: 400 });
+    return NextResponse.json({ error: "Nao autenticado" }, { status: 401 });
   }
 
   let extractedText = rawText;

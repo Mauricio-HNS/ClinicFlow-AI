@@ -24,12 +24,15 @@ model User {
   passwordHash  String
   name          String?
   role          UserRole @default(USER)
+  companyId     String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   resumes       Resume[]
   jobsCreated   Job[]    @relation("JobsCreated")
   reviews       CompanyReview[]
+  sessions      Session[]
+  company       Company? @relation(fields: [companyId], references: [id])
 }
 
 model Company {
@@ -43,6 +46,8 @@ model Company {
 
   jobs        Job[]
   reviews     CompanyReview[]
+  users       User[]
+  externalJobs ExternalJob[]
 }
 
 model Job {
@@ -87,4 +92,46 @@ model CompanyReview {
   stars     Int
   score     Float
   createdAt DateTime @default(now())
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  tokenHash String   @unique
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
+model ExternalJobSource {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  type      String
+  baseUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastRunAt DateTime?
+
+  jobs      ExternalJob[]
+}
+
+model ExternalJob {
+  id          String   @id @default(cuid())
+  source      ExternalJobSource @relation(fields: [sourceId], references: [id])
+  sourceId    String
+  externalId  String
+  title       String
+  description String
+  location    String?
+  minSalary   Int?
+  currency    String?
+  companyName String?
+  raw         Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company     Company? @relation(fields: [companyId], references: [id])
+  companyId   String?
+
+  @@unique([sourceId, externalId])
 }
