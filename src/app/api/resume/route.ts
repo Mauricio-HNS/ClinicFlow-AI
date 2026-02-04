@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { evaluateResume } from "@/lib/resume";
+import pdf from "pdf-parse";
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
@@ -19,8 +20,12 @@ export async function POST(request: NextRequest) {
     fileName = file.name;
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    // TODO: substituir por parser de PDF (ex: pdf-parse) para extrair texto real
-    extractedText = buffer.toString("utf-8");
+    if (file.type === "application/pdf" || fileName.toLowerCase().endsWith(".pdf")) {
+      const parsed = await pdf(buffer);
+      extractedText = parsed.text;
+    } else {
+      extractedText = buffer.toString("utf-8");
+    }
   }
 
   const evaluation = await evaluateResume(extractedText);
