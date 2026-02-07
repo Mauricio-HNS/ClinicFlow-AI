@@ -1,4 +1,4 @@
-package com.example.garage_sale_madrid
+package com.mauricio.garagesale
 
 import io.flutter.embedding.android.FlutterActivity
 
