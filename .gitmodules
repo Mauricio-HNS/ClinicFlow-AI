@@ -1,0 +1,3 @@
+[submodule "ClientFlow"]
+	path = ClientFlow
+	url = https://github.com/Mauricio-HNS/Garage-Sales.git
