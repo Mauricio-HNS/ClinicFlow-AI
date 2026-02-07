@@ -1,0 +1,55 @@
+import 'package:flutter/material.dart';
+import '../models/sale.dart';
+import '../theme/app_colors.dart';
+
+const mockSales = <Sale>[
+  Sale(
+    id: '1',
+    title: 'Sala completa + decoração',
+    category: 'Móveis',
+    price: '€45–€120',
+    distance: '1.2 km',
+    date: 'Hoje, 15:00',
+    color: AppColors.furniture,
+    icon: Icons.chair_alt_outlined,
+    lat: 40.424,
+    lng: -3.703,
+    featured: true,
+  ),
+  Sale(
+    id: '2',
+    title: 'Lote roupas inverno',
+    category: 'Roupas',
+    price: '€4–€30',
+    distance: '1.6 km',
+    date: 'Hoje, 14:00',
+    color: AppColors.clothing,
+    icon: Icons.checkroom_outlined,
+    lat: 40.415,
+    lng: -3.694,
+  ),
+  Sale(
+    id: '3',
+    title: 'TV + soundbar',
+    category: 'Eletrônicos',
+    price: '€140',
+    distance: '2.1 km',
+    date: 'Amanhã, 10:00',
+    color: AppColors.electronics,
+    icon: Icons.tv_outlined,
+    lat: 40.428,
+    lng: -3.688,
+  ),
+  Sale(
+    id: '4',
+    title: 'Cozinha completa',
+    category: 'Cozinha',
+    price: '€6–€50',
+    distance: '2.8 km',
+    date: 'Sáb, 09:00',
+    color: AppColors.kitchen,
+    icon: Icons.kitchen_outlined,
+    lat: 40.432,
+    lng: -3.712,
+  ),
+];
