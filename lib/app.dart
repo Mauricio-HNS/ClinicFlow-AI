@@ -5,6 +5,7 @@ import 'screens/list_screen.dart';
 import 'screens/create_sale_screen.dart';
 import 'screens/notifications_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/jobs_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/auth_screen.dart';
@@ -60,6 +61,7 @@ class _AppShellState extends State<AppShell> {
 
   final List<Widget> _screens = const [
     MapScreen(),
+    JobsScreen(),
     ListScreen(),
     CreateSaleScreen(),
     NotificationsScreen(),
@@ -76,6 +78,7 @@ class _AppShellState extends State<AppShell> {
         height: 72,
         destinations: const [
           NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
+          NavigationDestination(icon: Icon(Icons.work_outline), label: 'Empregos'),
           NavigationDestination(
             icon: Icon(Icons.view_list_outlined),
             label: 'Lista',

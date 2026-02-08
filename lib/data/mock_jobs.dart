@@ -1,0 +1,45 @@
+import '../models/job.dart';
+
+const mockJobs = <Job>[
+  Job(
+    id: 'j1',
+    title: 'Assistente de Loja (meio período)',
+    company: 'Mercado Lavapiés',
+    location: 'Lavapiés, Madrid',
+    salary: '€12/h',
+    type: 'Part-time',
+    posted: 'Hoje',
+    description: 'Atendimento ao cliente, organização de estoque e caixa. Turnos manhã/tarde.',
+  ),
+  Job(
+    id: 'j2',
+    title: 'Motorista de entregas',
+    company: 'Rápido Express',
+    location: 'Centro, Madrid',
+    salary: '€1.400–€1.700',
+    type: 'Full-time',
+    posted: 'Ontem',
+    description: 'Entrega de pequenos pacotes. CNH válida e experiência com rotas urbanas.',
+  ),
+  Job(
+    id: 'j3',
+    title: 'Cuidador(a) de idosos',
+    company: 'Cuidar+ Madrid',
+    location: 'Chamartín, Madrid',
+    salary: '€1.200',
+    type: 'Full-time',
+    posted: '2 dias',
+    description: 'Acompanhamento, refeições e apoio diário. Experiência é um diferencial.',
+  ),
+  Job(
+    id: 'j4',
+    title: 'Designer freelance',
+    company: 'Studio Sol',
+    location: 'Remoto',
+    salary: '€25–€35/h',
+    type: 'Freelance',
+    posted: 'Hoje',
+    description: 'Criação de peças digitais e identidade visual. Portfólio obrigatório.',
+    remote: true,
+  ),
+];
