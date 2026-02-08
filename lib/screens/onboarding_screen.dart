@@ -17,16 +17,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'Vendas rápidas por perto',
       subtitle: 'Veja em segundos as vendas de garagem próximas em Madrid.',
       icon: Icons.map_outlined,
+      imagePath: 'assets/onboarding/1.png',
     ),
     _OnboardPage(
       title: 'Crie sua venda em minutos',
       subtitle: 'Cadastro rápido, fotos e localização aproximada.',
       icon: Icons.add_circle_outline,
+      imagePath: 'assets/onboarding/2.png',
     ),
     _OnboardPage(
       title: 'Destaque e venda mais',
       subtitle: 'Apareça no topo do mapa e receba mais visitas.',
       icon: Icons.star_outline,
+      imagePath: 'assets/onboarding/3.png',
     ),
   ];
 
@@ -86,8 +89,14 @@ class _OnboardPage extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData icon;
+  final String imagePath;
 
-  const _OnboardPage({required this.title, required this.subtitle, required this.icon});
+  const _OnboardPage({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.imagePath,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -117,8 +126,8 @@ class _OnboardPage extends StatelessWidget {
           const SizedBox(height: 12),
           Text(subtitle, style: Theme.of(context).textTheme.bodyLarge),
           const SizedBox(height: 24),
-          const Expanded(
-            child: _OnboardIllustration(),
+          Expanded(
+            child: _OnboardImage(imagePath: imagePath, fallbackIcon: icon),
           ),
           const SizedBox(height: 24),
           Container(
@@ -143,8 +152,11 @@ class _OnboardPage extends StatelessWidget {
   }
 }
 
-class _OnboardIllustration extends StatelessWidget {
-  const _OnboardIllustration();
+class _OnboardImage extends StatelessWidget {
+  final String imagePath;
+  final IconData fallbackIcon;
+
+  const _OnboardImage({required this.imagePath, required this.fallbackIcon});
 
   @override
   Widget build(BuildContext context) {
@@ -167,78 +179,23 @@ class _OnboardIllustration extends StatelessWidget {
                 ),
               ],
             ),
-            child: CustomPaint(
-              painter: _IllustrationPainter(),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Image.asset(
+                imagePath,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Center(
+                    child: Icon(fallbackIcon, size: 64, color: AppColors.primary),
+                  );
+                },
+              ),
             ),
           ),
         );
       },
     );
   }
-}
-
-class _IllustrationPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final bgPaint = Paint()..color = Colors.white.withValues(alpha: 0.55);
-    final cardPaint = Paint()..color = AppColors.highlight;
-    final blue = Paint()
-      ..color = AppColors.primary
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 6
-      ..strokeCap = StrokeCap.round;
-    final accent = Paint()
-      ..color = AppColors.clothing
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 6
-      ..strokeCap = StrokeCap.round;
-    final fillBlue = Paint()..color = AppColors.primary;
-    final fillAccent = Paint()..color = AppColors.clothing;
-    final redFill = Paint()..color = AppColors.furniture;
-    final yellowFill = Paint()..color = AppColors.accent;
-
-    // soft background card
-    final rect = RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(24));
-    canvas.drawRRect(rect, cardPaint);
-
-    // floating bubbles
-    canvas.drawCircle(Offset(size.width * 0.15, size.height * 0.2), 10, bgPaint);
-    canvas.drawCircle(Offset(size.width * 0.85, size.height * 0.25), 8, bgPaint);
-    canvas.drawCircle(Offset(size.width * 0.78, size.height * 0.75), 12, bgPaint);
-
-    // bike
-    final bikeY = size.height * 0.64;
-    final leftWheel = Offset(size.width * 0.28, bikeY);
-    final rightWheel = Offset(size.width * 0.62, bikeY);
-    canvas.drawCircle(leftWheel, 36, blue);
-    canvas.drawCircle(rightWheel, 36, blue);
-    canvas.drawLine(leftWheel, Offset(size.width * 0.45, bikeY - 36), blue);
-    canvas.drawLine(Offset(size.width * 0.45, bikeY - 36), rightWheel, blue);
-    canvas.drawLine(Offset(size.width * 0.45, bikeY - 36), Offset(size.width * 0.38, bikeY - 6), blue);
-    canvas.drawLine(Offset(size.width * 0.45, bikeY - 36), Offset(size.width * 0.58, bikeY - 52), blue);
-    canvas.drawLine(Offset(size.width * 0.58, bikeY - 52), Offset(size.width * 0.65, bikeY - 62), blue);
-
-    // seller (left)
-    final sellerHead = Offset(size.width * 0.18, size.height * 0.34);
-    canvas.drawCircle(sellerHead, 14, redFill);
-    canvas.drawLine(Offset(sellerHead.dx, sellerHead.dy + 16), Offset(size.width * 0.18, size.height * 0.52), blue);
-    canvas.drawLine(Offset(size.width * 0.18, size.height * 0.42), Offset(size.width * 0.32, size.height * 0.5), blue);
-    canvas.drawLine(Offset(size.width * 0.18, size.height * 0.52), Offset(size.width * 0.14, size.height * 0.64), blue);
-    canvas.drawLine(Offset(size.width * 0.18, size.height * 0.52), Offset(size.width * 0.26, size.height * 0.62), blue);
-
-    // buyer (right)
-    final buyerHead = Offset(size.width * 0.78, size.height * 0.34);
-    canvas.drawCircle(buyerHead, 14, fillAccent);
-    canvas.drawLine(Offset(buyerHead.dx, buyerHead.dy + 16), Offset(size.width * 0.78, size.height * 0.52), accent);
-    canvas.drawLine(Offset(size.width * 0.78, size.height * 0.42), Offset(size.width * 0.64, size.height * 0.5), accent);
-    canvas.drawLine(Offset(size.width * 0.78, size.height * 0.52), Offset(size.width * 0.72, size.height * 0.64), accent);
-    canvas.drawLine(Offset(size.width * 0.78, size.height * 0.52), Offset(size.width * 0.86, size.height * 0.62), accent);
-
-    // optional: keep the space clean (no banner/tag)
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _Dots extends StatelessWidget {
