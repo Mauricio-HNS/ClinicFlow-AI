@@ -36,7 +36,14 @@ class GarageSaleApp extends StatelessWidget {
         ),
       ),
       initialRoute: '/splash',
-      routes: {\n        '/splash': (_) => const SplashScreen(),\n        '/onboarding': (_) => const OnboardingScreen(),\n        '/auth': (_) => const AuthScreen(),\n        '/login': (_) => const LoginScreen(),\n        '/register': (_) => const RegisterScreen(),\n        '/home': (_) => const AppShell(),\n      },
+      routes: {
+        '/splash': (_) => const SplashScreen(),
+        '/onboarding': (_) => const OnboardingScreen(),
+        '/auth': (_) => const AuthScreen(),
+        '/login': (_) => const LoginScreen(),
+        '/register': (_) => const RegisterScreen(),
+        '/home': (_) => const AppShell(),
+      },
     );
   }
 }
