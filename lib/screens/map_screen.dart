@@ -27,7 +27,13 @@ class MapScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('GarageSale Madrid', style: Theme.of(context).textTheme.titleLarge),
+                    Row(
+                      children: [
+                        Image.asset('assets/logo/logo.png', height: 28),
+                        const SizedBox(width: 10),
+                        Text('GarageSale Madrid', style: Theme.of(context).textTheme.titleLarge),
+                      ],
+                    ),
                     const SizedBox(height: 10),
                     const _SearchBar(),
                     const SizedBox(height: 10),
