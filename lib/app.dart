@@ -5,6 +5,11 @@ import 'screens/list_screen.dart';
 import 'screens/create_sale_screen.dart';
 import 'screens/notifications_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/splash_screen.dart';
+import 'screens/onboarding_screen.dart';
+import 'screens/auth_screen.dart';
+import 'screens/login_screen.dart';
+import 'screens/register_screen.dart';
 
 class GarageSaleApp extends StatelessWidget {
   const GarageSaleApp({super.key});
@@ -30,7 +35,8 @@ class GarageSaleApp extends StatelessWidget {
           bodySmall: TextStyle(fontSize: 12, height: 1.4),
         ),
       ),
-      home: const AppShell(),
+      initialRoute: '/splash',
+      routes: {\n        '/splash': (_) => const SplashScreen(),\n        '/onboarding': (_) => const OnboardingScreen(),\n        '/auth': (_) => const AuthScreen(),\n        '/login': (_) => const LoginScreen(),\n        '/register': (_) => const RegisterScreen(),\n        '/home': (_) => const AppShell(),\n      },
     );
   }
 }
