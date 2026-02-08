@@ -14,6 +14,7 @@ class MapScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _guardVerification(context),
         backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
         label: const Text('Vender agora'),
       ),
