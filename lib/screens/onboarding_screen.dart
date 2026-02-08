@@ -116,7 +116,11 @@ class _OnboardPage extends StatelessWidget {
           Text(title, style: Theme.of(context).textTheme.displaySmall),
           const SizedBox(height: 12),
           Text(subtitle, style: Theme.of(context).textTheme.bodyLarge),
-          const Spacer(),
+          const SizedBox(height: 24),
+          Expanded(
+            child: _OnboardMock(icon: icon),
+          ),
+          const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -137,6 +141,129 @@ class _OnboardPage extends StatelessWidget {
       ),
     );
   }
+}
+
+class _OnboardMock extends StatelessWidget {
+  final IconData icon;
+
+  const _OnboardMock({required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = constraints.maxWidth;
+        final cardHeight = constraints.maxHeight;
+        return Center(
+          child: Container(
+            width: cardWidth,
+            height: cardHeight,
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 20,
+                  offset: const Offset(0, 12),
+                ),
+              ],
+            ),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _GridPainter(),
+                  ),
+                ),
+                Positioned(
+                  left: 24,
+                  top: 26,
+                  child: _Pin(color: AppColors.furniture),
+                ),
+                Positioned(
+                  right: 36,
+                  top: 54,
+                  child: _Pin(color: AppColors.electronics),
+                ),
+                Positioned(
+                  left: 60,
+                  bottom: 64,
+                  child: _Pin(color: AppColors.clothing),
+                ),
+                Positioned(
+                  right: 50,
+                  bottom: 38,
+                  child: _Pin(color: AppColors.kitchen),
+                ),
+                Align(
+                  alignment: Alignment.center,
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(32),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 16,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Icon(icon, size: 56, color: AppColors.primary),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _Pin extends StatelessWidget {
+  final Color color;
+
+  const _Pin({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          width: 14,
+          height: 14,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        Container(
+          width: 4,
+          height: 10,
+          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
+        ),
+      ],
+    );
+  }
+}
+
+class _GridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.45)
+      ..strokeWidth = 1;
+    for (double x = 0; x < size.width; x += 32) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += 32) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _Dots extends StatelessWidget {
