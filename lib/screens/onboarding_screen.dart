@@ -117,8 +117,8 @@ class _OnboardPage extends StatelessWidget {
           const SizedBox(height: 12),
           Text(subtitle, style: Theme.of(context).textTheme.bodyLarge),
           const SizedBox(height: 24),
-          Expanded(
-            child: _OnboardMock(icon: icon),
+          const Expanded(
+            child: _OnboardIllustration(),
           ),
           const SizedBox(height: 24),
           Container(
@@ -143,10 +143,8 @@ class _OnboardPage extends StatelessWidget {
   }
 }
 
-class _OnboardMock extends StatelessWidget {
-  final IconData icon;
-
-  const _OnboardMock({required this.icon});
+class _OnboardIllustration extends StatelessWidget {
+  const _OnboardIllustration();
 
   @override
   Widget build(BuildContext context) {
@@ -169,53 +167,8 @@ class _OnboardMock extends StatelessWidget {
                 ),
               ],
             ),
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: _GridPainter(),
-                  ),
-                ),
-                Positioned(
-                  left: 24,
-                  top: 26,
-                  child: _Pin(color: AppColors.furniture),
-                ),
-                Positioned(
-                  right: 36,
-                  top: 54,
-                  child: _Pin(color: AppColors.electronics),
-                ),
-                Positioned(
-                  left: 60,
-                  bottom: 64,
-                  child: _Pin(color: AppColors.clothing),
-                ),
-                Positioned(
-                  right: 50,
-                  bottom: 38,
-                  child: _Pin(color: AppColors.kitchen),
-                ),
-                Align(
-                  alignment: Alignment.center,
-                  child: Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(32),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.08),
-                          blurRadius: 16,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Icon(icon, size: 56, color: AppColors.primary),
-                  ),
-                ),
-              ],
+            child: CustomPaint(
+              painter: _IllustrationPainter(),
             ),
           ),
         );
@@ -224,42 +177,64 @@ class _OnboardMock extends StatelessWidget {
   }
 }
 
-class _Pin extends StatelessWidget {
-  final Color color;
-
-  const _Pin({required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 14,
-          height: 14,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        Container(
-          width: 4,
-          height: 10,
-          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
-        ),
-      ],
-    );
-  }
-}
-
-class _GridPainter extends CustomPainter {
+class _IllustrationPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.45)
-      ..strokeWidth = 1;
-    for (double x = 0; x < size.width; x += 32) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = 0; y < size.height; y += 32) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
+    final bgPaint = Paint()..color = Colors.white.withValues(alpha: 0.55);
+    final cardPaint = Paint()..color = AppColors.highlight;
+    final blue = Paint()
+      ..color = AppColors.primary
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 6
+      ..strokeCap = StrokeCap.round;
+    final accent = Paint()
+      ..color = AppColors.clothing
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 6
+      ..strokeCap = StrokeCap.round;
+    final fillBlue = Paint()..color = AppColors.primary;
+    final fillAccent = Paint()..color = AppColors.clothing;
+    final redFill = Paint()..color = AppColors.furniture;
+    final yellowFill = Paint()..color = AppColors.accent;
+
+    // soft background card
+    final rect = RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(24));
+    canvas.drawRRect(rect, cardPaint);
+
+    // floating bubbles
+    canvas.drawCircle(Offset(size.width * 0.15, size.height * 0.2), 10, bgPaint);
+    canvas.drawCircle(Offset(size.width * 0.85, size.height * 0.25), 8, bgPaint);
+    canvas.drawCircle(Offset(size.width * 0.78, size.height * 0.75), 12, bgPaint);
+
+    // bike
+    final bikeY = size.height * 0.64;
+    final leftWheel = Offset(size.width * 0.28, bikeY);
+    final rightWheel = Offset(size.width * 0.62, bikeY);
+    canvas.drawCircle(leftWheel, 36, blue);
+    canvas.drawCircle(rightWheel, 36, blue);
+    canvas.drawLine(leftWheel, Offset(size.width * 0.45, bikeY - 36), blue);
+    canvas.drawLine(Offset(size.width * 0.45, bikeY - 36), rightWheel, blue);
+    canvas.drawLine(Offset(size.width * 0.45, bikeY - 36), Offset(size.width * 0.38, bikeY - 6), blue);
+    canvas.drawLine(Offset(size.width * 0.45, bikeY - 36), Offset(size.width * 0.58, bikeY - 52), blue);
+    canvas.drawLine(Offset(size.width * 0.58, bikeY - 52), Offset(size.width * 0.65, bikeY - 62), blue);
+
+    // seller (left)
+    final sellerHead = Offset(size.width * 0.18, size.height * 0.34);
+    canvas.drawCircle(sellerHead, 14, redFill);
+    canvas.drawLine(Offset(sellerHead.dx, sellerHead.dy + 16), Offset(size.width * 0.18, size.height * 0.52), blue);
+    canvas.drawLine(Offset(size.width * 0.18, size.height * 0.42), Offset(size.width * 0.32, size.height * 0.5), blue);
+    canvas.drawLine(Offset(size.width * 0.18, size.height * 0.52), Offset(size.width * 0.14, size.height * 0.64), blue);
+    canvas.drawLine(Offset(size.width * 0.18, size.height * 0.52), Offset(size.width * 0.26, size.height * 0.62), blue);
+
+    // buyer (right)
+    final buyerHead = Offset(size.width * 0.78, size.height * 0.34);
+    canvas.drawCircle(buyerHead, 14, fillAccent);
+    canvas.drawLine(Offset(buyerHead.dx, buyerHead.dy + 16), Offset(size.width * 0.78, size.height * 0.52), accent);
+    canvas.drawLine(Offset(size.width * 0.78, size.height * 0.42), Offset(size.width * 0.64, size.height * 0.5), accent);
+    canvas.drawLine(Offset(size.width * 0.78, size.height * 0.52), Offset(size.width * 0.72, size.height * 0.64), accent);
+    canvas.drawLine(Offset(size.width * 0.78, size.height * 0.52), Offset(size.width * 0.86, size.height * 0.62), accent);
+
+    // optional: keep the space clean (no banner/tag)
   }
 
   @override
