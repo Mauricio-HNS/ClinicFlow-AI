@@ -60,7 +60,7 @@ class MapScreen extends StatelessWidget {
                     Text('Categorias', style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 8),
                     SizedBox(
-                      height: 78,
+                      height: 92,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
                         children: const [
@@ -153,7 +153,7 @@ class _CategoryShortcut extends StatelessWidget {
     return Container(
       width: 84,
       margin: const EdgeInsets.only(right: 12),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -169,16 +169,21 @@ class _CategoryShortcut extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: Icon(icon, color: color, size: 18),
           ),
           const SizedBox(height: 6),
-          Text(label, style: Theme.of(context).textTheme.bodySmall, overflow: TextOverflow.ellipsis),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );
