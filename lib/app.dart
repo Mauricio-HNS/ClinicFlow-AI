@@ -11,6 +11,7 @@ import 'screens/onboarding_screen.dart';
 import 'screens/auth_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
+import 'screens/profile_verification_screen.dart';
 
 class GarageSaleApp extends StatelessWidget {
   const GarageSaleApp({super.key});
@@ -43,6 +44,7 @@ class GarageSaleApp extends StatelessWidget {
         '/auth': (_) => const AuthScreen(),
         '/login': (_) => const LoginScreen(),
         '/register': (_) => const RegisterScreen(),
+        '/profile-verification': (_) => const ProfileVerificationScreen(),
         '/home': (_) => const AppShell(),
       },
     );

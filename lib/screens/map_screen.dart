@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../data/mock_sales.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
+import '../state/profile_state.dart';
 
 class MapScreen extends StatelessWidget {
   const MapScreen({super.key});
@@ -10,7 +11,7 @@ class MapScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
+        onPressed: () => _guardVerification(context),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add),
         label: const Text('Vender agora'),
@@ -113,6 +114,31 @@ class MapScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+void _guardVerification(BuildContext context) {
+  if (ProfileState.isVerified.value) {
+    return;
+  }
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Verificação necessária'),
+        content: const Text('Para publicar vendas ou eventos, complete seu perfil.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Agora não')),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/profile-verification');
+            },
+            child: const Text('Completar'),
+          ),
+        ],
+      );
+    },
+  );
 }
 
 class _SearchBar extends StatelessWidget {

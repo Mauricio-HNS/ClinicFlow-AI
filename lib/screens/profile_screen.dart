@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
+import '../state/profile_state.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -12,6 +13,39 @@ class ProfileScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
         children: [
           Text('Meu perfil', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 12),
+          ValueListenableBuilder<bool>(
+            valueListenable: ProfileState.isVerified,
+            builder: (context, verified, _) {
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: verified ? AppColors.highlight : AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      verified ? Icons.verified_outlined : Icons.warning_amber_outlined,
+                      color: verified ? AppColors.primary : AppColors.clothing,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        verified ? 'Perfil verificado' : 'Complete seus dados para publicar',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ),
+                    if (!verified)
+                      TextButton(
+                        onPressed: () => Navigator.pushNamed(context, '/profile-verification'),
+                        child: const Text('Completar'),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(16),

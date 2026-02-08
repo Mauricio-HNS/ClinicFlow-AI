@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
+import '../state/profile_state.dart';
 
 class CreateSaleScreen extends StatefulWidget {
   const CreateSaleScreen({super.key});
@@ -51,6 +52,36 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
             const SizedBox(height: 8),
             Text('Cadastro rápido em 4 passos', style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 20),
+            ValueListenableBuilder<bool>(
+              valueListenable: ProfileState.isVerified,
+              builder: (context, verified, _) {
+                if (verified) return const SizedBox.shrink();
+                return Container(
+                  padding: const EdgeInsets.all(14),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.lock_outline, color: AppColors.primary),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Complete seu perfil para publicar.',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pushNamed(context, '/profile-verification'),
+                        child: const Text('Completar'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
             Stepper(
               currentStep: _currentStep,
               onStepContinue: _handleContinue,
@@ -229,6 +260,11 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
   }
 
   void _handleContinue() {
+    final verified = ProfileState.isVerified.value;
+    if (!verified) {
+      _showVerificationRequired();
+      return;
+    }
     if (_currentStep == 3) {
       final valid = _formKey.currentState?.validate() ?? false;
       if (valid) {
@@ -244,6 +280,28 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
   void _handleBack() {
     if (_currentStep == 0) return;
     setState(() => _currentStep -= 1);
+  }
+
+  void _showVerificationRequired() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Verificação necessária'),
+          content: const Text('Para publicar vendas, complete seu perfil com dados reais.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Agora não')),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/profile-verification');
+              },
+              child: const Text('Completar'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 
