@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/mock_sales.dart';
+import '../data/categories.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 import '../state/profile_state.dart';
@@ -58,22 +59,30 @@ class MapScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Text('Categorias', style: Theme.of(context).textTheme.titleMedium),
+                    Row(
+                      children: [
+                        Text('Categorias', style: Theme.of(context).textTheme.titleMedium),
+                        const Spacer(),
+                        TextButton(
+                          onPressed: () => Navigator.pushNamed(context, '/categories'),
+                          child: const Text('Ver tudo'),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 8),
                     SizedBox(
                       height: 92,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
-                        children: const [
-                          _CategoryShortcut(label: 'Móveis', color: AppColors.furniture, icon: Icons.chair_alt_outlined),
-                          _CategoryShortcut(label: 'Roupas', color: AppColors.clothing, icon: Icons.checkroom_outlined),
-                          _CategoryShortcut(label: 'Eletrônicos', color: AppColors.electronics, icon: Icons.tv_outlined),
-                          _CategoryShortcut(label: 'Cozinha', color: AppColors.kitchen, icon: Icons.kitchen_outlined),
-                          _CategoryShortcut(label: 'Bikes', color: AppColors.misc, icon: Icons.directions_bike_outlined),
-                          _CategoryShortcut(label: 'Decoração', color: AppColors.price, icon: Icons.home_outlined),
-                          _CategoryShortcut(label: 'Brinquedos', color: AppColors.accent, icon: Icons.toys_outlined),
-                          _CategoryShortcut(label: 'Livros', color: AppColors.primary, icon: Icons.menu_book_outlined),
-                        ],
+                        children: coreCategories
+                            .map(
+                              (item) => _CategoryShortcut(
+                                label: item.label,
+                                color: item.color,
+                                icon: item.icon,
+                              ),
+                            )
+                            .toList(),
                       ),
                     ),
                     const SizedBox(height: 18),
