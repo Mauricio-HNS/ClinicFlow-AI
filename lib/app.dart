@@ -76,10 +76,22 @@ class _AppShellState extends State<AppShell> {
         height: 72,
         destinations: const [
           NavigationDestination(icon: Icon(Icons.map_outlined), label: 'Mapa'),
-          NavigationDestination(icon: Icon(Icons.view_list_outlined), label: 'Lista'),
-          NavigationDestination(icon: Icon(Icons.add_circle_outline), label: 'Criar'),
-          NavigationDestination(icon: Icon(Icons.notifications_none), label: 'Alerts'),
-          NavigationDestination(icon: Icon(Icons.person_outline), label: 'Perfil'),
+          NavigationDestination(
+            icon: Icon(Icons.view_list_outlined),
+            label: 'Lista',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.add_circle_outline),
+            label: 'Criar',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.notifications_none),
+            label: 'Alerts',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            label: 'Perfil',
+          ),
         ],
       ),
     );
