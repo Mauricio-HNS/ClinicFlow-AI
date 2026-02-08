@@ -92,7 +92,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _submit() {
     final valid = _formKey.currentState?.validate() ?? false;
-    if (!valid) return;
+    if (!valid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preencha email e senha válidos.')),
+      );
+      return;
+    }
     Navigator.pushReplacementNamed(context, '/home');
   }
 }
