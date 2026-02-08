@@ -93,6 +93,9 @@ class MapScreen extends StatelessWidget {
                   if (index == 2) {
                     return const _NearbyNow();
                   }
+                  if (index == 4) {
+                    return const _EventAlertCard();
+                  }
                   if (index == 5) {
                     return const _RecommendationSection();
                   }
@@ -423,6 +426,61 @@ class _ChatPreview extends StatelessWidget {
               ),
             ),
             TextButton(onPressed: () {}, child: const Text('Abrir')),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EventAlertCard extends StatelessWidget {
+  const _EventAlertCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 16,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(Icons.campaign_outlined, color: AppColors.primary),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Evento perto de você', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 4),
+                  Text('Feira de garagem em Malasaña hoje, 17:00', style: Theme.of(context).textTheme.bodyMedium),
+                ],
+              ),
+            ),
+            FilledButton(
+              onPressed: () {},
+              style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
+              child: const Text('Ver'),
+            ),
           ],
         ),
       ),
