@@ -75,7 +75,7 @@ class _AppShellState extends State<AppShell> {
         onDestinationSelected: (value) => setState(() => _index = value),
         height: 72,
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.map_outlined), label: 'Mapa'),
+          NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
           NavigationDestination(
             icon: Icon(Icons.view_list_outlined),
             label: 'Lista',
