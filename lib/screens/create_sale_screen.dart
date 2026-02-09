@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 import '../state/profile_state.dart';
@@ -15,6 +17,34 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
   int _currentStep = 0;
   bool _featured = false;
   String _category = 'Móveis';
+  final List<XFile> _photos = [];
+  final ImagePicker _picker = ImagePicker();
+  static const int _maxPhotos = 12;
+
+  static const Set<String> _photoRequiredCategories = {
+    'Veículos',
+    'Eletrônicos',
+    'Casa e Jardim',
+    'Moda e Acessórios',
+    'Esportes e Lazer',
+    'Bebês e Crianças',
+    'Animais',
+    'Colecionáveis e Hobby',
+    'Ferramentas e equipamentos',
+    'Móveis',
+    'Roupas',
+    'Cozinha',
+    'Misc',
+  };
+
+  static const Set<String> _photoOptionalCategories = {
+    'Empregos',
+    'Serviços',
+    'Aulas',
+    'Freelancers',
+    'Eventos e bilhetes',
+    'Ofertas digitais',
+  };
 
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -150,11 +180,21 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                         value: _category,
                         decoration: const InputDecoration(labelText: 'Categoria'),
                         items: const [
-                          DropdownMenuItem(value: 'Móveis', child: Text('Móveis')),
-                          DropdownMenuItem(value: 'Roupas', child: Text('Roupas')),
+                          DropdownMenuItem(value: 'Veículos', child: Text('Veículos')),
+                          DropdownMenuItem(value: 'Imóveis', child: Text('Imóveis')),
                           DropdownMenuItem(value: 'Eletrônicos', child: Text('Eletrônicos')),
-                          DropdownMenuItem(value: 'Cozinha', child: Text('Cozinha')),
-                          DropdownMenuItem(value: 'Misc', child: Text('Misc')),
+                          DropdownMenuItem(value: 'Casa e Jardim', child: Text('Casa e Jardim')),
+                          DropdownMenuItem(value: 'Moda e Acessórios', child: Text('Moda e Acessórios')),
+                          DropdownMenuItem(value: 'Esportes e Lazer', child: Text('Esportes e Lazer')),
+                          DropdownMenuItem(value: 'Bebês e Crianças', child: Text('Bebês e Crianças')),
+                          DropdownMenuItem(value: 'Animais', child: Text('Animais')),
+                          DropdownMenuItem(value: 'Colecionáveis e Hobby', child: Text('Colecionáveis e Hobby')),
+                          DropdownMenuItem(value: 'Empregos', child: Text('Empregos')),
+                          DropdownMenuItem(value: 'Serviços', child: Text('Serviços')),
+                          DropdownMenuItem(value: 'Aulas', child: Text('Aulas')),
+                          DropdownMenuItem(value: 'Freelancers', child: Text('Freelancers')),
+                          DropdownMenuItem(value: 'Eventos e bilhetes', child: Text('Eventos e bilhetes')),
+                          DropdownMenuItem(value: 'Ofertas digitais', child: Text('Ofertas digitais')),
                         ],
                         onChanged: (value) => setState(() => _category = value ?? 'Móveis'),
                       ),
@@ -168,15 +208,24 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                         maxLines: 3,
                       ),
                       const SizedBox(height: 16),
-                      Text('Fotos', style: Theme.of(context).textTheme.titleMedium),
+                      Text('Fotos (${_photos.length}/$_maxPhotos)', style: Theme.of(context).textTheme.titleMedium),
+                      const SizedBox(height: 6),
+                      Text(
+                        _requiresPhoto()
+                            ? 'Mínimo obrigatório: 1 foto real.'
+                            : 'Foto opcional para esta categoria, mas aumenta a credibilidade.',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                       const SizedBox(height: 8),
                       Wrap(
                         spacing: 12,
                         runSpacing: 12,
                         children: [
-                          _PhotoTile(label: 'Adicionar'),
-                          _PhotoTile(label: 'Foto 1'),
-                          _PhotoTile(label: 'Foto 2'),
+                          _PhotoTile(
+                            label: 'Adicionar',
+                            onTap: _photos.length >= _maxPhotos ? null : _pickPhoto,
+                          ),
+                          ..._photos.map((photo) => _PhotoTile(file: File(photo.path))),
                         ],
                       ),
                     ],
@@ -266,8 +315,25 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
       return;
     }
     if (_currentStep == 3) {
+      if (_requiresPhoto() && _photos.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Anúncios com foto recebem até 5x mais contatos. Adicione pelo menos uma foto para publicar.'),
+          ),
+        );
+        return;
+      }
       final valid = _formKey.currentState?.validate() ?? false;
       if (valid) {
+        if (_photos.length == 1) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Dica: anúncios com 3 ou mais fotos vendem mais rápido.')),
+          );
+        } else if (_photos.length >= 3) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Ótimo! Seu anúncio tem boas chances de venda.')),
+          );
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Venda publicada com sucesso.')),
         );
@@ -302,6 +368,19 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
         );
       },
     );
+  }
+
+  bool _requiresPhoto() {
+    if (_photoOptionalCategories.contains(_category)) return false;
+    if (_photoRequiredCategories.contains(_category)) return true;
+    return true;
+  }
+
+  Future<void> _pickPhoto() async {
+    if (_photos.length >= _maxPhotos) return;
+    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (picked == null) return;
+    setState(() => _photos.add(picked));
   }
 }
 
@@ -338,8 +417,10 @@ class _TextField extends StatelessWidget {
 
 class _PhotoTile extends StatelessWidget {
   final String label;
+  final VoidCallback? onTap;
+  final File? file;
 
-  const _PhotoTile({required this.label});
+  const _PhotoTile({this.label = '', this.onTap, this.file});
 
   @override
   Widget build(BuildContext context) {
@@ -351,13 +432,21 @@ class _PhotoTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.add_a_photo_outlined, color: AppColors.primary),
-          const SizedBox(height: 6),
-          Text(label, style: Theme.of(context).textTheme.bodySmall),
-        ],
+      child: InkWell(
+        onTap: onTap,
+        child: file != null
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Image.file(file!, fit: BoxFit.cover),
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.add_a_photo_outlined, color: AppColors.primary),
+                  const SizedBox(height: 6),
+                  Text(label, style: Theme.of(context).textTheme.bodySmall),
+                ],
+              ),
       ),
     );
   }
