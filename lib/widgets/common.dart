@@ -13,7 +13,7 @@ class CategoryChip extends StatelessWidget {
     return GlassContainer(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       borderRadius: BorderRadius.circular(999),
-      opacity: 0.25,
+      opacity: 0.35,
       child: Text(
         label,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
