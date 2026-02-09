@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const primary = Color(0xFF5A4BFF);
-  static const canvas = Color(0xFFE1E5EC);
-  static const surface = Color(0xFFFFFFFF);
-  static const highlight = Color(0xFFF6F7FB);
-  static const textPrimary = Color(0xFF12131A);
-  static const textMuted = Color(0xFF5B6172);
+  static const primary = Color(0xFF1A1E2A); // deep graphite
+  static const canvas = Color(0xFFE6EBF3);  // cool silver
+  static const surface = Color(0xFFF4F7FC); // soft glass base
+  static const highlight = Color(0xFFF0F4FA);
+  static const textPrimary = Color(0xFF111318);
+  static const textMuted = Color(0xFF6B7280);
 
-  static const furniture = Color(0xFFFF4D6D);
-  static const clothing = Color(0xFFFF9F1C);
-  static const electronics = Color(0xFF00D2FF);
-  static const kitchen = Color(0xFF4CC9F0);
-  static const misc = Color(0xFF9B5DE5);
+  static const furniture = Color(0xFFFF7A7A);
+  static const clothing = Color(0xFFFF9F6A);
+  static const electronics = Color(0xFF69D2FF);
+  static const kitchen = Color(0xFF9CC7FF);
+  static const misc = Color(0xFFC3B4FF);
 
-  static const price = Color(0xFFFF5C8A);
-  static const distance = Color(0xFF2CD4B1);
-  static const accent = Color(0xFFFFD166);
+  static const price = Color(0xFFFF8B5C);
+  static const distance = Color(0xFF69B9FF);
+  static const accent = Color(0xFFFFB86B);
 }

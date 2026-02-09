@@ -45,13 +45,14 @@ class GarageSaleApp extends StatelessWidget {
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            elevation: 0,
           ),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.textPrimary,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.35)),
+            side: BorderSide(color: AppColors.textPrimary.withValues(alpha: 0.12)),
           ),
         ),
       ),
