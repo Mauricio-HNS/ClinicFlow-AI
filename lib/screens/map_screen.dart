@@ -21,6 +21,7 @@ class MapScreen extends StatelessWidget {
       ),
       body: SafeArea(
         child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
@@ -54,6 +55,7 @@ class MapScreen extends StatelessWidget {
                     const SizedBox(height: 8),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
                       child: Row(
                         children: const [
                           CategoryChip(label: '€ Preço', color: AppColors.price),
@@ -80,6 +82,7 @@ class MapScreen extends StatelessWidget {
                       height: 92,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
                         children: coreCategories
                             .map(
                               (item) => _CategoryShortcut(
@@ -226,12 +229,15 @@ class _FeedCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-      child: GlassContainer(
-        padding: const EdgeInsets.all(16),
-        borderRadius: BorderRadius.circular(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      child: GestureDetector(
+        onTap: () {},
+        child: GlassContainer(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          borderRadius: BorderRadius.circular(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             Container(
               height: 180,
               decoration: BoxDecoration(

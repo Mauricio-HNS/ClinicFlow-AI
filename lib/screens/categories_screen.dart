@@ -23,26 +23,29 @@ class CategoriesScreen extends StatelessWidget {
         itemCount: allCategories.length,
         itemBuilder: (context, index) {
           final item = allCategories[index];
-          return GlassContainer(
-            padding: const EdgeInsets.all(16),
-            borderRadius: BorderRadius.circular(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: item.color.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(12),
+          return GestureDetector(
+            onTap: () {},
+            child: GlassContainer(
+              padding: const EdgeInsets.all(16),
+              borderRadius: BorderRadius.circular(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: item.color.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(item.icon, color: item.color, size: 22),
                   ),
-                  child: Icon(item.icon, color: item.color, size: 22),
-                ),
-                const Spacer(),
-                Text(item.label, style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 4),
-                Text('Ver anúncios', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.primary)),
-              ],
+                  const Spacer(),
+                  Text(item.label, style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 4),
+                  Text('Ver anúncios', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.primary)),
+                ],
+              ),
             ),
           );
         },
