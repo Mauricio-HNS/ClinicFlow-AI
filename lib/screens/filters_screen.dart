@@ -12,7 +12,6 @@ class _FiltersScreenState extends State<FiltersScreen> {
   double _maxPrice = 200;
   double _distance = 5;
   bool _todayOnly = false;
-  bool _withPhoto = false;
 
   @override
   Widget build(BuildContext context) {
@@ -52,11 +51,6 @@ class _FiltersScreenState extends State<FiltersScreen> {
             onChanged: (value) => setState(() => _todayOnly = value),
             title: const Text('Somente hoje'),
           ),
-          SwitchListTile(
-            value: _withPhoto,
-            onChanged: (value) => setState(() => _withPhoto = value),
-            title: const Text('Com foto'),
-          ),
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () => Navigator.pop(context),
@@ -70,7 +64,6 @@ class _FiltersScreenState extends State<FiltersScreen> {
                 _maxPrice = 200;
                 _distance = 5;
                 _todayOnly = false;
-                _withPhoto = false;
               });
             },
             child: const Text('Limpar'),

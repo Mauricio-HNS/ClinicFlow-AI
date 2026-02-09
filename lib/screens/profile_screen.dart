@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
+import '../widgets/glass.dart';
 import '../state/profile_state.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -17,12 +18,10 @@ class ProfileScreen extends StatelessWidget {
           ValueListenableBuilder<bool>(
             valueListenable: ProfileState.isVerified,
             builder: (context, verified, _) {
-              return Container(
+              return GlassContainer(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: verified ? AppColors.highlight : AppColors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                ),
+                borderRadius: BorderRadius.circular(16),
+                opacity: verified ? 0.28 : 0.2,
                 child: Row(
                   children: [
                     Icon(
@@ -47,19 +46,9 @@ class ProfileScreen extends StatelessWidget {
             },
           ),
           const SizedBox(height: 12),
-          Container(
+          GlassContainer(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 18,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
+            borderRadius: BorderRadius.circular(18),
             child: Row(
               children: [
                 CircleAvatar(
@@ -96,12 +85,9 @@ class ProfileScreen extends StatelessWidget {
           const ProfileListItem(title: 'Compras', subtitle: '3 compras concluídas este mês'),
           const ProfileListItem(title: 'Avaliações', subtitle: '9 avaliações recentes'),
           const SizedBox(height: 20),
-          Container(
+          GlassContainer(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.highlight,
-              borderRadius: BorderRadius.circular(16),
-            ),
+            borderRadius: BorderRadius.circular(16),
             child: Row(
               children: [
                 const Icon(Icons.emoji_events_outlined, color: AppColors.primary),

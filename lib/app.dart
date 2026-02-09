@@ -26,7 +26,7 @@ class GarageSaleApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primary,
-          brightness: Brightness.dark,
+          brightness: Brightness.light,
         ),
         scaffoldBackgroundColor: AppColors.canvas,
         useMaterial3: true,
@@ -37,6 +37,20 @@ class GarageSaleApp extends StatelessWidget {
           bodyLarge: TextStyle(fontSize: 15, height: 1.4, color: AppColors.textPrimary),
           bodyMedium: TextStyle(fontSize: 14, height: 1.4, color: AppColors.textMuted),
           bodySmall: TextStyle(fontSize: 12, height: 1.4, color: AppColors.textMuted),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.textPrimary,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.35)),
+          ),
         ),
       ),
       initialRoute: '/splash',

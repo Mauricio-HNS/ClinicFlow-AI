@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../data/mock_sales.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
+import '../widgets/glass.dart';
 
 class ListScreen extends StatelessWidget {
   const ListScreen({super.key});
@@ -75,19 +76,9 @@ class _SaleListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
+      borderRadius: BorderRadius.circular(18),
       child: Row(
         children: [
           Container(

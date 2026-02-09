@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/categories.dart';
 import '../theme/app_colors.dart';
+import '../widgets/glass.dart';
 
 class CategoriesScreen extends StatelessWidget {
   const CategoriesScreen({super.key});
@@ -22,19 +23,9 @@ class CategoriesScreen extends StatelessWidget {
         itemCount: allCategories.length,
         itemBuilder: (context, index) {
           final item = allCategories[index];
-          return Container(
+          return GlassContainer(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 16,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
+            borderRadius: BorderRadius.circular(18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
