@@ -189,31 +189,38 @@ class _CategoryShortcut extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(right: 12),
-      child: GlassContainer(
-        width: 84,
-        padding: const EdgeInsets.all(10),
-        borderRadius: BorderRadius.circular(18),
-        opacity: 0.2,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.18),
-                borderRadius: BorderRadius.circular(12),
+      child: GestureDetector(
+        onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Categoria: $label')),
+          );
+        },
+        child: GlassContainer(
+          width: 84,
+          padding: const EdgeInsets.all(10),
+          borderRadius: BorderRadius.circular(18),
+          opacity: 0.2,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 18),
               ),
-              child: Icon(icon, color: color, size: 18),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodySmall,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );
