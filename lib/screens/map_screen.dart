@@ -245,36 +245,37 @@ class _FeedCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-            Container(
-              height: 180,
-              decoration: BoxDecoration(
-                color: sale.color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Center(child: Icon(sale.icon, size: 52, color: sale.color)),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(child: Text(sale.title, style: Theme.of(context).textTheme.titleMedium)),
-                Text(sale.price, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.primary)),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text('${sale.category} • ${sale.distance} • ${sale.date}', style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                OutlinedButton(onPressed: () {}, child: const Text('Detalhes')),
-                const SizedBox(width: 8),
-                FilledButton(
-                  onPressed: () {},
-                  style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
-                  child: const Text('Chat'),
+              Container(
+                height: 180,
+                decoration: BoxDecoration(
+                  color: sale.color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-              ],
-            ),
-          ],
+                child: Center(child: Icon(sale.icon, size: 52, color: sale.color)),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(child: Text(sale.title, style: Theme.of(context).textTheme.titleMedium)),
+                  Text(sale.price, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.primary)),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text('${sale.category} • ${sale.distance} • ${sale.date}', style: Theme.of(context).textTheme.bodyMedium),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  OutlinedButton(onPressed: () {}, child: const Text('Detalhes')),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: () {},
+                    style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
+                    child: const Text('Chat'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
