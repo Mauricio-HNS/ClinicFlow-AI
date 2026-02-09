@@ -4,6 +4,7 @@ import '../data/categories.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 import '../widgets/glass.dart';
+import '../widgets/gradient_button.dart';
 import '../state/profile_state.dart';
 
 class MapScreen extends StatelessWidget {
@@ -12,12 +13,10 @@ class MapScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: GradientButton(
+        label: 'Vender agora',
+        icon: Icons.all_inclusive,
         onPressed: () => _guardVerification(context),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.all_inclusive),
-        label: const Text('Vender agora'),
       ),
       body: SafeArea(
         child: CustomScrollView(
@@ -249,17 +248,16 @@ class _FeedCard extends StatelessWidget {
               const SizedBox(height: 6),
               Text('${sale.category} • ${sale.distance} • ${sale.date}', style: Theme.of(context).textTheme.bodyMedium),
               const SizedBox(height: 10),
-              Row(
-                children: [
-                  OutlinedButton(onPressed: () {}, child: const Text('Detalhes')),
-                  const SizedBox(width: 8),
-                  FilledButton(
-                    onPressed: () {},
-                    style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
-                    child: const Text('Chat'),
-                  ),
-                ],
-              ),
+            Row(
+              children: [
+                OutlinedButton(onPressed: () {}, child: const Text('Detalhes')),
+                const SizedBox(width: 8),
+                GradientButton(
+                  label: 'Chat',
+                  onPressed: () {},
+                ),
+              ],
+            ),
             ],
           ),
         ),
@@ -461,10 +459,9 @@ class _EventAlertCard extends StatelessWidget {
                 ],
               ),
             ),
-            FilledButton(
+            GradientButton(
+              label: 'Ver',
               onPressed: () {},
-              style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
-              child: const Text('Ver'),
             ),
           ],
         ),

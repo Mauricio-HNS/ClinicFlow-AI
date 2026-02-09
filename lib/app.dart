@@ -42,25 +42,11 @@ class GarageSaleApp extends StatelessWidget {
           bodySmall: TextStyle(fontSize: 12, height: 1.4, color: AppColors.textMuted),
         ),
         filledButtonTheme: FilledButtonThemeData(
-          style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all(AppColors.primary),
-            foregroundColor: MaterialStateProperty.all(Colors.white),
-            elevation: MaterialStateProperty.all(10),
-            shadowColor: MaterialStateProperty.all(AppColors.glow),
-            surfaceTintColor: MaterialStateProperty.all(Colors.transparent),
-            shape: MaterialStateProperty.all(
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-            ),
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           ),
-        ),
-        floatingActionButtonTheme: FloatingActionButtonThemeData(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          elevation: 12,
-          focusElevation: 14,
-          hoverElevation: 14,
-          highlightElevation: 16,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(

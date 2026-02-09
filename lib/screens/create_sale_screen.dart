@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
+import '../widgets/gradient_button.dart';
 import '../state/profile_state.dart';
 
 class CreateSaleScreen extends StatefulWidget {
@@ -119,10 +120,10 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
               controlsBuilder: (context, details) {
                 return Row(
                   children: [
-                    FilledButton(
+                    GradientButton(
+                      label: _currentStep == 3 ? 'Publicar' : 'Continuar',
                       onPressed: details.onStepContinue,
-                      style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
-                      child: Text(_currentStep == 3 ? 'Publicar' : 'Continuar'),
+                      height: 46,
                     ),
                     const SizedBox(width: 12),
                     if (_currentStep > 0)
@@ -357,12 +358,13 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
           content: const Text('Para publicar vendas, complete seu perfil com dados reais.'),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Agora não')),
-            FilledButton(
+            GradientButton(
+              label: 'Completar',
               onPressed: () {
                 Navigator.pop(context);
                 Navigator.pushNamed(context, '/profile-verification');
               },
-              child: const Text('Completar'),
+              height: 42,
             ),
           ],
         );

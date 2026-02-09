@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../widgets/gradient_button.dart';
 
 class AuthScreen extends StatelessWidget {
   const AuthScreen({super.key});
@@ -18,10 +19,9 @@ class AuthScreen extends StatelessWidget {
               const SizedBox(height: 12),
               Text('Entre ou crie sua conta para publicar vendas e acompanhar alertas.', style: Theme.of(context).textTheme.bodyLarge),
               const SizedBox(height: 28),
-              FilledButton(
+              GradientButton(
+                label: 'Entrar',
                 onPressed: () => Navigator.pushNamed(context, '/login'),
-                style: FilledButton.styleFrom(backgroundColor: AppColors.primary, minimumSize: const Size.fromHeight(52)),
-                child: const Text('Entrar'),
               ),
               const SizedBox(height: 12),
               OutlinedButton(

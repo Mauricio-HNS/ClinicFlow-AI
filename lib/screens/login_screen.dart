@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../widgets/gradient_button.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -71,10 +72,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: TextButton(onPressed: () {}, child: const Text('Esqueci a senha')),
                 ),
                 const SizedBox(height: 12),
-                FilledButton(
+                GradientButton(
+                  label: 'Entrar',
                   onPressed: _submit,
-                  style: FilledButton.styleFrom(backgroundColor: AppColors.primary, minimumSize: const Size.fromHeight(52)),
-                  child: const Text('Entrar'),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton(

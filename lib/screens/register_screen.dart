@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../widgets/gradient_button.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -90,10 +91,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                FilledButton(
+                GradientButton(
+                  label: 'Criar conta',
                   onPressed: _submit,
-                  style: FilledButton.styleFrom(backgroundColor: AppColors.primary, minimumSize: const Size.fromHeight(52)),
-                  child: const Text('Criar conta'),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../state/profile_state.dart';
 import '../theme/app_colors.dart';
+import '../widgets/gradient_button.dart';
 
 class ProfileVerificationScreen extends StatefulWidget {
   const ProfileVerificationScreen({super.key});
@@ -55,10 +56,9 @@ class _ProfileVerificationScreenState extends State<ProfileVerificationScreen> {
               const SizedBox(height: 12),
               _UploadTile(label: 'Selfie para verificação'),
               const SizedBox(height: 20),
-              FilledButton(
+              GradientButton(
+                label: 'Concluir verificação',
                 onPressed: _submit,
-                style: FilledButton.styleFrom(backgroundColor: AppColors.primary, minimumSize: const Size.fromHeight(52)),
-                child: const Text('Concluir verificação'),
               ),
             ],
           ),

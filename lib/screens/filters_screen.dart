@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../widgets/gradient_button.dart';
 
 class FiltersScreen extends StatefulWidget {
   const FiltersScreen({super.key});
@@ -52,10 +53,9 @@ class _FiltersScreenState extends State<FiltersScreen> {
             title: const Text('Somente hoje'),
           ),
           const SizedBox(height: 16),
-          FilledButton(
+          GradientButton(
+            label: 'Aplicar filtros',
             onPressed: () => Navigator.pop(context),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.primary, minimumSize: const Size.fromHeight(52)),
-            child: const Text('Aplicar filtros'),
           ),
           const SizedBox(height: 8),
           OutlinedButton(

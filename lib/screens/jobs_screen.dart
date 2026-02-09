@@ -4,6 +4,7 @@ import '../models/job.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 import '../widgets/glass.dart';
+import '../widgets/gradient_button.dart';
 
 class JobsScreen extends StatelessWidget {
   const JobsScreen({super.key});
@@ -74,11 +75,10 @@ class JobsScreen extends StatelessWidget {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-              child: FilledButton.icon(
+              child: GradientButton(
+                label: 'Publicar vaga',
+                icon: Icons.add_business_outlined,
                 onPressed: () {},
-                style: FilledButton.styleFrom(backgroundColor: AppColors.primary, minimumSize: const Size.fromHeight(52)),
-                icon: const Icon(Icons.add_business_outlined),
-                label: const Text('Publicar vaga'),
               ),
             ),
           ),
@@ -174,10 +174,9 @@ class _JobCard extends StatelessWidget {
                 Text(job.salary, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.primary)),
                 const Spacer(),
                 TextButton(onPressed: () => _openDetail(context, job), child: const Text('Detalhes')),
-                FilledButton(
+                GradientButton(
+                  label: 'Candidatar',
                   onPressed: () {},
-                  style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
-                  child: const Text('Candidatar'),
                 ),
               ],
             ),
@@ -215,10 +214,10 @@ class _JobCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              FilledButton(
+              GradientButton(
+                label: 'Candidatar agora',
                 onPressed: () {},
-                style: FilledButton.styleFrom(backgroundColor: AppColors.primary, minimumSize: const Size.fromHeight(48)),
-                child: const Text('Candidatar agora'),
+                height: 48,
               ),
             ],
           ),
