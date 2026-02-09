@@ -47,24 +47,10 @@ class MapScreen extends StatelessWidget {
                         const Spacer(),
                         TextButton.icon(
                           onPressed: () => Navigator.pushNamed(context, '/filters'),
-                          icon: const Icon(Icons.tune, size: 18),
+                          icon: const Icon(Icons.tune, size: 22),
                           label: const Text('Filtros'),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 8),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      physics: const BouncingScrollPhysics(),
-                      child: Row(
-                        children: const [
-                          CategoryChip(label: '€ Preço', color: AppColors.price),
-                          SizedBox(width: 8),
-                          CategoryChip(label: 'Distância', color: AppColors.distance),
-                          SizedBox(width: 8),
-                          CategoryChip(label: 'Hoje', color: AppColors.primary),
-                        ],
-                      ),
                     ),
                     const SizedBox(height: 16),
                     Row(
