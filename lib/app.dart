@@ -31,6 +31,7 @@ class GarageSaleApp extends StatelessWidget {
           brightness: Brightness.light,
         ),
         scaffoldBackgroundColor: AppColors.canvas,
+        shadowColor: AppColors.glow,
         useMaterial3: true,
         textTheme: const TextTheme(
           displaySmall: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
@@ -41,13 +42,25 @@ class GarageSaleApp extends StatelessWidget {
           bodySmall: TextStyle(fontSize: 12, height: 1.4, color: AppColors.textMuted),
         ),
         filledButtonTheme: FilledButtonThemeData(
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-            elevation: 4,
-            shadowColor: AppColors.glow,
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(AppColors.primary),
+            foregroundColor: MaterialStateProperty.all(Colors.white),
+            elevation: MaterialStateProperty.all(8),
+            shadowColor: MaterialStateProperty.all(AppColors.glow),
+            surfaceTintColor: MaterialStateProperty.all(Colors.transparent),
+            shape: MaterialStateProperty.all(
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            ),
           ),
+        ),
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          elevation: 10,
+          focusElevation: 12,
+          hoverElevation: 12,
+          highlightElevation: 14,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
