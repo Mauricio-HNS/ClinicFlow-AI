@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'theme/app_colors.dart';
 import 'screens/map_screen.dart';
 import 'screens/list_screen.dart';
@@ -23,6 +24,7 @@ class GarageSaleApp extends StatelessWidget {
     return MaterialApp(
       title: 'GarageSale Madrid',
       debugShowCheckedModeBanner: false,
+      scrollBehavior: const _AppScrollBehavior(),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primary,
@@ -67,6 +69,17 @@ class GarageSaleApp extends StatelessWidget {
       },
     );
   }
+}
+
+class _AppScrollBehavior extends MaterialScrollBehavior {
+  const _AppScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+      };
 }
 
 class AppShell extends StatefulWidget {
