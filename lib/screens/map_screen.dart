@@ -60,8 +60,6 @@ class MapScreen extends StatelessWidget {
                           CategoryChip(label: 'Distância', color: AppColors.distance),
                           SizedBox(width: 8),
                           CategoryChip(label: 'Hoje', color: AppColors.primary),
-                          SizedBox(width: 8),
-                          CategoryChip(label: 'Com foto', color: AppColors.kitchen),
                         ],
                       ),
                     ),
