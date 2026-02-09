@@ -9,8 +9,8 @@ class FiltersScreen extends StatefulWidget {
 }
 
 class _FiltersScreenState extends State<FiltersScreen> {
-  double _maxPrice = 200;
-  double _distance = 5;
+  double _maxPrice = 500;
+  double _distance = 10;
   bool _todayOnly = false;
 
   @override
@@ -26,20 +26,20 @@ class _FiltersScreenState extends State<FiltersScreen> {
           Slider(
             value: _maxPrice,
             min: 10,
-            max: 2000,
-            divisions: 20,
-            label: '€${_maxPrice.round()}',
+            max: 10000,
+            divisions: 50,
+            label: _maxPrice >= 10000 ? '∞' : '€${_maxPrice.round()}',
             onChanged: (value) => setState(() => _maxPrice = value),
             activeColor: AppColors.primary,
           ),
-          Text('€${_maxPrice.round()}', style: Theme.of(context).textTheme.bodyMedium),
+          Text(_maxPrice >= 10000 ? '∞' : '€${_maxPrice.round()}', style: Theme.of(context).textTheme.bodyMedium),
           const SizedBox(height: 16),
           Text('Distância', style: Theme.of(context).textTheme.titleMedium),
           Slider(
             value: _distance,
             min: 1,
-            max: 50,
-            divisions: 49,
+            max: 300,
+            divisions: 299,
             label: '${_distance.round()} km',
             onChanged: (value) => setState(() => _distance = value),
             activeColor: AppColors.primary,
@@ -61,8 +61,8 @@ class _FiltersScreenState extends State<FiltersScreen> {
           OutlinedButton(
             onPressed: () {
               setState(() {
-                _maxPrice = 200;
-                _distance = 5;
+                _maxPrice = 500;
+                _distance = 10;
                 _todayOnly = false;
               });
             },
