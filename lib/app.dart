@@ -45,7 +45,7 @@ class GarageSaleApp extends StatelessWidget {
           style: ButtonStyle(
             backgroundColor: MaterialStateProperty.all(AppColors.primary),
             foregroundColor: MaterialStateProperty.all(Colors.white),
-            elevation: MaterialStateProperty.all(8),
+            elevation: MaterialStateProperty.all(14),
             shadowColor: MaterialStateProperty.all(AppColors.glow),
             surfaceTintColor: MaterialStateProperty.all(Colors.transparent),
             shape: MaterialStateProperty.all(
@@ -56,10 +56,10 @@ class GarageSaleApp extends StatelessWidget {
         floatingActionButtonTheme: FloatingActionButtonThemeData(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
-          elevation: 10,
-          focusElevation: 12,
-          hoverElevation: 12,
-          highlightElevation: 14,
+          elevation: 18,
+          focusElevation: 20,
+          hoverElevation: 20,
+          highlightElevation: 22,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
