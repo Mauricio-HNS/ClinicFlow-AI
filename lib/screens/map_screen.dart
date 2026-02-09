@@ -362,27 +362,31 @@ class _MicroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.highlight,
+    return GestureDetector(
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Aplicar recomendação baseada em buscas')),
+        );
+      },
+      child: GlassContainer(
+        padding: const EdgeInsets.all(16),
         borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.flash_on_outlined, color: AppColors.primary),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 4),
-                Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
-              ],
+        child: Row(
+          children: [
+            const Icon(Icons.flash_on_outlined, color: AppColors.primary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 4),
+                  Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
