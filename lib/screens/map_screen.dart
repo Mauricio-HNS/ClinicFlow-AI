@@ -44,7 +44,7 @@ class MapScreen extends StatelessWidget {
                         Text('Madrid • 2 km', style: Theme.of(context).textTheme.bodyMedium),
                         const Spacer(),
                         TextButton.icon(
-                          onPressed: () {},
+                          onPressed: () => Navigator.pushNamed(context, '/filters'),
                           icon: const Icon(Icons.tune, size: 18),
                           label: const Text('Filtros'),
                         ),

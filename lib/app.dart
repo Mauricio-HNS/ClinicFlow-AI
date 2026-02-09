@@ -13,6 +13,7 @@ import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/profile_verification_screen.dart';
 import 'screens/categories_screen.dart';
+import 'screens/filters_screen.dart';
 
 class GarageSaleApp extends StatelessWidget {
   const GarageSaleApp({super.key});
@@ -47,6 +48,7 @@ class GarageSaleApp extends StatelessWidget {
         '/register': (_) => const RegisterScreen(),
         '/profile-verification': (_) => const ProfileVerificationScreen(),
         '/categories': (_) => const CategoriesScreen(),
+        '/filters': (_) => const FiltersScreen(),
         '/home': (_) => const AppShell(),
       },
     );
