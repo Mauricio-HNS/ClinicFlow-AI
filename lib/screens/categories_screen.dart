@@ -36,13 +36,13 @@ class CategoriesScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: 46,
+                    height: 46,
                     decoration: BoxDecoration(
                       color: item.color.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(item.icon, color: item.color, size: 22),
+                    child: Icon(item.icon, color: item.color, size: 26),
                   ),
                   const Spacer(),
                   Text(item.label, style: Theme.of(context).textTheme.titleMedium),

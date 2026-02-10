@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const primaryStart = Color(0xFF7C3AED);
-  static const primaryEnd = Color(0xFF2563EB);
-  static const primary = Color(0xFF6D28D9);
-  static const canvas = Color(0xFF2D2F34);
-  static const surface = Color(0xFF2F3238);
-  static const highlight = Color(0xFF353841);
-  static const textPrimary = Color(0xFFF1F3F7);
-  static const textMuted = Color(0xFFB4BAC7);
-  static const glow = Color(0xFF7C3AED);
+  static const primaryStart = Color(0xFF8C2BFF);
+  static const primaryEnd = Color(0xFF2D7BFF);
+  static const primary = Color(0xFF6E32FF);
+  static const canvas = Color(0xFF2B2D33);
+  static const surface = Color(0xFF30323A);
+  static const highlight = Color(0xFF3A3D46);
+  static const textPrimary = Color(0xFFF4F6FB);
+  static const textMuted = Color(0xFFB8BFCC);
+  static const glow = Color(0xFF9B4DFF);
 
   static const furniture = Color(0xFFFF6B6B);
   static const clothing = Color(0xFFFFB86B);

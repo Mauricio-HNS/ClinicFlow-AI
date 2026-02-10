@@ -58,7 +58,8 @@ class _FiltersScreenState extends State<FiltersScreen> {
             onPressed: () => Navigator.pop(context),
           ),
           const SizedBox(height: 8),
-          OutlinedButton(
+          GradientButton(
+            label: 'Limpar',
             onPressed: () {
               setState(() {
                 _maxPrice = 500;
@@ -66,7 +67,6 @@ class _FiltersScreenState extends State<FiltersScreen> {
                 _todayOnly = false;
               });
             },
-            child: const Text('Limpar'),
           ),
         ],
       ),

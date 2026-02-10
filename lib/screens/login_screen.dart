@@ -77,10 +77,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: _submit,
                 ),
                 const SizedBox(height: 12),
-                OutlinedButton(
+                GradientButton(
+                  label: 'Criar conta',
                   onPressed: () => Navigator.pushReplacementNamed(context, '/register'),
-                  style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-                  child: const Text('Criar conta'),
                 ),
               ],
             ),

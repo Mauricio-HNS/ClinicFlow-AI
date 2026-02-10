@@ -96,10 +96,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   onPressed: _submit,
                 ),
                 const SizedBox(height: 12),
-                OutlinedButton(
+                GradientButton(
+                  label: 'Já tenho conta',
                   onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
-                  style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-                  child: const Text('Já tenho conta'),
                 ),
               ],
             ),

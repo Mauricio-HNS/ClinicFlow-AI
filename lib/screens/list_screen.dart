@@ -3,6 +3,7 @@ import '../data/mock_sales.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 import '../widgets/glass.dart';
+import '../widgets/gradient_button.dart';
 
 class ListScreen extends StatelessWidget {
   const ListScreen({super.key});
@@ -18,10 +19,13 @@ class ListScreen extends StatelessWidget {
               children: [
                 Text('Lista de vendas', style: Theme.of(context).textTheme.titleLarge),
                 const Spacer(),
-                OutlinedButton.icon(
+                GradientButton(
+                  label: 'Distância',
+                  icon: Icons.swap_vert,
+                  height: 40,
+                  radius: 16,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
                   onPressed: () {},
-                  icon: const Icon(Icons.swap_vert),
-                  label: const Text('Distância'),
                 ),
               ],
             ),

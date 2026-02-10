@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../widgets/gradient_button.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -59,12 +60,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   _Dots(count: _pages.length, index: _page),
                   const Spacer(),
-                  TextButton(
+                  GradientButton(
+                    label: 'Pular',
+                    height: 40,
+                    radius: 16,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
                     onPressed: () => Navigator.pushReplacementNamed(context, '/auth'),
-                    child: const Text('Pular'),
                   ),
                   const SizedBox(width: 8),
-                  FilledButton(
+                  GradientButton(
+                    label: _page == _pages.length - 1 ? 'Começar' : 'Próximo',
                     onPressed: () {
                       if (_page < _pages.length - 1) {
                         _controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
@@ -72,8 +77,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Navigator.pushReplacementNamed(context, '/auth');
                       }
                     },
-                    style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
-                    child: Text(_page == _pages.length - 1 ? 'Começar' : 'Próximo'),
                   ),
                 ],
               ),

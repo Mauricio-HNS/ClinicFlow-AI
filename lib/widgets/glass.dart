@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 class GlassContainer extends StatelessWidget {
   final Widget child;
@@ -26,7 +27,7 @@ class GlassContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseTint = tint ?? Colors.white;
+    final baseTint = tint ?? AppColors.surface;
     return Container(
       margin: margin,
       width: width,
@@ -36,17 +37,25 @@ class GlassContainer extends StatelessWidget {
         decoration: BoxDecoration(
           color: baseTint.withValues(alpha: opacity),
           borderRadius: borderRadius,
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.06),
+          ),
           boxShadow: boxShadow ??
               [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.45),
-                  blurRadius: 18,
-                  offset: const Offset(6, 6),
+                  color: Colors.black.withValues(alpha: 0.6),
+                  blurRadius: 26,
+                  offset: const Offset(10, 10),
                 ),
                 BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.06),
-                  blurRadius: 10,
-                  offset: const Offset(-4, -4),
+                  color: Colors.white.withValues(alpha: 0.08),
+                  blurRadius: 18,
+                  offset: const Offset(-6, -6),
+                ),
+                BoxShadow(
+                  color: AppColors.glow.withValues(alpha: 0.14),
+                  blurRadius: 20,
+                  offset: const Offset(0, 0),
                 ),
               ],
         ),

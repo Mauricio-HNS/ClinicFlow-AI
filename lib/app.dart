@@ -33,6 +33,23 @@ class GarageSaleApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.canvas,
         shadowColor: AppColors.glow,
         useMaterial3: true,
+        navigationBarTheme: NavigationBarThemeData(
+          backgroundColor: AppColors.surface,
+          indicatorColor: AppColors.highlight,
+          iconTheme: WidgetStateProperty.resolveWith(
+            (states) => IconThemeData(
+              size: 26,
+              color: states.contains(WidgetState.selected) ? AppColors.primaryEnd : AppColors.textMuted,
+            ),
+          ),
+          labelTextStyle: WidgetStateProperty.resolveWith(
+            (states) => TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: states.contains(WidgetState.selected) ? AppColors.textPrimary : AppColors.textMuted,
+            ),
+          ),
+        ),
         textTheme: const TextTheme(
           displaySmall: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
           titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary),

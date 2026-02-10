@@ -30,10 +30,13 @@ class JobsScreen extends StatelessWidget {
                       const SizedBox(width: 6),
                       Text('Madrid • 5 km', style: Theme.of(context).textTheme.bodyMedium),
                       const Spacer(),
-                      TextButton.icon(
+                      GradientButton(
+                        label: 'Filtros',
+                        icon: Icons.tune,
+                        height: 40,
+                        radius: 16,
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
                         onPressed: () {},
-                        icon: const Icon(Icons.tune, size: 18),
-                        label: const Text('Filtros'),
                       ),
                     ],
                   ),
@@ -173,7 +176,13 @@ class _JobCard extends StatelessWidget {
               children: [
                 Text(job.salary, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.primary)),
                 const Spacer(),
-                TextButton(onPressed: () => _openDetail(context, job), child: const Text('Detalhes')),
+                GradientButton(
+                  label: 'Detalhes',
+                  height: 40,
+                  radius: 16,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  onPressed: () => _openDetail(context, job),
+                ),
                 GradientButton(
                   label: 'Candidatar',
                   onPressed: () {},

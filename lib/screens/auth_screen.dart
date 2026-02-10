@@ -24,15 +24,9 @@ class AuthScreen extends StatelessWidget {
                 onPressed: () => Navigator.pushNamed(context, '/login'),
               ),
               const SizedBox(height: 12),
-              OutlinedButton(
+              GradientButton(
+                label: 'Criar conta',
                 onPressed: () => Navigator.pushNamed(context, '/register'),
-                style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-                child: const Text('Criar conta'),
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
-                child: const Text('Continuar sem login'),
               ),
               const Spacer(),
               Text('Ao continuar, você aceita os termos e política de privacidade.', style: Theme.of(context).textTheme.bodySmall),

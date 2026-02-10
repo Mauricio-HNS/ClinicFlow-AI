@@ -44,10 +44,13 @@ class MapScreen extends StatelessWidget {
                         const SizedBox(width: 6),
                         Text('Madrid • 2 km', style: Theme.of(context).textTheme.bodyMedium),
                         const Spacer(),
-                        TextButton.icon(
+                        GradientButton(
+                          label: 'Filtros',
+                          icon: Icons.tune,
+                          height: 40,
+                          radius: 16,
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
                           onPressed: () => Navigator.pushNamed(context, '/filters'),
-                          icon: const Icon(Icons.tune, size: 22),
-                          label: const Text('Filtros'),
                         ),
                       ],
                     ),
@@ -56,9 +59,12 @@ class MapScreen extends StatelessWidget {
                       children: [
                         Text('Categorias', style: Theme.of(context).textTheme.titleMedium),
                         const Spacer(),
-                        TextButton(
+                        GradientButton(
+                          label: 'Ver tudo',
+                          height: 36,
+                          radius: 14,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
                           onPressed: () => Navigator.pushNamed(context, '/categories'),
-                          child: const Text('Ver tudo'),
                         ),
                       ],
                     ),
@@ -195,7 +201,7 @@ class _CategoryShortcut extends StatelessWidget {
                   color: color.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: color, size: 18),
+                child: Icon(icon, color: color, size: 22),
               ),
               const SizedBox(height: 6),
               Text(
@@ -236,7 +242,7 @@ class _FeedCard extends StatelessWidget {
                   color: sale.color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Center(child: Icon(sale.icon, size: 52, color: sale.color)),
+                child: Center(child: Icon(sale.icon, size: 60, color: sale.color)),
               ),
               const SizedBox(height: 12),
               Row(
@@ -250,10 +256,19 @@ class _FeedCard extends StatelessWidget {
               const SizedBox(height: 10),
             Row(
               children: [
-                OutlinedButton(onPressed: () {}, child: const Text('Detalhes')),
-                const SizedBox(width: 8),
+                GradientButton(
+                  label: 'Detalhes',
+                  height: 44,
+                  radius: 16,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  onPressed: () {},
+                ),
+                const SizedBox(width: 10),
                 GradientButton(
                   label: 'Chat',
+                  height: 44,
+                  radius: 16,
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
                   onPressed: () {},
                 ),
               ],
@@ -418,7 +433,13 @@ class _ChatPreview extends StatelessWidget {
                 ],
               ),
             ),
-            TextButton(onPressed: () {}, child: const Text('Abrir')),
+            GradientButton(
+              label: 'Abrir',
+              height: 40,
+              radius: 16,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              onPressed: () {},
+            ),
           ],
         ),
       ),
