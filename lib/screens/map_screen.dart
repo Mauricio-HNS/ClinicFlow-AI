@@ -13,10 +13,17 @@ class MapScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: GradientButton(
-        label: 'Vender agora',
-        icon: Icons.all_inclusive,
-        onPressed: () => _guardVerification(context),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: SizedBox(
+          width: double.infinity,
+          child: GradientButton(
+            label: 'Vender agora',
+            icon: Icons.all_inclusive,
+            onPressed: () => _guardVerification(context),
+          ),
+        ),
       ),
       body: SafeArea(
         child: CustomScrollView(
