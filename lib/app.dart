@@ -28,7 +28,7 @@ class GarageSaleApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primary,
-          brightness: Brightness.light,
+          brightness: Brightness.dark,
         ),
         scaffoldBackgroundColor: AppColors.canvas,
         shadowColor: AppColors.glow,

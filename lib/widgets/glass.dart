@@ -39,14 +39,14 @@ class GlassContainer extends StatelessWidget {
           boxShadow: boxShadow ??
               [
                 BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.9),
+                  color: Colors.black.withValues(alpha: 0.45),
                   blurRadius: 18,
-                  offset: const Offset(-6, -6),
+                  offset: const Offset(6, 6),
                 ),
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.12),
-                  blurRadius: 20,
-                  offset: const Offset(8, 10),
+                  color: Colors.white.withValues(alpha: 0.06),
+                  blurRadius: 10,
+                  offset: const Offset(-4, -4),
                 ),
               ],
         ),
