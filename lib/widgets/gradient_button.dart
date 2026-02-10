@@ -16,8 +16,8 @@ class GradientButton extends StatelessWidget {
     required this.onPressed,
     this.icon,
     this.height = 54,
-    this.radius = 20,
-    this.glowBlur = 22,
+    this.radius = 6,
+    this.glowBlur = 12,
     this.padding = const EdgeInsets.symmetric(horizontal: 20),
   });
 
@@ -44,16 +44,15 @@ class GradientButton extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(radius),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.06),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.glow.withValues(alpha: 0.45),
+            color: AppColors.glow.withValues(alpha: 0.25),
             blurRadius: glowBlur,
-            offset: const Offset(0, 8),
-          ),
-          BoxShadow(
-            color: AppColors.primaryEnd.withValues(alpha: 0.25),
-            blurRadius: glowBlur * 0.7,
-            offset: const Offset(0, 3),
+            offset: const Offset(0, 4),
           ),
         ],
       ),

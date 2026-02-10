@@ -5,8 +5,8 @@ class AppColors {
   static const primaryEnd = Color(0xFF2D7BFF);
   static const primary = Color(0xFF6E32FF);
   static const canvas = Color(0xFF2B2D33);
-  static const surface = Color(0xFF30323A);
-  static const highlight = Color(0xFF3A3D46);
+  static const surface = Color(0xFF343842);
+  static const highlight = Color(0xFF3C404B);
   static const textPrimary = Color(0xFFF4F6FB);
   static const textMuted = Color(0xFFB8BFCC);
   static const glow = Color(0xFF9B4DFF);
