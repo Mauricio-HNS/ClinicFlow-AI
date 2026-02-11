@@ -311,81 +311,44 @@ class _TopActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 96,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(22),
-          child: Ink(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.white.withValues(alpha: 0.86),
-                  const Color(0xFFEAF4FF).withValues(alpha: 0.86),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.92)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.95),
-                  blurRadius: 12,
-                  offset: const Offset(-3, -3),
+    return Tooltip(
+      message: label,
+      child: SizedBox(
+        height: 96,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onPressed,
+            borderRadius: BorderRadius.circular(24),
+            child: Ink(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white.withValues(alpha: 0.9),
+                    const Color(0xFFE4F0FF).withValues(alpha: 0.88),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                BoxShadow(
-                  color: const Color(0xFF85AEE0).withValues(alpha: 0.48),
-                  blurRadius: 14,
-                  offset: const Offset(7, 9),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.white.withValues(alpha: 0.95),
-                        const Color(0xFFE3EEFF).withValues(alpha: 0.92),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(13),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.white.withValues(alpha: 0.85),
-                        blurRadius: 6,
-                        offset: const Offset(-1, -1),
-                      ),
-                      BoxShadow(
-                        color: const Color(0xFF89B4E8).withValues(alpha: 0.5),
-                        blurRadius: 6,
-                        offset: const Offset(2, 3),
-                      ),
-                    ],
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.94)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.white.withValues(alpha: 0.95),
+                    blurRadius: 12,
+                    offset: const Offset(-3, -3),
                   ),
-                  child: Icon(icon, color: AppColors.primaryEnd, size: 20),
-                ),
-                const SizedBox(height: 7),
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.1,
-                      ),
-                ),
-              ],
+                  BoxShadow(
+                    color: const Color(0xFF6E9CDA).withValues(alpha: 0.7),
+                    blurRadius: 18,
+                    spreadRadius: 1,
+                    offset: const Offset(8, 11),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Icon(icon, color: AppColors.primaryEnd, size: 34),
+              ),
             ),
           ),
         ),
