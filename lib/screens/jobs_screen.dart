@@ -297,25 +297,10 @@ class _JobImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final asset = job.imageAsset;
-    final url = job.imageUrl;
 
     if (asset != null && asset.isNotEmpty) {
       return Image.asset(
         asset,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          if (url == null || url.isEmpty) return _fallback();
-          return Image.network(
-            url,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => _fallback(),
-          );
-        },
-      );
-    }
-    if (url != null && url.isNotEmpty) {
-      return Image.network(
-        url,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => _fallback(),
       );

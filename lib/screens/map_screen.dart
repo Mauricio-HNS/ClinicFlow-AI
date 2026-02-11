@@ -247,14 +247,7 @@ class _FeedCard extends StatelessWidget {
                           width: double.infinity,
                           errorBuilder: (context, error, stackTrace) => Center(child: Icon(sale.icon, size: 60, color: sale.color)),
                         )
-                      : sale.imageUrl == null
-                          ? Center(child: Icon(sale.icon, size: 60, color: sale.color))
-                          : Image.network(
-                              sale.imageUrl!,
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              errorBuilder: (context, error, stackTrace) => Center(child: Icon(sale.icon, size: 60, color: sale.color)),
-                            ),
+                      : Center(child: Icon(sale.icon, size: 60, color: sale.color)),
                 ),
               ),
               const SizedBox(height: 12),

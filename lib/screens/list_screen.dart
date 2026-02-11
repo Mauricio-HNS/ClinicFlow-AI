@@ -106,13 +106,7 @@ class _SaleListCard extends StatelessWidget {
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) => Icon(icon, color: color),
                     )
-                  : imageUrl == null
-                      ? Icon(icon, color: color)
-                      : Image.network(
-                          imageUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Icon(icon, color: color),
-                        ),
+                  : Icon(icon, color: color),
             ),
           ),
           const SizedBox(width: 12),

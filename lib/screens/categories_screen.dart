@@ -110,19 +110,14 @@ class _CategoryCover extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final asset = categoryCoverAssets[label];
-    final url = categoryCoverUrls[label];
 
     if (asset != null) {
       return Image.asset(
         asset,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          if (url == null) return const SizedBox.shrink();
-          return Image.network(url, fit: BoxFit.cover);
-        },
+        errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
       );
     }
-    if (url != null) return Image.network(url, fit: BoxFit.cover);
     return const SizedBox.shrink();
   }
 }

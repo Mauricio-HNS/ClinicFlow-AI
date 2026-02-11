@@ -739,24 +739,6 @@ class _SaleImage extends StatelessWidget {
         asset!,
         fit: BoxFit.cover,
         width: double.infinity,
-        errorBuilder: (context, error, stackTrace) {
-          if (url != null && url!.isNotEmpty) {
-            return Image.network(
-              url!,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              errorBuilder: (context, error, stackTrace) => _fallback(),
-            );
-          }
-          return _fallback();
-        },
-      );
-    }
-    if (url != null && url!.isNotEmpty) {
-      return Image.network(
-        url!,
-        fit: BoxFit.cover,
-        width: double.infinity,
         errorBuilder: (context, error, stackTrace) => _fallback(),
       );
     }
