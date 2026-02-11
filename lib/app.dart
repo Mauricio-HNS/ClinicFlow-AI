@@ -65,6 +65,16 @@ class GarageSaleApp extends StatelessWidget {
           bodyMedium: TextStyle(fontSize: 14, height: 1.4, color: AppColors.textMuted),
           bodySmall: TextStyle(fontSize: 12, height: 1.4, color: AppColors.textMuted),
         ),
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: _SmoothPageTransitionsBuilder(),
+            TargetPlatform.iOS: _SmoothPageTransitionsBuilder(),
+            TargetPlatform.macOS: _SmoothPageTransitionsBuilder(),
+            TargetPlatform.windows: _SmoothPageTransitionsBuilder(),
+            TargetPlatform.linux: _SmoothPageTransitionsBuilder(),
+            TargetPlatform.fuchsia: _SmoothPageTransitionsBuilder(),
+          },
+        ),
         appBarTheme: AppBarTheme(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -240,6 +250,44 @@ class _AppScrollBehavior extends MaterialScrollBehavior {
         PointerDeviceKind.mouse,
         PointerDeviceKind.trackpad,
       };
+}
+
+class _SmoothPageTransitionsBuilder extends PageTransitionsBuilder {
+  const _SmoothPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    final fade = CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
+
+    final slide = Tween<Offset>(
+      begin: const Offset(0.045, 0),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic,
+      ),
+    );
+
+    return FadeTransition(
+      opacity: fade,
+      child: SlideTransition(
+        position: slide,
+        child: child,
+      ),
+    );
+  }
 }
 
 class AppShell extends StatefulWidget {
