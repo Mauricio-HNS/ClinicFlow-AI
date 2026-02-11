@@ -39,18 +39,20 @@ class GarageSaleApp extends StatelessWidget {
         ),
         useMaterial3: true,
         navigationBarTheme: NavigationBarThemeData(
-          backgroundColor: AppColors.surface.withValues(alpha: 0.75),
-          indicatorColor: AppColors.primary.withValues(alpha: 0.18),
+          backgroundColor: AppColors.neumorphicBase,
+          indicatorColor: Colors.transparent,
+          elevation: 0,
+          height: 78,
           iconTheme: WidgetStateProperty.resolveWith(
             (states) => IconThemeData(
-              size: 26,
+              size: 24,
               color: states.contains(WidgetState.selected) ? AppColors.primaryEnd : AppColors.textMuted,
             ),
           ),
           labelTextStyle: WidgetStateProperty.resolveWith(
             (states) => TextStyle(
               fontSize: 12,
-              fontWeight: FontWeight.w600,
+              fontWeight: states.contains(WidgetState.selected) ? FontWeight.w700 : FontWeight.w600,
               color: states.contains(WidgetState.selected) ? AppColors.textPrimary : AppColors.textMuted,
             ),
           ),
@@ -264,22 +266,100 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_index],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (value) {
-          if (value == _publishTabIndex) {
-            _showPublishSheet(context);
-          }
-          setState(() => _index = value);
-        },
-        height: 72,
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.favorite_border), label: 'Favoritos'),
-          NavigationDestination(icon: Icon(Icons.add_circle_outline), label: 'Publicar'),
-          NavigationDestination(icon: Icon(Icons.chat_bubble_outline), label: 'Mensagens'),
-          NavigationDestination(icon: Icon(Icons.person_outline), label: 'Perfil'),
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+        decoration: BoxDecoration(
+          color: AppColors.neumorphicBase,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.neumorphicLightShadow,
+              blurRadius: 12,
+              offset: const Offset(-5, -5),
+            ),
+            BoxShadow(
+              color: AppColors.neumorphicDarkShadow,
+              blurRadius: 14,
+              offset: const Offset(6, 6),
+            ),
+          ],
+        ),
+        child: NavigationBar(
+          selectedIndex: _index,
+          onDestinationSelected: (value) {
+            if (value == _publishTabIndex) {
+              _showPublishSheet(context);
+            }
+            setState(() => _index = value);
+          },
+          destinations: [
+            NavigationDestination(
+              icon: _navIcon(Icons.home_outlined, false),
+              selectedIcon: _navIcon(Icons.home_rounded, true),
+              label: 'Home',
+            ),
+            NavigationDestination(
+              icon: _navIcon(Icons.favorite_border, false),
+              selectedIcon: _navIcon(Icons.favorite, true),
+              label: 'Favoritos',
+            ),
+            NavigationDestination(
+              icon: _navIcon(Icons.add_circle_outline, false),
+              selectedIcon: _navIcon(Icons.add_circle, true),
+              label: 'Publicar',
+            ),
+            NavigationDestination(
+              icon: _navIcon(Icons.chat_bubble_outline, false),
+              selectedIcon: _navIcon(Icons.chat_bubble, true),
+              label: 'Mensagens',
+            ),
+            NavigationDestination(
+              icon: _navIcon(Icons.person_outline, false),
+              selectedIcon: _navIcon(Icons.person, true),
+              label: 'Perfil',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _navIcon(IconData icon, bool selected) {
+    return Container(
+      width: 42,
+      height: 36,
+      decoration: BoxDecoration(
+        color: selected ? const Color(0xFFD5E9FF) : AppColors.neumorphicBase,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: selected ? const Color(0xFF8CC8FF).withValues(alpha: 0.75) : Colors.white.withValues(alpha: 0.7),
+        ),
+        boxShadow: [
+          if (selected)
+            BoxShadow(
+              color: const Color(0xFF8CC8FF).withValues(alpha: 0.35),
+              blurRadius: 9,
+              offset: const Offset(0, 2),
+            )
+          else ...[
+            BoxShadow(
+              color: AppColors.neumorphicLightShadow,
+              blurRadius: 6,
+              offset: const Offset(-2, -2),
+            ),
+            BoxShadow(
+              color: AppColors.neumorphicDarkShadow,
+              blurRadius: 7,
+              offset: const Offset(3, 3),
+            ),
+          ],
         ],
+      ),
+      child: Icon(
+        icon,
+        size: 21,
+        color: selected ? AppColors.primaryEnd : AppColors.textMuted,
       ),
     );
   }
