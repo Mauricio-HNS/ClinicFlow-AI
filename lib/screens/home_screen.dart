@@ -318,26 +318,76 @@ class _HeroSearch extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextFormField(
-            controller: controller,
-            onChanged: onSearchChanged,
-            decoration: InputDecoration(
-              hintText: 'Ex: notebook barato para programar',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: controller.text.isEmpty
-                  ? null
-                  : IconButton(
-                      onPressed: () {
-                        controller.clear();
-                        onSearchChanged('');
-                      },
-                      icon: const Icon(Icons.close),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.neumorphicLightShadow,
+                  blurRadius: 12,
+                  offset: const Offset(-5, -5),
+                ),
+                BoxShadow(
+                  color: AppColors.neumorphicDarkShadow,
+                  blurRadius: 14,
+                  spreadRadius: 0.8,
+                  offset: const Offset(6, 6),
+                ),
+              ],
+            ),
+            child: TextFormField(
+              controller: controller,
+              onChanged: onSearchChanged,
+              decoration: InputDecoration(
+                hintText: 'Ex: notebook barato para programar',
+                prefixIcon: Container(
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.neumorphicBase,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.neumorphicLightShadow,
+                        blurRadius: 6,
+                        offset: const Offset(-2, -2),
+                      ),
+                      BoxShadow(
+                        color: AppColors.neumorphicDarkShadow,
+                        blurRadius: 7,
+                        offset: const Offset(3, 3),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.search, color: AppColors.primaryEnd, size: 20),
+                ),
+                suffixIcon: controller.text.isEmpty
+                    ? null
+                    : IconButton(
+                        onPressed: () {
+                          controller.clear();
+                          onSearchChanged('');
+                        },
+                        icon: const Icon(Icons.close),
+                      ),
+                filled: true,
+                fillColor: AppColors.neumorphicBase,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: AppColors.textMuted,
+                      fontWeight: FontWeight.w600,
                     ),
-              filled: true,
-              fillColor: AppColors.highlight.withValues(alpha: 0.6),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide.none,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(22),
+                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.9)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(22),
+                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.9)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(22),
+                  borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.55), width: 1.3),
+                ),
               ),
             ),
           ),
