@@ -4,6 +4,7 @@ import '../models/job.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 import '../widgets/glass.dart';
+import '../widgets/gradient_button.dart';
 
 class JobsScreen extends StatelessWidget {
   const JobsScreen({super.key});
@@ -44,12 +45,13 @@ class JobsScreen extends StatelessWidget {
                         const SizedBox(width: 6),
                         Text('Madrid • 5 km', style: Theme.of(context).textTheme.bodyMedium),
                         const Spacer(),
-                        OutlinedButton.icon(
-                          onPressed: () {},
-                          icon: const Icon(Icons.tune),
-                          label: const Text('Filtros'),
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size(0, 40),
+                        SizedBox(
+                          height: 40,
+                          child: GradientButton(
+                            onPressed: () {},
+                            icon: Icons.tune,
+                            label: 'Filtros',
+                            height: 40,
                             padding: const EdgeInsets.symmetric(horizontal: 14),
                           ),
                         ),
@@ -78,10 +80,12 @@ class JobsScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: OutlinedButton.icon(
+                      child: GradientButton(
                         onPressed: () => _goHome(context),
-                        icon: const Icon(Icons.storefront_outlined),
-                        label: const Text('Voltar ao marketplace'),
+                        icon: Icons.storefront_outlined,
+                        label: 'Voltar ao marketplace',
+                        height: 42,
+                        padding: const EdgeInsets.symmetric(horizontal: 18),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -102,12 +106,14 @@ class JobsScreen extends StatelessWidget {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-                child: FilledButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.add_business_outlined),
-                  label: const Text('Publicar vaga'),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: GradientButton(
+                    onPressed: () {},
+                    icon: Icons.add_business_outlined,
+                    label: 'Publicar vaga',
+                    height: 52,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                   ),
                 ),
               ),
@@ -211,20 +217,20 @@ class _JobCard extends StatelessWidget {
               children: [
                 Text(job.salary, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.primary)),
                 const Spacer(),
-                SizedBox(
+                GradientButton(
+                  onPressed: () => _openDetail(context, job),
+                  label: 'Detalhes',
+                  icon: Icons.info_outline_rounded,
                   height: 40,
-                  child: OutlinedButton(
-                    onPressed: () => _openDetail(context, job),
-                    child: const Text('Detalhes'),
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
                 ),
                 const SizedBox(width: 8),
-                SizedBox(
+                GradientButton(
+                  onPressed: () {},
+                  label: 'Candidatar',
+                  icon: Icons.send_outlined,
                   height: 40,
-                  child: FilledButton(
-                    onPressed: () {},
-                    child: const Text('Candidatar'),
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
                 ),
               ],
             ),
@@ -262,12 +268,14 @@ class _JobCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              FilledButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.send_outlined),
-                label: const Text('Candidatar agora'),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 48),
+              SizedBox(
+                width: double.infinity,
+                child: GradientButton(
+                  onPressed: () {},
+                  icon: Icons.send_outlined,
+                  label: 'Candidatar agora',
+                  height: 48,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                 ),
               ),
             ],
