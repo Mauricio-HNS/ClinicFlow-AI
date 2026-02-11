@@ -518,12 +518,12 @@ class _SoftChipState extends State<_SoftChip> with SingleTickerProviderStateMixi
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 420));
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
     _shakeX = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0, end: -2.4), weight: 20),
-      TweenSequenceItem(tween: Tween(begin: -2.4, end: 2.4), weight: 25),
-      TweenSequenceItem(tween: Tween(begin: 2.4, end: -1.2), weight: 20),
-      TweenSequenceItem(tween: Tween(begin: -1.2, end: 0), weight: 35),
+      TweenSequenceItem(tween: Tween(begin: 0, end: -1.0), weight: 24),
+      TweenSequenceItem(tween: Tween(begin: -1.0, end: 1.0), weight: 28),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: -0.5), weight: 18),
+      TweenSequenceItem(tween: Tween(begin: -0.5, end: 0), weight: 30),
     ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     _timer = Timer.periodic(const Duration(seconds: 8), (_) {
