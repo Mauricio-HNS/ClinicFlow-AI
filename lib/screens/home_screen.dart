@@ -311,41 +311,74 @@ class _TopActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 86,
+      height: 96,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(AppColors.buttonRadius),
+          borderRadius: BorderRadius.circular(22),
           child: Ink(
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.62),
-              borderRadius: BorderRadius.circular(AppColors.buttonRadius),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.82)),
+              gradient: LinearGradient(
+                colors: [
+                  Colors.white.withValues(alpha: 0.86),
+                  const Color(0xFFEAF4FF).withValues(alpha: 0.86),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.92)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.72),
-                  blurRadius: 10,
-                  offset: const Offset(-2, -2),
+                  color: Colors.white.withValues(alpha: 0.95),
+                  blurRadius: 12,
+                  offset: const Offset(-3, -3),
                 ),
                 BoxShadow(
-                  color: const Color(0xFF8DB6EA).withValues(alpha: 0.44),
-                  blurRadius: 12,
-                  offset: const Offset(6, 8),
+                  color: const Color(0xFF85AEE0).withValues(alpha: 0.48),
+                  blurRadius: 14,
+                  offset: const Offset(7, 9),
                 ),
               ],
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon, color: AppColors.primaryEnd, size: 24),
-                const SizedBox(height: 6),
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFEEF6FF), Color(0xFFD9E9FF)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.white.withValues(alpha: 0.85),
+                        blurRadius: 7,
+                        offset: const Offset(-1, -1),
+                      ),
+                      BoxShadow(
+                        color: const Color(0xFF89B4E8).withValues(alpha: 0.5),
+                        blurRadius: 7,
+                        offset: const Offset(3, 4),
+                      ),
+                    ],
+                  ),
+                  child: Icon(icon, color: AppColors.primaryEnd, size: 22),
+                ),
+                const SizedBox(height: 7),
                 Text(
                   label,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.1,
                       ),
                 ),
               ],
