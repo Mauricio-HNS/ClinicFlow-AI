@@ -75,6 +75,15 @@ class JobsScreen extends StatelessWidget {
                       title: '5 vagas novas hoje',
                       subtitle: 'Empregos locais e oportunidades remotas.',
                     ),
+                    const SizedBox(height: 10),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _goHome(context),
+                        icon: const Icon(Icons.storefront_outlined),
+                        label: const Text('Voltar ao marketplace'),
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     Text('Vagas recomendadas', style: Theme.of(context).textTheme.titleMedium),
                   ],
