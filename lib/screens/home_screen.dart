@@ -457,6 +457,7 @@ class _SoftChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = _chipAccent(label);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -464,14 +465,14 @@ class _SoftChip extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Colors.white.withValues(alpha: 0.86),
-              const Color(0xFFEAF3FF).withValues(alpha: 0.84),
+              accent.withValues(alpha: 0.24),
+              accent.withValues(alpha: 0.1),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.92)),
+          border: Border.all(color: accent.withValues(alpha: 0.45)),
           boxShadow: [
             BoxShadow(
               color: Colors.white.withValues(alpha: 0.78),
@@ -479,7 +480,7 @@ class _SoftChip extends StatelessWidget {
               offset: const Offset(-2, -2),
             ),
             BoxShadow(
-              color: const Color(0xFF8CB4E6).withValues(alpha: 0.35),
+              color: accent.withValues(alpha: 0.35),
               blurRadius: 8,
               offset: const Offset(4, 5),
             ),
@@ -590,19 +591,20 @@ class _ConversionTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = _chipAccent(title);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.primaryStart.withValues(alpha: 0.35),
-            AppColors.primaryEnd.withValues(alpha: 0.42),
+            accent.withValues(alpha: 0.32),
+            accent.withValues(alpha: 0.18),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.45)),
+        border: Border.all(color: accent.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
             color: Colors.white.withValues(alpha: 0.35),
@@ -610,7 +612,7 @@ class _ConversionTag extends StatelessWidget {
             offset: const Offset(-1, -1),
           ),
           BoxShadow(
-            color: AppColors.glow.withValues(alpha: 0.32),
+            color: accent.withValues(alpha: 0.32),
             blurRadius: 9,
             offset: const Offset(4, 4),
           ),
@@ -625,6 +627,38 @@ class _ConversionTag extends StatelessWidget {
       ),
     );
   }
+}
+
+Color _chipAccent(String value) {
+  final key = value
+      .toLowerCase()
+      .replaceAll('á', 'a')
+      .replaceAll('à', 'a')
+      .replaceAll('â', 'a')
+      .replaceAll('ã', 'a')
+      .replaceAll('é', 'e')
+      .replaceAll('ê', 'e')
+      .replaceAll('í', 'i')
+      .replaceAll('ó', 'o')
+      .replaceAll('ô', 'o')
+      .replaceAll('õ', 'o')
+      .replaceAll('ú', 'u')
+      .replaceAll('ç', 'c');
+  if (key.contains('imove')) return const Color(0xFF4F8DFF);
+  if (key.contains('veiculo')) return const Color(0xFF7C5CFF);
+  if (key.contains('eletron')) return const Color(0xFF00A5D8);
+  if (key.contains('casa')) return const Color(0xFF28B67E);
+  if (key.contains('moda')) return const Color(0xFFE47AA7);
+  if (key.contains('infantil')) return const Color(0xFFFFB347);
+  if (key.contains('animais')) return const Color(0xFF8A6E5A);
+  if (key.contains('esporte')) return const Color(0xFF23A0A2);
+  if (key.contains('servico')) return const Color(0xFFFF9E57);
+  if (key.contains('emprego') || key.contains('vaga')) return const Color(0xFF4D6BFF);
+  if (key.contains('industria')) return const Color(0xFF7384A8);
+  if (key.contains('outros')) return const Color(0xFF5F6B7A);
+  if (key.contains('ofertas')) return const Color(0xFFFF8E72);
+  if (key.contains('recomendados')) return const Color(0xFF8F63E8);
+  return AppColors.primary;
 }
 
 class _HighlightBanner extends StatelessWidget {

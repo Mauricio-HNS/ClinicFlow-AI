@@ -94,20 +94,20 @@ class GarageSaleApp extends StatelessWidget {
         ),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
-            backgroundColor: AppColors.neumorphicBase,
+            backgroundColor: const Color(0xFFD5E9FF),
             foregroundColor: AppColors.primaryEnd,
             elevation: 0,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.buttonRadius)),
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.7)),
+            side: BorderSide(color: const Color(0xFF8CC8FF).withValues(alpha: 0.65)),
             shadowColor: AppColors.neumorphicDarkShadow,
           ),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primaryEnd,
-            backgroundColor: AppColors.neumorphicBase,
+            backgroundColor: const Color(0xFFE5F2FF),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.buttonRadius)),
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.72)),
+            side: BorderSide(color: const Color(0xFF8CC8FF).withValues(alpha: 0.7)),
             shadowColor: AppColors.neumorphicDarkShadow,
             elevation: 0,
           ),
@@ -116,13 +116,13 @@ class GarageSaleApp extends StatelessWidget {
           style: TextButton.styleFrom(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.buttonRadius)),
             foregroundColor: AppColors.primaryEnd,
-            backgroundColor: AppColors.neumorphicBase,
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.68)),
+            backgroundColor: const Color(0xFFE9F4FF),
+            side: BorderSide(color: const Color(0xFF8CC8FF).withValues(alpha: 0.55)),
           ),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.neumorphicBase,
+            backgroundColor: const Color(0xFFD7ECFF),
             foregroundColor: AppColors.primaryEnd,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.buttonRadius)),
             shadowColor: AppColors.neumorphicDarkShadow,
