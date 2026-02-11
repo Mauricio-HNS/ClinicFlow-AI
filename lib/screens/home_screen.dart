@@ -315,33 +315,46 @@ class _TopActionButton extends StatelessWidget {
       message: label,
       child: SizedBox(
         height: 96,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onPressed,
-            borderRadius: BorderRadius.circular(24),
-            child: Ink(
-              decoration: BoxDecoration(
-                color: AppColors.neumorphicBase,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.72)),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.neumorphicLightShadow,
-                    blurRadius: 10,
-                    offset: const Offset(-5, -5),
-                  ),
-                  BoxShadow(
-                    color: AppColors.neumorphicDarkShadow,
-                    blurRadius: 12,
-                    offset: const Offset(5, 5),
-                  ),
-                ],
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  color: AppColors.neumorphicBase,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.76)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.neumorphicLightShadow,
+                      blurRadius: 10,
+                      offset: const Offset(-5, -5),
+                    ),
+                    BoxShadow(
+                      color: AppColors.neumorphicDarkShadow,
+                      blurRadius: 12,
+                      offset: const Offset(5, 5),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Icon(icon, color: AppColors.primaryEnd, size: 28),
+                ),
               ),
-              child: Center(
-                child: Icon(icon, color: AppColors.primaryEnd, size: 34),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
               ),
-            ),
+            ],
           ),
         ),
       ),
