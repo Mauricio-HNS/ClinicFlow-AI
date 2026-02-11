@@ -637,7 +637,17 @@ class _ProductCard extends StatelessWidget {
                   end: Alignment.bottomRight,
                 ),
               ),
-              child: Center(child: Icon(sale.icon, size: 62, color: sale.color)),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: sale.imageUrl == null
+                    ? Center(child: Icon(sale.icon, size: 62, color: sale.color))
+                    : Image.network(
+                        sale.imageUrl!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        errorBuilder: (context, error, stackTrace) => Center(child: Icon(sale.icon, size: 62, color: sale.color)),
+                      ),
+              ),
             ),
             const SizedBox(height: 10),
             Wrap(

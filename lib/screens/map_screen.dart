@@ -238,7 +238,17 @@ class _FeedCard extends StatelessWidget {
                   color: sale.color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Center(child: Icon(sale.icon, size: 60, color: sale.color)),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: sale.imageUrl == null
+                      ? Center(child: Icon(sale.icon, size: 60, color: sale.color))
+                      : Image.network(
+                          sale.imageUrl!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          errorBuilder: (context, error, stackTrace) => Center(child: Icon(sale.icon, size: 60, color: sale.color)),
+                        ),
+                ),
               ),
               const SizedBox(height: 12),
               Row(

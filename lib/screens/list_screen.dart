@@ -50,6 +50,7 @@ class ListScreen extends StatelessWidget {
                 title: mockSales[index].title,
                 subtitle: '${mockSales[index].category} • ${mockSales[index].distance} • ${mockSales[index].date}',
                 price: mockSales[index].price,
+                imageUrl: mockSales[index].imageUrl,
                 color: mockSales[index].color,
                 icon: mockSales[index].icon,
               ),
@@ -67,6 +68,7 @@ class _SaleListCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final String price;
+  final String? imageUrl;
   final Color color;
   final IconData icon;
 
@@ -74,6 +76,7 @@ class _SaleListCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.price,
+    required this.imageUrl,
     required this.color,
     required this.icon,
   });
@@ -92,7 +95,16 @@ class _SaleListCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               color: color.withValues(alpha: 0.16),
             ),
-            child: Icon(icon, color: color),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: imageUrl == null
+                  ? Icon(icon, color: color)
+                  : Image.network(
+                      imageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Icon(icon, color: color),
+                    ),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
