@@ -95,16 +95,30 @@ class GarageSaleApp extends StatelessWidget {
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.buttonRadius)),
           ),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primaryEnd,
             backgroundColor: Colors.white.withValues(alpha: 0.65),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.buttonRadius)),
             side: BorderSide(color: Colors.white.withValues(alpha: 0.78)),
           ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.buttonRadius)),
+            foregroundColor: AppColors.primaryEnd,
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.buttonRadius)),
+          ),
+        ),
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.buttonRadius)),
         ),
       ),
       builder: (context, child) {

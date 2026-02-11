@@ -316,11 +316,11 @@ class _TopActionButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppColors.buttonRadius),
           child: Ink(
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.62),
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(AppColors.buttonRadius),
               border: Border.all(color: Colors.white.withValues(alpha: 0.82)),
               boxShadow: [
                 BoxShadow(

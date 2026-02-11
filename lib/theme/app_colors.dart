@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
+  static const double buttonRadius = 18;
+
   static const primaryStart = Color(0xFF74A7FF);
   static const primaryEnd = Color(0xFF3D7DFF);
   static const primary = Color(0xFF4F8DFF);

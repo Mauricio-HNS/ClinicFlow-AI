@@ -23,6 +23,7 @@ class GradientButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveRadius = AppColors.buttonRadius;
     final content = Row(
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
@@ -52,7 +53,7 @@ class GradientButton extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(radius),
+        borderRadius: BorderRadius.circular(effectiveRadius),
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.55),
           width: 1,
@@ -78,7 +79,7 @@ class GradientButton extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(radius),
+          borderRadius: BorderRadius.circular(effectiveRadius),
           onTap: onPressed,
           child: Padding(
             padding: padding,
