@@ -464,7 +464,7 @@ class _SoftChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
           color: AppColors.neumorphicBase,
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.white.withValues(alpha: 0.72)),
           boxShadow: [
             BoxShadow(
@@ -488,7 +488,7 @@ class _SoftChip extends StatelessWidget {
               height: 8,
               decoration: BoxDecoration(
                 color: accent,
-                borderRadius: BorderRadius.circular(99),
+                borderRadius: BorderRadius.circular(6),
                 boxShadow: [
                   BoxShadow(
                     color: accent.withValues(alpha: 0.45),

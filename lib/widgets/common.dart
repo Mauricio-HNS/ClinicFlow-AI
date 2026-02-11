@@ -14,7 +14,7 @@ class CategoryChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
       decoration: BoxDecoration(
         color: AppColors.neumorphicBase,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withValues(alpha: 0.92)),
         boxShadow: [
           BoxShadow(
@@ -38,7 +38,7 @@ class CategoryChip extends StatelessWidget {
             height: 8,
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.circular(99),
+              borderRadius: BorderRadius.circular(6),
             ),
           ),
           const SizedBox(width: 8),
