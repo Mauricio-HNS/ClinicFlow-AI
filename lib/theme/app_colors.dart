@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   static const double buttonRadius = 18;
+  static const neumorphicBase = Color(0xFFE0E5EC);
+  static const neumorphicLightShadow = Color(0xCCFFFFFF);
+  static const neumorphicDarkShadow = Color(0x33000000);
 
   static const primaryStart = Color(0xFF58A6FF);
   static const primaryEnd = Color(0xFF1D4ED8);

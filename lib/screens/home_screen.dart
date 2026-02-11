@@ -322,27 +322,19 @@ class _TopActionButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(24),
             child: Ink(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.white.withValues(alpha: 0.9),
-                    const Color(0xFFE4F0FF).withValues(alpha: 0.88),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                color: AppColors.neumorphicBase,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.94)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.72)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.95),
-                    blurRadius: 12,
-                    offset: const Offset(-3, -3),
+                    color: AppColors.neumorphicLightShadow,
+                    blurRadius: 10,
+                    offset: const Offset(-5, -5),
                   ),
                   BoxShadow(
-                    color: const Color(0xFF6E9CDA).withValues(alpha: 0.7),
-                    blurRadius: 18,
-                    spreadRadius: 1,
-                    offset: const Offset(8, 11),
+                    color: AppColors.neumorphicDarkShadow,
+                    blurRadius: 12,
+                    offset: const Offset(5, 5),
                   ),
                 ],
               ),

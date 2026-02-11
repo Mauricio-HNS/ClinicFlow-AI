@@ -33,51 +33,43 @@ class GradientButton extends StatelessWidget {
             width: 30,
             height: 30,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.18),
+              color: AppColors.neumorphicBase,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.7)),
             ),
-            child: Icon(icon, color: Colors.white, size: 18),
+            child: Icon(icon, color: AppColors.primaryEnd, size: 18),
           ),
           const SizedBox(width: 8),
         ],
-        Text(label, style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppColors.primaryEnd,
+                fontWeight: FontWeight.w700,
+              ),
+        ),
       ],
     );
 
     return Container(
       height: height,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            AppColors.primaryStart,
-            Color(0xFF3B82F6),
-            AppColors.primaryEnd,
-          ],
-          stops: [0.0, 0.45, 1.0],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppColors.neumorphicBase,
         borderRadius: BorderRadius.circular(effectiveRadius),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.55),
+          color: Colors.white.withValues(alpha: 0.7),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.white.withValues(alpha: 0.45),
-            blurRadius: 8,
-            offset: const Offset(-2, -2),
+            color: AppColors.neumorphicLightShadow,
+            blurRadius: 10,
+            offset: const Offset(-5, -5),
           ),
           BoxShadow(
-            color: const Color(0xFF7BA7DC).withValues(alpha: 0.55),
-            blurRadius: glowBlur + 4,
-            offset: const Offset(7, 8),
-          ),
-          BoxShadow(
-            color: AppColors.glow.withValues(alpha: 0.3),
+            color: AppColors.neumorphicDarkShadow,
             blurRadius: glowBlur,
-            offset: const Offset(0, 5),
+            offset: const Offset(5, 5),
           ),
         ],
       ),

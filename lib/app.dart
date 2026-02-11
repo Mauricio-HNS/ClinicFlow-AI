@@ -92,29 +92,39 @@ class GarageSaleApp extends StatelessWidget {
         ),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
+            backgroundColor: AppColors.neumorphicBase,
+            foregroundColor: AppColors.primaryEnd,
             elevation: 0,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.buttonRadius)),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.7)),
+            shadowColor: AppColors.neumorphicDarkShadow,
           ),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primaryEnd,
-            backgroundColor: Colors.white.withValues(alpha: 0.65),
+            backgroundColor: AppColors.neumorphicBase,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.buttonRadius)),
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.78)),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.72)),
+            shadowColor: AppColors.neumorphicDarkShadow,
+            elevation: 0,
           ),
         ),
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.buttonRadius)),
             foregroundColor: AppColors.primaryEnd,
+            backgroundColor: AppColors.neumorphicBase,
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.68)),
           ),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.neumorphicBase,
+            foregroundColor: AppColors.primaryEnd,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.buttonRadius)),
+            shadowColor: AppColors.neumorphicDarkShadow,
+            elevation: 2,
           ),
         ),
         floatingActionButtonTheme: FloatingActionButtonThemeData(
