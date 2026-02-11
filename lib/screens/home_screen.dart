@@ -105,6 +105,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     onOpenJobs: () => Navigator.pushNamed(context, '/jobs'),
                   ),
                   const SizedBox(height: 12),
+                  Text('Categorias', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 8),
                   SizedBox(
                     height: 40,
                     child: ListView.separated(
