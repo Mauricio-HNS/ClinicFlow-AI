@@ -170,21 +170,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           if (!_isSearching && !_hasCategoryFilter)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 6, 20, 8),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: const [
-                    _ConversionTag(title: 'Perto de voce'),
-                    _ConversionTag(title: 'Ofertas do dia'),
-                    _ConversionTag(title: 'Recomendados por IA'),
-                  ],
-                ),
-              ),
-            ),
-          if (!_isSearching && !_hasCategoryFilter)
             SliverList.builder(
               itemCount: 24,
               itemBuilder: (context, index) {
@@ -702,51 +687,6 @@ class _Badge extends StatelessWidget {
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppColors.textPrimary,
               fontWeight: FontWeight.w700,
-            ),
-      ),
-    );
-  }
-}
-
-class _ConversionTag extends StatelessWidget {
-  final String title;
-
-  const _ConversionTag({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = _chipAccent(title);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            accent.withValues(alpha: 0.32),
-            accent.withValues(alpha: 0.18),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: accent.withValues(alpha: 0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.35),
-            blurRadius: 7,
-            offset: const Offset(-1, -1),
-          ),
-          BoxShadow(
-            color: accent.withValues(alpha: 0.32),
-            blurRadius: 9,
-            offset: const Offset(4, 4),
-          ),
-        ],
-      ),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w800,
             ),
       ),
     );
