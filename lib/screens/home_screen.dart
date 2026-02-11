@@ -20,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   DiscoveryMode _mode = DiscoveryMode.products;
   bool _deliveryOnly = false;
   bool _urgentOnly = false;
+  String _city = 'Madrid, ES';
 
   final List<String> _quickIntents = const [
     'Carros',
@@ -69,7 +70,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text('Descoberta rapida', style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 12),
                   _HeroSearch(
-                    onChangeCity: () => _showHint(context, 'Troca de cidade em breve'),
+                    cityLabel: _city,
+                    onChangeCity: _openCityPicker,
                     onMarketTap: () => setState(() => _mode = DiscoveryMode.products),
                     onJobsTap: () => setState(() => _mode = DiscoveryMode.jobs),
                   ),
@@ -189,14 +191,59 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     _showHint(context, 'Filtro: $label');
   }
+
+  void _openCityPicker() {
+    const cities = [
+      'Madrid, ES',
+      'Barcelona, ES',
+      'Valencia, ES',
+      'Sevilla, ES',
+      'Bilbao, ES',
+      'Malaga, ES',
+    ];
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              const ListTile(
+                leading: Icon(Icons.location_city_outlined),
+                title: Text('Escolha sua cidade'),
+                subtitle: Text('Atualiza resultados, filtros e proximidade'),
+              ),
+              for (final city in cities)
+                ListTile(
+                  leading: Icon(
+                    city == _city ? Icons.radio_button_checked : Icons.radio_button_off,
+                    color: city == _city ? AppColors.primary : AppColors.textMuted,
+                  ),
+                  title: Text(city),
+                  onTap: () {
+                    setState(() => _city = city);
+                    Navigator.pop(context);
+                    _showHint(this.context, 'Cidade alterada para $city');
+                  },
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _HeroSearch extends StatelessWidget {
+  final String cityLabel;
   final VoidCallback onChangeCity;
   final VoidCallback onMarketTap;
   final VoidCallback onJobsTap;
 
   const _HeroSearch({
+    required this.cityLabel,
     required this.onChangeCity,
     required this.onMarketTap,
     required this.onJobsTap,
@@ -230,7 +277,7 @@ class _HeroSearch extends StatelessWidget {
             children: [
               const Icon(Icons.place_outlined, size: 18, color: AppColors.primary),
               const SizedBox(width: 6),
-              Text('Madrid, ES (auto)', style: Theme.of(context).textTheme.bodyMedium),
+              Text(cityLabel, style: Theme.of(context).textTheme.bodyMedium),
               const Spacer(),
               TextButton(onPressed: onChangeCity, child: const Text('Mudar cidade')),
             ],
