@@ -30,4 +30,17 @@ class NotificationsState {
     );
     items.value = [item, ...items.value];
   }
+
+  static void addJobApplication({
+    required String jobTitle,
+    required String candidateName,
+  }) {
+    final item = AppNotificationItem(
+      title: 'Nova candidatura recebida',
+      subtitle: '$candidateName se inscreveu em "$jobTitle"',
+      icon: Icons.person_add_alt_1_rounded,
+      color: AppColors.primary,
+    );
+    items.value = [item, ...items.value];
+  }
 }

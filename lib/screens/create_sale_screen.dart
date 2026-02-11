@@ -122,20 +122,23 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                 onStepCancel: _handleBack,
                 onStepTapped: (value) => setState(() => _currentStep = value),
                 controlsBuilder: (context, details) {
-                  return Row(
-                    children: [
-                      GradientButton(
-                        label: _currentStep == 3 ? 'Publicar' : 'Continuar',
-                        onPressed: details.onStepContinue,
-                        height: 46,
-                      ),
-                      const SizedBox(width: 12),
-                      if (_currentStep > 0)
-                        TextButton(
-                          onPressed: details.onStepCancel,
-                          child: const Text('Voltar'),
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Row(
+                      children: [
+                        GradientButton(
+                          label: _currentStep == 3 ? 'Publicar' : 'Continuar',
+                          onPressed: details.onStepContinue,
+                          height: 46,
                         ),
-                    ],
+                        const SizedBox(width: 12),
+                        if (_currentStep > 0)
+                          TextButton(
+                            onPressed: details.onStepCancel,
+                            child: const Text('Voltar'),
+                          ),
+                      ],
+                    ),
                   );
                 },
                 steps: [
