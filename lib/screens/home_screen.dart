@@ -21,12 +21,18 @@ class _HomeScreenState extends State<HomeScreen> {
   String _searchSummary = '';
 
   final List<String> _productQuickIntents = const [
-    'Carros',
-    'Imoveis',
-    'Eletronicos',
-    'Entrega',
-    'Usado',
-    'Urgente',
+    'Imóveis',
+    'Veículos',
+    'Eletrônicos e Tecnologia',
+    'Casa e Jardim',
+    'Moda e Beleza',
+    'Infantil',
+    'Animais',
+    'Esportes e Lazer',
+    'Serviços',
+    'Empregos',
+    'Indústria e Negócios',
+    'Outros',
   ];
 
   bool get _isSearching => _searchController.text.trim().isNotEmpty;
