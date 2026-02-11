@@ -267,31 +267,91 @@ class _HeroSearch extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton.icon(
+                child: _TopActionButton(
                   onPressed: onOpenSell,
-                  icon: const Icon(Icons.sell_outlined),
-                  label: const Text('Vender'),
+                  icon: Icons.sell_outlined,
+                  label: 'Vender',
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: OutlinedButton.icon(
+                child: _TopActionButton(
                   onPressed: onOpenEvent,
-                  icon: const Icon(Icons.event_available_outlined),
-                  label: const Text('Criar Evento'),
+                  icon: Icons.event_available_outlined,
+                  label: 'Criar Evento',
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: OutlinedButton.icon(
+                child: _TopActionButton(
                   onPressed: onOpenJobs,
-                  icon: const Icon(Icons.folder_open_outlined),
-                  label: const Text('Empregos'),
+                  icon: Icons.folder_open_outlined,
+                  label: 'Empregos',
                 ),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TopActionButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final IconData icon;
+  final String label;
+
+  const _TopActionButton({
+    required this.onPressed,
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 86,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(18),
+          child: Ink(
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.62),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.82)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.white.withValues(alpha: 0.72),
+                  blurRadius: 10,
+                  offset: const Offset(-2, -2),
+                ),
+                BoxShadow(
+                  color: const Color(0xFF8DB6EA).withValues(alpha: 0.44),
+                  blurRadius: 12,
+                  offset: const Offset(6, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: AppColors.primaryEnd, size: 24),
+                const SizedBox(height: 6),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
