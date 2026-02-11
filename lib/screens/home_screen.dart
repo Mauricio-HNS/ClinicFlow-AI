@@ -463,32 +463,41 @@ class _SoftChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              accent.withValues(alpha: 0.24),
-              accent.withValues(alpha: 0.1),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: AppColors.neumorphicBase,
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: accent.withValues(alpha: 0.45)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.72)),
           boxShadow: [
             BoxShadow(
-              color: Colors.white.withValues(alpha: 0.78),
+              color: AppColors.neumorphicLightShadow,
               blurRadius: 8,
-              offset: const Offset(-2, -2),
+              offset: const Offset(-4, -4),
             ),
             BoxShadow(
-              color: accent.withValues(alpha: 0.35),
-              blurRadius: 8,
-              offset: const Offset(4, 5),
+              color: AppColors.neumorphicDarkShadow,
+              blurRadius: 10,
+              offset: const Offset(4, 4),
             ),
           ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: accent,
+                borderRadius: BorderRadius.circular(99),
+                boxShadow: [
+                  BoxShadow(
+                    color: accent.withValues(alpha: 0.45),
+                    blurRadius: 5,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(

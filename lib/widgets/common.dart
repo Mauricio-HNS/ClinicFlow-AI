@@ -13,26 +13,19 @@ class CategoryChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            color.withValues(alpha: 0.2),
-            color.withValues(alpha: 0.1),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppColors.neumorphicBase,
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: Colors.white.withValues(alpha: 0.92)),
         boxShadow: [
           BoxShadow(
-            color: Colors.white.withValues(alpha: 0.8),
+            color: AppColors.neumorphicLightShadow,
             blurRadius: 8,
-            offset: const Offset(-2, -2),
+            offset: const Offset(-4, -4),
           ),
           BoxShadow(
-            color: const Color(0xFF88B2E6).withValues(alpha: 0.35),
-            blurRadius: 9,
-            offset: const Offset(4, 5),
+            color: AppColors.neumorphicDarkShadow,
+            blurRadius: 10,
+            offset: const Offset(4, 4),
           ),
         ],
       ),
