@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../data/mock_sales.dart';
 import '../data/categories.dart';
 import '../theme/app_colors.dart';
-import '../widgets/common.dart';
 import '../widgets/glass.dart';
 import '../widgets/gradient_button.dart';
 import '../state/profile_state.dart';

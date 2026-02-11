@@ -53,7 +53,7 @@ class ListScreen extends StatelessWidget {
                 color: mockSales[index].color,
                 icon: mockSales[index].icon,
               ),
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              separatorBuilder: (_, index) => const SizedBox(height: 12),
               itemCount: mockSales.length,
             ),
           ),

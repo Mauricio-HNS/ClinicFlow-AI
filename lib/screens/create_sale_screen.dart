@@ -178,7 +178,7 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                       _TextField(controller: _titleController, label: 'Título da venda', hint: 'Ex: Sala completa + decoração'),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
-                        value: _category,
+                        initialValue: _category,
                         decoration: const InputDecoration(labelText: 'Categoria'),
                         items: const [
                           DropdownMenuItem(value: 'Veículos', child: Text('Veículos')),
@@ -242,7 +242,7 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                           children: [
                             Switch(
                               value: _featured,
-                              activeColor: AppColors.primary,
+                              activeThumbColor: AppColors.primary,
                               onChanged: (value) => setState(() => _featured = value),
                             ),
                             const SizedBox(width: 12),

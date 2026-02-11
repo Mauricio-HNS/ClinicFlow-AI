@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 import '../widgets/gradient_button.dart';
 
 class AuthScreen extends StatelessWidget {
