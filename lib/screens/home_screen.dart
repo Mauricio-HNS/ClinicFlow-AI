@@ -623,7 +623,7 @@ class _ProductCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              height: 178,
+              height: 186,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 gradient: LinearGradient(
@@ -631,15 +631,61 @@ class _ProductCard extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.78)),
+                boxShadow: [
+                  BoxShadow(
+                    color: sale.color.withValues(alpha: 0.18),
+                    blurRadius: 20,
+                    spreadRadius: 0.5,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: _SaleImage(
-                  asset: sale.imageAsset,
-                  url: sale.imageUrl,
-                  icon: sale.icon,
-                  color: sale.color,
-                  iconSize: 62,
+                child: Stack(
+                  children: [
+                    _SaleImage(
+                      asset: sale.imageAsset,
+                      url: sale.imageUrl,
+                      icon: sale.icon,
+                      color: sale.color,
+                      iconSize: 62,
+                    ),
+                    Positioned(
+                      left: 10,
+                      top: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.36),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.38)),
+                        ),
+                        child: Text(
+                          sale.category,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      right: 10,
+                      top: 10,
+                      child: Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.84),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.92)),
+                        ),
+                        child: Icon(sale.icon, size: 18, color: sale.color),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -722,9 +768,9 @@ class _SaleImage extends StatelessWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.white.withValues(alpha: 0.10),
-                AppColors.primary.withValues(alpha: 0.08),
-                Colors.black.withValues(alpha: 0.18),
+                Colors.white.withValues(alpha: 0.18),
+                AppColors.primary.withValues(alpha: 0.10),
+                Colors.black.withValues(alpha: 0.28),
               ],
             ),
           ),
