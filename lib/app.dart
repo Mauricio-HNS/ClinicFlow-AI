@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'theme/app_colors.dart';
-import 'screens/map_screen.dart';
-import 'screens/list_screen.dart';
+import 'screens/home_screen.dart';
+import 'screens/favorites_screen.dart';
 import 'screens/create_sale_screen.dart';
-import 'screens/notifications_screen.dart';
+import 'screens/messages_screen.dart';
 import 'screens/profile_screen.dart';
-import 'screens/jobs_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/auth_screen.dart';
@@ -110,12 +109,13 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int _index = 0;
 
+  static const int _publishTabIndex = 2;
+
   final List<Widget> _screens = const [
-    MapScreen(),
-    JobsScreen(),
-    ListScreen(),
+    HomeScreen(),
+    FavoritesScreen(),
     CreateSaleScreen(),
-    NotificationsScreen(),
+    MessagesScreen(),
     ProfileScreen(),
   ];
 
@@ -125,29 +125,62 @@ class _AppShellState extends State<AppShell> {
       body: _screens[_index],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
-        onDestinationSelected: (value) => setState(() => _index = value),
+        onDestinationSelected: (value) {
+          if (value == _publishTabIndex) {
+            _showPublishSheet(context);
+          }
+          setState(() => _index = value);
+        },
         height: 72,
         destinations: const [
           NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.work_outline), label: 'Empregos'),
-          NavigationDestination(
-            icon: Icon(Icons.view_list_outlined),
-            label: 'Lista',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.add_circle_outline),
-            label: 'Criar',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.notifications_none),
-            label: 'Alerts',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            label: 'Perfil',
-          ),
+          NavigationDestination(icon: Icon(Icons.favorite_border), label: 'Favoritos'),
+          NavigationDestination(icon: Icon(Icons.add_circle_outline), label: 'Publicar'),
+          NavigationDestination(icon: Icon(Icons.chat_bubble_outline), label: 'Mensagens'),
+          NavigationDestination(icon: Icon(Icons.person_outline), label: 'Perfil'),
         ],
       ),
+    );
+  }
+
+  void _showPublishSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.sell_outlined),
+                  title: const Text('Vender item'),
+                  subtitle: const Text('Publique um anúncio no marketplace'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() => _index = _publishTabIndex);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.business_center_outlined),
+                  title: const Text('Publicar vaga'),
+                  subtitle: const Text('Crie uma vaga e receba candidatos'),
+                  onTap: () => Navigator.pop(context),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.person_search_outlined),
+                  title: const Text('Procurar emprego'),
+                  subtitle: const Text('Ative seu perfil para empresas'),
+                  onTap: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
