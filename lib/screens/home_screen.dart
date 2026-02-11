@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import '../data/mock_sales.dart';
 import '../models/sale.dart';
 import '../search/semantic_search.dart';
+import '../state/home_state.dart';
 import 'create_sale_screen.dart';
 import '../theme/app_colors.dart';
 import '../widgets/glass.dart';
@@ -19,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<Sale> _searchResults = const [];
   String _searchSummary = '';
+  String? _selectedCategory;
 
   final List<String> _productQuickIntents = const [
     'Imóveis',
@@ -36,9 +38,39 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   bool get _isSearching => _searchController.text.trim().isNotEmpty;
+  bool get _hasCategoryFilter => _selectedCategory != null && _selectedCategory!.isNotEmpty;
+  List<Sale> get _categoryResults {
+    if (!_hasCategoryFilter) return mockSales;
+    final target = _normalize(_selectedCategory!);
+    final filtered = mockSales.where((sale) {
+      final category = _normalize(sale.category);
+      final title = _normalize(sale.title);
+      if (target == 'imoveis') return category.contains('imove');
+      if (target == 'veiculos') return category.contains('veiculo') || title.contains('carro') || title.contains('moto');
+      if (target == 'eletronicos e tecnologia') return category.contains('eletronico') || title.contains('tv') || title.contains('notebook');
+      if (target == 'casa e jardim') return category.contains('cozinha') || category.contains('moveis') || title.contains('casa');
+      if (target == 'moda e beleza') return category.contains('roupas') || title.contains('roupa');
+      if (target == 'infantil') return title.contains('bebe') || title.contains('crianc');
+      if (target == 'animais') return title.contains('pet') || title.contains('animal');
+      if (target == 'esportes e lazer') return title.contains('bike') || title.contains('lazer') || title.contains('esporte');
+      if (target == 'servicos') return title.contains('servico') || category.contains('servico');
+      if (target == 'empregos') return title.contains('vaga') || category.contains('emprego');
+      if (target == 'industria e negocios') return title.contains('industrial') || title.contains('negocio');
+      return false;
+    }).toList(growable: false);
+    return filtered.isEmpty ? mockSales : filtered;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCategory = HomeState.selectedCategory.value;
+    HomeState.selectedCategory.addListener(_syncCategoryFilter);
+  }
 
   @override
   void dispose() {
+    HomeState.selectedCategory.removeListener(_syncCategoryFilter);
     _searchController.dispose();
     super.dispose();
   }
@@ -94,6 +126,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       itemCount: _productQuickIntents.length,
                     ),
                   ),
+                  if (_hasCategoryFilter) ...[
+                    const SizedBox(height: 10),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: InputChip(
+                        label: Text('Categoria: $_selectedCategory'),
+                        selected: true,
+                        onDeleted: _clearCategoryFilter,
+                        deleteIcon: const Icon(Icons.close, size: 18),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -120,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-          if (!_isSearching)
+          if (!_isSearching && !_hasCategoryFilter)
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 6, 20, 8),
@@ -135,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-          if (!_isSearching)
+          if (!_isSearching && !_hasCategoryFilter)
             SliverList.builder(
               itemCount: 24,
               itemBuilder: (context, index) {
@@ -151,7 +195,15 @@ class _HomeScreenState extends State<HomeScreen> {
               itemCount: _searchResults.length,
               itemBuilder: (context, index) => _ProductCard(sale: _searchResults[index]),
             ),
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+          if (!_isSearching && _hasCategoryFilter)
+            SliverList.builder(
+              itemCount: _categoryResults.length,
+              itemBuilder: (context, index) => _ProductCard(sale: _categoryResults[index]),
+            ),
+          if (!_isSearching && !_hasCategoryFilter)
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+          if (_hasCategoryFilter)
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
         ],
       ),
     );
@@ -163,6 +215,33 @@ class _HomeScreenState extends State<HomeScreen> {
       _searchResults = result.sales;
       _searchSummary = result.summary;
     });
+  }
+
+  void _syncCategoryFilter() {
+    if (!mounted) return;
+    setState(() => _selectedCategory = HomeState.selectedCategory.value);
+  }
+
+  void _clearCategoryFilter() {
+    HomeState.selectedCategory.value = null;
+    setState(() => _selectedCategory = null);
+  }
+
+  String _normalize(String input) {
+    return input
+        .toLowerCase()
+        .replaceAll('á', 'a')
+        .replaceAll('à', 'a')
+        .replaceAll('â', 'a')
+        .replaceAll('ã', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('ê', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ô', 'o')
+        .replaceAll('õ', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('ç', 'c');
   }
 
   void _openCityPicker() {

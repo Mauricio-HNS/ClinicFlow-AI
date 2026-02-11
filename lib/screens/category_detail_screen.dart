@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/categories.dart';
+import '../state/home_state.dart';
 import '../theme/app_colors.dart';
 import '../widgets/glass.dart';
 
@@ -74,7 +75,10 @@ class CategoryDetailScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: FilledButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    HomeState.selectedCategory.value = category.label;
+                    Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+                  },
                   icon: const Icon(Icons.search),
                   label: const Text('Ver anúncios'),
                 ),
@@ -82,7 +86,10 @@ class CategoryDetailScreen extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => Navigator.pushNamed(context, '/home'),
+                  onPressed: () {
+                    HomeState.selectedCategory.value = null;
+                    Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+                  },
                   icon: const Icon(Icons.home_outlined),
                   label: const Text('Home'),
                 ),
