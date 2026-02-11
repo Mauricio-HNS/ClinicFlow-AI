@@ -65,6 +65,7 @@ flutter:
     - assets/onboarding/2.png
     - assets/onboarding/3.png
     - assets/logo/logo.png
+    - assets/demo/
 
 flutter_launcher_icons:
   android: true

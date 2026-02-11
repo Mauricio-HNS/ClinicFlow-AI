@@ -709,12 +709,47 @@ class _SaleImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final image = _buildImage();
+    if (image == null) return _fallback();
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        image,
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.white.withValues(alpha: 0.10),
+                AppColors.primary.withValues(alpha: 0.08),
+                Colors.black.withValues(alpha: 0.18),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget? _buildImage() {
     if (asset != null && asset!.isNotEmpty) {
       return Image.asset(
         asset!,
         fit: BoxFit.cover,
         width: double.infinity,
-        errorBuilder: (context, error, stackTrace) => _fallback(),
+        errorBuilder: (context, error, stackTrace) {
+          if (url != null && url!.isNotEmpty) {
+            return Image.network(
+              url!,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              errorBuilder: (context, error, stackTrace) => _fallback(),
+            );
+          }
+          return _fallback();
+        },
       );
     }
     if (url != null && url!.isNotEmpty) {
@@ -725,7 +760,7 @@ class _SaleImage extends StatelessWidget {
         errorBuilder: (context, error, stackTrace) => _fallback(),
       );
     }
-    return _fallback();
+    return null;
   }
 
   Widget _fallback() => Center(child: Icon(icon, size: iconSize, color: color));
