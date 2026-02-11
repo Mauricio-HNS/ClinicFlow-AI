@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../data/categories.dart';
+import '../state/notifications_state.dart';
+import '../state/search_alert_state.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 import '../widgets/gradient_button.dart';
@@ -320,6 +322,7 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
       }
       final valid = _formKey.currentState?.validate() ?? false;
       if (valid) {
+        _triggerSearchAlertNotifications();
         if (_photos.length == 1) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Dica: anúncios com 3 ou mais fotos vendem mais rápido.')),
@@ -376,6 +379,20 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (picked == null) return;
     setState(() => _photos.add(picked));
+  }
+
+  void _triggerSearchAlertNotifications() {
+    final sourceText = '${_titleController.text} ${_descriptionController.text} $_category';
+    final matched = SearchAlertState.matchTerm(sourceText);
+    if (matched == null) return;
+    final listingTitle = _titleController.text.trim().isEmpty ? 'Novo anúncio' : _titleController.text.trim();
+    NotificationsState.addSearchMatch(
+      term: matched,
+      listingTitle: listingTitle,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Alerta enviado para buscas: "$matched"')),
+    );
   }
 }
 

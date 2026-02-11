@@ -95,6 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     controller: _searchController,
                     onSearchChanged: _applySemanticSearch,
                     onChangeCity: _openCityPicker,
+                    onOpenAlerts: () => Navigator.pushNamed(context, '/search-alerts'),
                     onOpenSell: () {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
@@ -296,6 +297,7 @@ class _HeroSearch extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onChangeCity;
+  final VoidCallback onOpenAlerts;
   final VoidCallback onOpenSell;
   final VoidCallback onOpenEvent;
   final VoidCallback onOpenJobs;
@@ -305,6 +307,7 @@ class _HeroSearch extends StatelessWidget {
     required this.controller,
     required this.onSearchChanged,
     required this.onChangeCity,
+    required this.onOpenAlerts,
     required this.onOpenSell,
     required this.onOpenEvent,
     required this.onOpenJobs,
@@ -359,7 +362,7 @@ class _HeroSearch extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.satellite_alt_outlined, color: AppColors.primaryEnd, size: 20),
+                  child: const Icon(Icons.search, color: AppColors.primaryEnd, size: 20),
                 ),
                 suffixIcon: controller.text.isEmpty
                     ? null
@@ -400,6 +403,12 @@ class _HeroSearch extends StatelessWidget {
               Text(cityLabel, style: Theme.of(context).textTheme.bodyMedium),
               const Spacer(),
               TextButton(onPressed: onChangeCity, child: const Text('Mudar cidade')),
+              const SizedBox(width: 6),
+              IconButton(
+                onPressed: onOpenAlerts,
+                icon: const Icon(Icons.satellite_alt_outlined),
+                tooltip: 'Ativar buscas',
+              ),
             ],
           ),
           const SizedBox(height: 8),

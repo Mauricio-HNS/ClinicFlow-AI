@@ -16,6 +16,7 @@ import 'screens/profile_verification_screen.dart';
 import 'screens/categories_screen.dart';
 import 'screens/category_detail_screen.dart';
 import 'screens/filters_screen.dart';
+import 'screens/search_alerts_screen.dart';
 import 'data/categories.dart';
 
 class GarageSaleApp extends StatelessWidget {
@@ -166,6 +167,7 @@ class GarageSaleApp extends StatelessWidget {
         '/profile-verification': (_) => const ProfileVerificationScreen(),
         '/categories': (_) => const CategoriesScreen(),
         '/filters': (_) => const FiltersScreen(),
+        '/search-alerts': (_) => const SearchAlertsScreen(),
         '/jobs': (_) => const JobsScreen(),
         '/home': (_) => const AppShell(),
       },
