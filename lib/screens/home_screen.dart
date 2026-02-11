@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../data/mock_sales.dart';
@@ -499,65 +500,107 @@ class _TopActionButton extends StatelessWidget {
   }
 }
 
-class _SoftChip extends StatelessWidget {
+class _SoftChip extends StatefulWidget {
   final String label;
   final VoidCallback onTap;
 
   const _SoftChip({required this.label, required this.onTap});
 
   @override
+  State<_SoftChip> createState() => _SoftChipState();
+}
+
+class _SoftChipState extends State<_SoftChip> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _shakeX;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 420));
+    _shakeX = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0, end: -2.4), weight: 20),
+      TweenSequenceItem(tween: Tween(begin: -2.4, end: 2.4), weight: 25),
+      TweenSequenceItem(tween: Tween(begin: 2.4, end: -1.2), weight: 20),
+      TweenSequenceItem(tween: Tween(begin: -1.2, end: 0), weight: 35),
+    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+
+    _timer = Timer.periodic(const Duration(seconds: 8), (_) {
+      if (!mounted || _controller.isAnimating) return;
+      _controller.forward(from: 0);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final accent = _chipAccent(label);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-        decoration: BoxDecoration(
-          color: AppColors.neumorphicBase,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.72)),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.neumorphicLightShadow,
-              blurRadius: 11,
-              offset: const Offset(-5, -5),
-            ),
-            BoxShadow(
-              color: AppColors.neumorphicDarkShadow,
-              blurRadius: 14,
-              spreadRadius: 0.6,
-              offset: const Offset(6, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: accent,
-                borderRadius: BorderRadius.circular(6),
-                boxShadow: [
-                  BoxShadow(
-                    color: accent.withValues(alpha: 0.45),
-                    blurRadius: 7,
-                    spreadRadius: 0.4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+    final accent = _chipAccent(widget.label);
+    return AnimatedBuilder(
+      animation: _shakeX,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(_shakeX.value, 0),
+          child: child,
+        );
+      },
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          decoration: BoxDecoration(
+            color: AppColors.neumorphicBase,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.72)),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.neumorphicLightShadow,
+                blurRadius: 11,
+                offset: const Offset(-5, -5),
               ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-            ),
-          ],
+              BoxShadow(
+                color: AppColors.neumorphicDarkShadow,
+                blurRadius: 14,
+                spreadRadius: 0.6,
+                offset: const Offset(6, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: accent,
+                  borderRadius: BorderRadius.circular(6),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accent.withValues(alpha: 0.45),
+                      blurRadius: 7,
+                      spreadRadius: 0.4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                widget.label,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+              ),
+            ],
+          ),
         ),
       ),
     );
