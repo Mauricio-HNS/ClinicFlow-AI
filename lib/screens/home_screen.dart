@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/mock_sales.dart';
 import '../models/sale.dart';
+import 'create_sale_screen.dart';
 import '../theme/app_colors.dart';
 import '../widgets/glass.dart';
 
@@ -40,6 +41,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   _HeroSearch(
                     cityLabel: _city,
                     onChangeCity: _openCityPicker,
+                    onOpenSell: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const CreateSaleScreen(),
+                        ),
+                      );
+                    },
+                    onOpenEvent: () => _openEventInfoSheet(context),
                     onOpenJobs: () => Navigator.pushNamed(context, '/jobs'),
                   ),
                   const SizedBox(height: 12),
@@ -139,11 +148,15 @@ class _HomeScreenState extends State<HomeScreen> {
 class _HeroSearch extends StatelessWidget {
   final String cityLabel;
   final VoidCallback onChangeCity;
+  final VoidCallback onOpenSell;
+  final VoidCallback onOpenEvent;
   final VoidCallback onOpenJobs;
 
   const _HeroSearch({
     required this.cityLabel,
     required this.onChangeCity,
+    required this.onOpenSell,
+    required this.onOpenEvent,
     required this.onOpenJobs,
   });
 
@@ -181,16 +194,32 @@ class _HeroSearch extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: OutlinedButton.icon(
-              onPressed: onOpenJobs,
-              icon: const Icon(Icons.folder_open_outlined),
-              label: const Text('Empregos'),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: AppColors.textPrimary.withValues(alpha: 0.2)),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onOpenSell,
+                  icon: const Icon(Icons.sell_outlined),
+                  label: const Text('Vender'),
+                ),
               ),
-            ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onOpenEvent,
+                  icon: const Icon(Icons.event_available_outlined),
+                  label: const Text('Criar Evento'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onOpenJobs,
+                  icon: const Icon(Icons.folder_open_outlined),
+                  label: const Text('Empregos'),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -375,4 +404,40 @@ class _HighlightBanner extends StatelessWidget {
 
 void _showHint(BuildContext context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+}
+
+void _openEventInfoSheet(BuildContext context) {
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: AppColors.surface,
+    showDragHandle: true,
+    builder: (context) {
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Criar Evento', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 6),
+              Text(
+                'Pacote promocional: 3€ para publicar ate 15 itens. Os itens entram no feed em ondas para manter visibilidade durante o dia.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _showHint(context, 'Checkout de evento (3€) sera conectado em seguida.');
+                },
+                icon: const Icon(Icons.payments_outlined),
+                label: const Text('Publicar evento por 3€'),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
