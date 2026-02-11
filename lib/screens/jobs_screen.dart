@@ -175,7 +175,10 @@ class _JobCard extends StatelessWidget {
                     color: AppColors.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Icon(Icons.work_outline, color: AppColors.primary),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: _JobImage(job: job),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -284,6 +287,43 @@ class _JobCard extends StatelessWidget {
       },
     );
   }
+}
+
+class _JobImage extends StatelessWidget {
+  final Job job;
+
+  const _JobImage({required this.job});
+
+  @override
+  Widget build(BuildContext context) {
+    final asset = job.imageAsset;
+    final url = job.imageUrl;
+
+    if (asset != null && asset.isNotEmpty) {
+      return Image.asset(
+        asset,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          if (url == null || url.isEmpty) return _fallback();
+          return Image.network(
+            url,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => _fallback(),
+          );
+        },
+      );
+    }
+    if (url != null && url.isNotEmpty) {
+      return Image.network(
+        url,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _fallback(),
+      );
+    }
+    return _fallback();
+  }
+
+  Widget _fallback() => const Icon(Icons.work_outline, color: AppColors.primary);
 }
 
 class _JobPill extends StatelessWidget {

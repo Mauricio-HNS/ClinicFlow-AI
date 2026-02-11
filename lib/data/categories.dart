@@ -1,5 +1,35 @@
 import 'package:flutter/material.dart';
 
+const Map<String, String> categoryCoverAssets = {
+  'Imóveis': 'assets/demo/imoveis.jpg',
+  'Veículos': 'assets/demo/veiculos.jpg',
+  'Eletrônicos e Tecnologia': 'assets/demo/eletronicos_tecnologia.jpg',
+  'Casa e Jardim': 'assets/demo/casa_jardim.jpg',
+  'Moda e Beleza': 'assets/demo/moda_beleza.jpg',
+  'Infantil': 'assets/demo/infantil.jpg',
+  'Animais': 'assets/demo/animais.jpg',
+  'Esportes e Lazer': 'assets/demo/esportes_lazer.jpg',
+  'Serviços': 'assets/demo/servicos.jpg',
+  'Empregos': 'assets/demo/empregos.jpg',
+  'Indústria e Negócios': 'assets/demo/industria_negocios.jpg',
+  'Outros': 'assets/demo/outros.jpg',
+};
+
+const Map<String, String> categoryCoverUrls = {
+  'Imóveis': 'https://picsum.photos/seed/imoveis-capa/1200/800',
+  'Veículos': 'https://picsum.photos/seed/veiculos-capa/1200/800',
+  'Eletrônicos e Tecnologia': 'https://picsum.photos/seed/eletronicos-capa/1200/800',
+  'Casa e Jardim': 'https://picsum.photos/seed/casa-jardim-capa/1200/800',
+  'Moda e Beleza': 'https://picsum.photos/seed/moda-capa/1200/800',
+  'Infantil': 'https://picsum.photos/seed/infantil-capa/1200/800',
+  'Animais': 'https://picsum.photos/seed/animais-capa/1200/800',
+  'Esportes e Lazer': 'https://picsum.photos/seed/esportes-capa/1200/800',
+  'Serviços': 'https://picsum.photos/seed/servicos-capa/1200/800',
+  'Empregos': 'https://picsum.photos/seed/empregos-capa/1200/800',
+  'Indústria e Negócios': 'https://picsum.photos/seed/industria-capa/1200/800',
+  'Outros': 'https://picsum.photos/seed/outros-capa/1200/800',
+};
+
 class CategoryItem {
   final String label;
   final String subtitle;

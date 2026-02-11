@@ -8,6 +8,8 @@ class Job {
   final String posted;
   final String description;
   final bool remote;
+  final String? imageAsset;
+  final String? imageUrl;
 
   const Job({
     required this.id,
@@ -19,5 +21,7 @@ class Job {
     required this.posted,
     required this.description,
     this.remote = false,
+    this.imageAsset,
+    this.imageUrl,
   });
 }

@@ -10,6 +10,8 @@ const mockJobs = <Job>[
     type: 'Part-time',
     posted: 'Hoje',
     description: 'Atendimento ao cliente, organização de estoque e caixa. Turnos manhã/tarde.',
+    imageAsset: 'assets/demo/empregos.jpg',
+    imageUrl: 'https://picsum.photos/seed/empregos-job-1/1200/800',
   ),
   Job(
     id: 'j2',
@@ -20,6 +22,8 @@ const mockJobs = <Job>[
     type: 'Full-time',
     posted: 'Ontem',
     description: 'Entrega de pequenos pacotes. CNH válida e experiência com rotas urbanas.',
+    imageAsset: 'assets/demo/industria_negocios.jpg',
+    imageUrl: 'https://picsum.photos/seed/empregos-job-2/1200/800',
   ),
   Job(
     id: 'j3',
@@ -30,6 +34,8 @@ const mockJobs = <Job>[
     type: 'Full-time',
     posted: '2 dias',
     description: 'Acompanhamento, refeições e apoio diário. Experiência é um diferencial.',
+    imageAsset: 'assets/demo/servicos.jpg',
+    imageUrl: 'https://picsum.photos/seed/empregos-job-3/1200/800',
   ),
   Job(
     id: 'j4',
@@ -41,5 +47,7 @@ const mockJobs = <Job>[
     posted: 'Hoje',
     description: 'Criação de peças digitais e identidade visual. Portfólio obrigatório.',
     remote: true,
+    imageAsset: 'assets/demo/eletronicos_tecnologia.jpg',
+    imageUrl: 'https://picsum.photos/seed/empregos-job-4/1200/800',
   ),
 ];

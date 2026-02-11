@@ -18,7 +18,7 @@ class CategoriesScreen extends StatelessWidget {
           crossAxisCount: 2,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: 0.95,
+          childAspectRatio: 0.82,
         ),
         itemCount: allCategories.length,
         itemBuilder: (context, index) {
@@ -33,13 +33,45 @@ class CategoriesScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 54,
-                    height: 54,
+                    height: 92,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.72),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    child: Icon(item.icon, color: item.color, size: 30),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          _CategoryCover(label: item.label),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.white.withValues(alpha: 0.08),
+                                  item.color.withValues(alpha: 0.14),
+                                  Colors.black.withValues(alpha: 0.24),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.topLeft,
+                            child: Container(
+                              margin: const EdgeInsets.all(8),
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.78),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(item.icon, color: item.color, size: 24),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 10),
                   Text(item.label, style: Theme.of(context).textTheme.titleMedium),
@@ -67,5 +99,30 @@ class CategoriesScreen extends StatelessWidget {
         },
       ),
     );
+  }
+}
+
+class _CategoryCover extends StatelessWidget {
+  final String label;
+
+  const _CategoryCover({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final asset = categoryCoverAssets[label];
+    final url = categoryCoverUrls[label];
+
+    if (asset != null) {
+      return Image.asset(
+        asset,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          if (url == null) return const SizedBox.shrink();
+          return Image.network(url, fit: BoxFit.cover);
+        },
+      );
+    }
+    if (url != null) return Image.network(url, fit: BoxFit.cover);
+    return const SizedBox.shrink();
   }
 }

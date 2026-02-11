@@ -18,6 +18,33 @@ class CategoryDetailScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
         children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: SizedBox(
+              height: 170,
+              width: double.infinity,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  _CategoryCover(label: category.label),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.white.withValues(alpha: 0.08),
+                          category.color.withValues(alpha: 0.12),
+                          Colors.black.withValues(alpha: 0.26),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
           GlassContainer(
             padding: const EdgeInsets.all(16),
             borderRadius: BorderRadius.circular(20),
@@ -99,5 +126,30 @@ class CategoryDetailScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _CategoryCover extends StatelessWidget {
+  final String label;
+
+  const _CategoryCover({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final asset = categoryCoverAssets[label];
+    final url = categoryCoverUrls[label];
+
+    if (asset != null) {
+      return Image.asset(
+        asset,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          if (url == null) return const SizedBox.shrink();
+          return Image.network(url, fit: BoxFit.cover);
+        },
+      );
+    }
+    if (url != null) return Image.network(url, fit: BoxFit.cover);
+    return const SizedBox.shrink();
   }
 }
