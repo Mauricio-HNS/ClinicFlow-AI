@@ -5,7 +5,6 @@ import '../data/mock_sales.dart';
 import '../models/sale.dart';
 import '../search/semantic_search.dart';
 import '../state/home_state.dart';
-import '../state/search_alert_state.dart';
 import 'create_sale_screen.dart';
 import '../theme/app_colors.dart';
 import '../widgets/glass.dart';
@@ -97,7 +96,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     onSearchChanged: _applySemanticSearch,
                     onChangeCity: _openCityPicker,
                     onOpenAlerts: () => Navigator.pushNamed(context, '/search-alerts'),
-                    onActivateAlert: _activateAlertFromSearch,
                     onOpenSell: () {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
@@ -223,15 +221,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _activateAlertFromSearch() {
-    final term = _searchController.text.trim();
-    if (term.isEmpty) return;
-    SearchAlertState.addAlert(term);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Satélite ativado para "$term"')),
-    );
-  }
-
   void _syncCategoryFilter() {
     if (!mounted) return;
     setState(() => _selectedCategory = HomeState.selectedCategory.value);
@@ -309,7 +298,6 @@ class _HeroSearch extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onChangeCity;
   final VoidCallback onOpenAlerts;
-  final VoidCallback onActivateAlert;
   final VoidCallback onOpenSell;
   final VoidCallback onOpenEvent;
   final VoidCallback onOpenJobs;
@@ -320,7 +308,6 @@ class _HeroSearch extends StatelessWidget {
     required this.onSearchChanged,
     required this.onChangeCity,
     required this.onOpenAlerts,
-    required this.onActivateAlert,
     required this.onOpenSell,
     required this.onOpenEvent,
     required this.onOpenJobs,
@@ -408,17 +395,6 @@ class _HeroSearch extends StatelessWidget {
               ),
             ),
           ),
-          if (controller.text.trim().isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: FilledButton.icon(
-                onPressed: onActivateAlert,
-                icon: const Icon(Icons.satellite_alt_outlined),
-                label: Text('Ativar satélite para "${controller.text.trim()}"'),
-              ),
-            ),
-          ],
           const SizedBox(height: 12),
           Row(
             children: [
