@@ -49,29 +49,29 @@ class GradientButton extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [AppColors.primaryStart, AppColors.primaryEnd],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.18),
+          color: Colors.white.withValues(alpha: 0.55),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.white.withValues(alpha: 0.12),
-            blurRadius: 10,
-            offset: const Offset(-3, -3),
+            color: Colors.white.withValues(alpha: 0.45),
+            blurRadius: 8,
+            offset: const Offset(-2, -2),
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
-            blurRadius: glowBlur + 6,
-            offset: const Offset(8, 8),
+            color: const Color(0xFF7BA7DC).withValues(alpha: 0.55),
+            blurRadius: glowBlur + 4,
+            offset: const Offset(7, 8),
           ),
           BoxShadow(
             color: AppColors.glow.withValues(alpha: 0.3),
             blurRadius: glowBlur,
-            offset: const Offset(0, 6),
+            offset: const Offset(0, 5),
           ),
         ],
       ),
