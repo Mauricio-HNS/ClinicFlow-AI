@@ -5,7 +5,6 @@ import '../models/job.dart';
 import '../models/sale.dart';
 import '../theme/app_colors.dart';
 import '../widgets/glass.dart';
-import '../widgets/gradient_button.dart';
 
 enum DiscoveryMode { products, jobs }
 
@@ -22,13 +21,22 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _urgentOnly = false;
   String _city = 'Madrid, ES';
 
-  final List<String> _quickIntents = const [
+  final List<String> _productQuickIntents = const [
     'Carros',
     'Imoveis',
     'Eletronicos',
+    'Entrega',
+    'Usado',
+    'Urgente',
+  ];
+
+  final List<String> _jobQuickIntents = const [
     'Freelance',
     'Remoto',
     'Part-time',
+    'TI',
+    'Vendas',
+    'Saude',
   ];
 
   final List<String> _productFilters = const [
@@ -50,14 +58,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openUniversalPublish(context),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_circle_outline),
-        label: const Text('Publicar anuncio'),
-      ),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -72,8 +72,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   _HeroSearch(
                     cityLabel: _city,
                     onChangeCity: _openCityPicker,
-                    onMarketTap: () => setState(() => _mode = DiscoveryMode.products),
-                    onJobsTap: () => setState(() => _mode = DiscoveryMode.jobs),
                   ),
                   const SizedBox(height: 12),
                   SizedBox(
@@ -81,9 +79,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemBuilder: (context, index) {
+                        final chip = _quickIntents[index];
                         return _SoftChip(
-                          label: _quickIntents[index],
-                          onTap: () => _showHint(context, 'Busca rapida: ${_quickIntents[index]}'),
+                          label: chip,
+                          onTap: () => _showHint(context, 'Busca rapida: $chip'),
                         );
                       },
                       separatorBuilder: (_, index) => const SizedBox(width: 8),
@@ -166,13 +165,14 @@ class _HomeScreenState extends State<HomeScreen> {
               return _JobCard(job: job);
             },
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 110)),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
       ),
     );
   }
 
   List<String> get _activeFilters => _mode == DiscoveryMode.products ? _productFilters : _jobFilters;
+  List<String> get _quickIntents => _mode == DiscoveryMode.products ? _productQuickIntents : _jobQuickIntents;
 
   bool _isSelectedFilter(String label) {
     if (label == 'Entrega') return _deliveryOnly;
@@ -234,19 +234,16 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
+
 }
 
 class _HeroSearch extends StatelessWidget {
   final String cityLabel;
   final VoidCallback onChangeCity;
-  final VoidCallback onMarketTap;
-  final VoidCallback onJobsTap;
 
   const _HeroSearch({
     required this.cityLabel,
     required this.onChangeCity,
-    required this.onMarketTap,
-    required this.onJobsTap,
   });
 
   @override
@@ -280,32 +277,6 @@ class _HeroSearch extends StatelessWidget {
               Text(cityLabel, style: Theme.of(context).textTheme.bodyMedium),
               const Spacer(),
               TextButton(onPressed: onChangeCity, child: const Text('Mudar cidade')),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: GradientButton(
-                  label: 'Comprar/Vender',
-                  icon: Icons.shopping_bag_outlined,
-                  onPressed: onMarketTap,
-                  height: 46,
-                  radius: 16,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: onJobsTap,
-                  icon: const Icon(Icons.work_outline),
-                  label: const Text('Encontrar emprego'),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(0, 46),
-                    side: BorderSide(color: AppColors.textPrimary.withValues(alpha: 0.2)),
-                  ),
-                ),
-              ),
             ],
           ),
         ],
@@ -724,44 +695,6 @@ void _openSortSheet(BuildContext context) {
             ),
             const SizedBox(height: 10),
           ],
-        ),
-      );
-    },
-  );
-}
-
-void _openUniversalPublish(BuildContext context) {
-  showModalBottomSheet<void>(
-    context: context,
-    backgroundColor: AppColors.surface,
-    showDragHandle: true,
-    builder: (context) {
-      return SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.sell_outlined),
-                title: const Text('Vender item'),
-                subtitle: const Text('Criar anuncio no marketplace'),
-                onTap: () => Navigator.pop(context),
-              ),
-              ListTile(
-                leading: const Icon(Icons.work_outline),
-                title: const Text('Publicar vaga'),
-                subtitle: const Text('Encontrar candidatos rapidamente'),
-                onTap: () => Navigator.pop(context),
-              ),
-              ListTile(
-                leading: const Icon(Icons.person_search_outlined),
-                title: const Text('Procurar emprego'),
-                subtitle: const Text('Deixar perfil visivel para empresas'),
-                onTap: () => Navigator.pop(context),
-              ),
-            ],
-          ),
         ),
       );
     },
