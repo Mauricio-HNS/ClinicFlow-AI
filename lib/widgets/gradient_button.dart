@@ -54,29 +54,22 @@ class GradientButton extends StatelessWidget {
     return Container(
       height: height,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFFEAF5FF),
-            Color(0xFFD6EBFF),
-            Color(0xFFC2E2FF),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppColors.neumorphicBase,
         borderRadius: BorderRadius.circular(effectiveRadius),
         border: Border.all(
-          color: const Color(0xFF8CC8FF).withValues(alpha: 0.6),
+          color: Colors.white.withValues(alpha: 0.78),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
             color: AppColors.neumorphicLightShadow,
-            blurRadius: 10,
+            blurRadius: 11,
             offset: const Offset(-5, -5),
           ),
           BoxShadow(
             color: AppColors.neumorphicDarkShadow,
-            blurRadius: glowBlur,
+            blurRadius: glowBlur + 2,
+            spreadRadius: 0.6,
             offset: const Offset(5, 5),
           ),
         ],

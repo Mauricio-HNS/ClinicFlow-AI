@@ -96,20 +96,20 @@ class GarageSaleApp extends StatelessWidget {
         ),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFFD5E9FF),
+            backgroundColor: AppColors.neumorphicBase,
             foregroundColor: AppColors.primaryEnd,
             elevation: 0,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.buttonRadius)),
-            side: BorderSide(color: const Color(0xFF8CC8FF).withValues(alpha: 0.65)),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.78)),
             shadowColor: AppColors.neumorphicDarkShadow,
           ),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primaryEnd,
-            backgroundColor: const Color(0xFFE5F2FF),
+            backgroundColor: AppColors.neumorphicBase,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.buttonRadius)),
-            side: BorderSide(color: const Color(0xFF8CC8FF).withValues(alpha: 0.7)),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.78)),
             shadowColor: AppColors.neumorphicDarkShadow,
             elevation: 0,
           ),
@@ -118,17 +118,17 @@ class GarageSaleApp extends StatelessWidget {
           style: TextButton.styleFrom(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.buttonRadius)),
             foregroundColor: AppColors.primaryEnd,
-            backgroundColor: const Color(0xFFE9F4FF),
-            side: BorderSide(color: const Color(0xFF8CC8FF).withValues(alpha: 0.55)),
+            backgroundColor: AppColors.neumorphicBase,
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.78)),
           ),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFD7ECFF),
+            backgroundColor: AppColors.neumorphicBase,
             foregroundColor: AppColors.primaryEnd,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.buttonRadius)),
             shadowColor: AppColors.neumorphicDarkShadow,
-            elevation: 2,
+            elevation: 0,
           ),
         ),
         floatingActionButtonTheme: FloatingActionButtonThemeData(
@@ -330,30 +330,29 @@ class _AppShellState extends State<AppShell> {
       width: 42,
       height: 36,
       decoration: BoxDecoration(
-        color: selected ? const Color(0xFFD5E9FF) : AppColors.neumorphicBase,
+        color: AppColors.neumorphicBase,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: selected ? const Color(0xFF8CC8FF).withValues(alpha: 0.75) : Colors.white.withValues(alpha: 0.7),
+          color: selected ? AppColors.primary.withValues(alpha: 0.45) : Colors.white.withValues(alpha: 0.72),
         ),
         boxShadow: [
+          BoxShadow(
+            color: AppColors.neumorphicLightShadow,
+            blurRadius: 6,
+            offset: const Offset(-2, -2),
+          ),
+          BoxShadow(
+            color: AppColors.neumorphicDarkShadow,
+            blurRadius: 7,
+            offset: const Offset(3, 3),
+          ),
           if (selected)
             BoxShadow(
-              color: const Color(0xFF8CC8FF).withValues(alpha: 0.35),
-              blurRadius: 9,
+              color: AppColors.primary.withValues(alpha: 0.25),
+              blurRadius: 8,
+              spreadRadius: 0.2,
               offset: const Offset(0, 2),
-            )
-          else ...[
-            BoxShadow(
-              color: AppColors.neumorphicLightShadow,
-              blurRadius: 6,
-              offset: const Offset(-2, -2),
             ),
-            BoxShadow(
-              color: AppColors.neumorphicDarkShadow,
-              blurRadius: 7,
-              offset: const Offset(3, 3),
-            ),
-          ],
         ],
       ),
       child: Icon(
