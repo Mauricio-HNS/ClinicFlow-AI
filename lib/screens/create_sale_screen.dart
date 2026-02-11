@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../data/categories.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 import '../widgets/gradient_button.dart';
@@ -17,34 +18,30 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
   final _formKey = GlobalKey<FormState>();
   int _currentStep = 0;
   bool _featured = false;
-  String _category = 'Móveis';
+  String _category = allCategories.first.label;
   final List<XFile> _photos = [];
   final ImagePicker _picker = ImagePicker();
   static const int _maxPhotos = 12;
+  late final List<String> _categoryOptions = allCategories.map((item) => item.label).toList(growable: false);
 
   static const Set<String> _photoRequiredCategories = {
+    'Imóveis',
     'Veículos',
-    'Eletrônicos',
+    'Eletrônicos e Tecnologia',
     'Casa e Jardim',
-    'Moda e Acessórios',
+    'Moda e Beleza',
     'Esportes e Lazer',
-    'Bebês e Crianças',
+    'Infantil',
     'Animais',
-    'Colecionáveis e Hobby',
-    'Ferramentas e equipamentos',
-    'Móveis',
-    'Roupas',
-    'Cozinha',
-    'Misc',
+    'Indústria e Negócios',
+    'Locação',
+    'Outros',
   };
 
   static const Set<String> _photoOptionalCategories = {
     'Empregos',
     'Serviços',
-    'Aulas',
     'Freelancers',
-    'Eventos e bilhetes',
-    'Ofertas digitais',
   };
 
   final _nameController = TextEditingController();
@@ -185,29 +182,15 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                       DropdownButtonFormField<String>(
                         initialValue: _category,
                         decoration: const InputDecoration(labelText: 'Categoria'),
-                        items: const [
-                          DropdownMenuItem(value: 'Móveis', child: Text('Móveis')),
-                          DropdownMenuItem(value: 'Roupas', child: Text('Roupas')),
-                          DropdownMenuItem(value: 'Cozinha', child: Text('Cozinha')),
-                          DropdownMenuItem(value: 'Ferramentas e equipamentos', child: Text('Ferramentas e equipamentos')),
-                          DropdownMenuItem(value: 'Veículos', child: Text('Veículos')),
-                          DropdownMenuItem(value: 'Imóveis', child: Text('Imóveis')),
-                          DropdownMenuItem(value: 'Eletrônicos', child: Text('Eletrônicos')),
-                          DropdownMenuItem(value: 'Casa e Jardim', child: Text('Casa e Jardim')),
-                          DropdownMenuItem(value: 'Moda e Acessórios', child: Text('Moda e Acessórios')),
-                          DropdownMenuItem(value: 'Esportes e Lazer', child: Text('Esportes e Lazer')),
-                          DropdownMenuItem(value: 'Bebês e Crianças', child: Text('Bebês e Crianças')),
-                          DropdownMenuItem(value: 'Animais', child: Text('Animais')),
-                          DropdownMenuItem(value: 'Colecionáveis e Hobby', child: Text('Colecionáveis e Hobby')),
-                          DropdownMenuItem(value: 'Misc', child: Text('Misc')),
-                          DropdownMenuItem(value: 'Empregos', child: Text('Empregos')),
-                          DropdownMenuItem(value: 'Serviços', child: Text('Serviços')),
-                          DropdownMenuItem(value: 'Aulas', child: Text('Aulas')),
-                          DropdownMenuItem(value: 'Freelancers', child: Text('Freelancers')),
-                          DropdownMenuItem(value: 'Eventos e bilhetes', child: Text('Eventos e bilhetes')),
-                          DropdownMenuItem(value: 'Ofertas digitais', child: Text('Ofertas digitais')),
-                        ],
-                        onChanged: (value) => setState(() => _category = value ?? 'Móveis'),
+                        items: _categoryOptions
+                            .map(
+                              (item) => DropdownMenuItem(
+                                value: item,
+                                child: Text(item),
+                              ),
+                            )
+                            .toList(growable: false),
+                        onChanged: (value) => setState(() => _category = value ?? _categoryOptions.first),
                       ),
                       const SizedBox(height: 12),
                       _TextField(controller: _priceController, label: 'Preço ou faixa', hint: '€10–€60'),
