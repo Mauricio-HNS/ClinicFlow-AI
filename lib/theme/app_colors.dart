@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 class AppColors {
   static const double buttonRadius = 18;
 
-  static const primaryStart = Color(0xFF74A7FF);
-  static const primaryEnd = Color(0xFF3D7DFF);
-  static const primary = Color(0xFF4F8DFF);
+  static const primaryStart = Color(0xFF58A6FF);
+  static const primaryEnd = Color(0xFF1D4ED8);
+  static const primary = Color(0xFF2563EB);
   static const canvas = Color(0xFFE5F2FF);
   static const surface = Color(0xFFD8ECFF);
   static const highlight = Color(0xFFC6E2FF);
