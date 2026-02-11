@@ -32,14 +32,17 @@ class GarageSaleApp extends StatelessWidget {
         ),
         scaffoldBackgroundColor: AppColors.canvas,
         shadowColor: AppColors.glow,
+        iconTheme: const IconThemeData(
+          color: Color(0xFFEAF3FF),
+        ),
         useMaterial3: true,
         navigationBarTheme: NavigationBarThemeData(
           backgroundColor: AppColors.surface,
-          indicatorColor: AppColors.highlight,
+          indicatorColor: AppColors.primary.withValues(alpha: 0.22),
           iconTheme: WidgetStateProperty.resolveWith(
             (states) => IconThemeData(
               size: 26,
-              color: states.contains(WidgetState.selected) ? AppColors.primaryEnd : AppColors.textMuted,
+              color: states.contains(WidgetState.selected) ? const Color(0xFFEAF3FF) : AppColors.textMuted,
             ),
           ),
           labelTextStyle: WidgetStateProperty.resolveWith(
@@ -62,14 +65,16 @@ class GarageSaleApp extends StatelessWidget {
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
+            elevation: 0,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           ),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.textPrimary,
+            foregroundColor: const Color(0xFFEAF3FF),
+            backgroundColor: AppColors.highlight.withValues(alpha: 0.55),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-            side: BorderSide(color: AppColors.textPrimary.withValues(alpha: 0.12)),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.18)),
           ),
         ),
       ),
