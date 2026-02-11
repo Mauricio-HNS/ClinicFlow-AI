@@ -401,16 +401,41 @@ class _SoftChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
-          color: AppColors.surface.withValues(alpha: 0.8),
+          gradient: LinearGradient(
+            colors: [
+              Colors.white.withValues(alpha: 0.86),
+              const Color(0xFFEAF3FF).withValues(alpha: 0.84),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.92)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.white.withValues(alpha: 0.78),
+              blurRadius: 8,
+              offset: const Offset(-2, -2),
+            ),
+            BoxShadow(
+              color: const Color(0xFF8CB4E6).withValues(alpha: 0.35),
+              blurRadius: 8,
+              offset: const Offset(4, 5),
+            ),
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+            ),
           ],
         ),
       ),
@@ -507,16 +532,36 @@ class _ConversionTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.18),
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primaryStart.withValues(alpha: 0.35),
+            AppColors.primaryEnd.withValues(alpha: 0.42),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.45)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.35),
+            blurRadius: 7,
+            offset: const Offset(-1, -1),
+          ),
+          BoxShadow(
+            color: AppColors.glow.withValues(alpha: 0.32),
+            blurRadius: 9,
+            offset: const Offset(4, 4),
+          ),
+        ],
       ),
       child: Text(
         title,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppColors.textPrimary,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
             ),
       ),
     );
