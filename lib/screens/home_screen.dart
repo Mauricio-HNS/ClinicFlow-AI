@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/mock_sales.dart';
 import '../models/sale.dart';
+import '../search/semantic_search.dart';
 import 'create_sale_screen.dart';
 import '../theme/app_colors.dart';
 import '../widgets/glass.dart';
@@ -14,6 +15,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String _city = 'Madrid, ES';
+  final TextEditingController _searchController = TextEditingController();
+  List<Sale> _searchResults = const [];
+  String _searchSummary = '';
 
   final List<String> _productQuickIntents = const [
     'Carros',
@@ -23,6 +27,14 @@ class _HomeScreenState extends State<HomeScreen> {
     'Usado',
     'Urgente',
   ];
+
+  bool get _isSearching => _searchController.text.trim().isNotEmpty;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +52,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 12),
                   _HeroSearch(
                     cityLabel: _city,
+                    controller: _searchController,
+                    onSearchChanged: _applySemanticSearch,
                     onChangeCity: _openCityPicker,
                     onOpenSell: () {
                       Navigator.of(context).push(
@@ -60,7 +74,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         final chip = _productQuickIntents[index];
                         return _SoftChip(
                           label: chip,
-                          onTap: () => _showHint(context, 'Busca rapida: $chip'),
+                          onTap: () {
+                            _searchController.text = chip;
+                            _searchController.selection = TextSelection.fromPosition(
+                              TextPosition(offset: chip.length),
+                            );
+                            _applySemanticSearch(chip);
+                          },
                         );
                       },
                       separatorBuilder: (_, index) => const SizedBox(width: 8),
@@ -71,34 +91,71 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 6, 20, 8),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: const [
-                  _ConversionTag(title: 'Perto de voce'),
-                  _ConversionTag(title: 'Ofertas do dia'),
-                  _ConversionTag(title: 'Recomendados por IA'),
-                ],
+          if (_isSearching)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                child: GlassContainer(
+                  padding: const EdgeInsets.all(12),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.auto_awesome, color: AppColors.primary),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _searchSummary,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
-          SliverList.builder(
-            itemCount: 24,
-            itemBuilder: (context, index) {
-              if (index == 2) return const _HighlightBanner('Perto de voce', 'Achamos 12 resultados em ate 2 km');
-              if (index == 8) return const _HighlightBanner('Ofertas do dia', 'Precos caindo nas categorias mais buscadas');
-              if (index == 15) return const _HighlightBanner('Recomendados para voce', 'Feed ajustado pelo seu comportamento');
-              final Sale sale = mockSales[index % mockSales.length];
-              return _ProductCard(sale: sale);
-            },
-          ),
+          if (!_isSearching)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 6, 20, 8),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: const [
+                    _ConversionTag(title: 'Perto de voce'),
+                    _ConversionTag(title: 'Ofertas do dia'),
+                    _ConversionTag(title: 'Recomendados por IA'),
+                  ],
+                ),
+              ),
+            ),
+          if (!_isSearching)
+            SliverList.builder(
+              itemCount: 24,
+              itemBuilder: (context, index) {
+                if (index == 2) return const _HighlightBanner('Perto de voce', 'Achamos 12 resultados em ate 2 km');
+                if (index == 8) return const _HighlightBanner('Ofertas do dia', 'Precos caindo nas categorias mais buscadas');
+                if (index == 15) return const _HighlightBanner('Recomendados para voce', 'Feed ajustado pelo seu comportamento');
+                final Sale sale = mockSales[index % mockSales.length];
+                return _ProductCard(sale: sale);
+              },
+            ),
+          if (_isSearching)
+            SliverList.builder(
+              itemCount: _searchResults.length,
+              itemBuilder: (context, index) => _ProductCard(sale: _searchResults[index]),
+            ),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
       ),
     );
+  }
+
+  void _applySemanticSearch(String query) {
+    final result = SemanticSaleSearch.searchSales(query, mockSales);
+    setState(() {
+      _searchResults = result.sales;
+      _searchSummary = result.summary;
+    });
   }
 
   void _openCityPicker() {
@@ -147,6 +204,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class _HeroSearch extends StatelessWidget {
   final String cityLabel;
+  final TextEditingController controller;
+  final ValueChanged<String> onSearchChanged;
   final VoidCallback onChangeCity;
   final VoidCallback onOpenSell;
   final VoidCallback onOpenEvent;
@@ -154,6 +213,8 @@ class _HeroSearch extends StatelessWidget {
 
   const _HeroSearch({
     required this.cityLabel,
+    required this.controller,
+    required this.onSearchChanged,
     required this.onChangeCity,
     required this.onOpenSell,
     required this.onOpenEvent,
@@ -170,11 +231,20 @@ class _HeroSearch extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TextFormField(
-            readOnly: true,
-            onTap: () => _showHint(context, 'Busca semantica em construcao'),
+            controller: controller,
+            onChanged: onSearchChanged,
             decoration: InputDecoration(
-              hintText: 'O que voce procura? Produtos, carros ou casas?',
+              hintText: 'Ex: notebook barato para programar',
               prefixIcon: const Icon(Icons.search),
+              suffixIcon: controller.text.isEmpty
+                  ? null
+                  : IconButton(
+                      onPressed: () {
+                        controller.clear();
+                        onSearchChanged('');
+                      },
+                      icon: const Icon(Icons.close),
+                    ),
               filled: true,
               fillColor: AppColors.highlight.withValues(alpha: 0.6),
               border: OutlineInputBorder(
