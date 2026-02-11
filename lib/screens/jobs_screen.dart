@@ -11,82 +11,105 @@ class JobsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Empregos perto de você', style: Theme.of(context).textTheme.titleLarge),
-                  const SizedBox(height: 10),
-                  const _JobSearchBar(),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      const Icon(Icons.place_outlined, size: 18, color: AppColors.primary),
-                      const SizedBox(width: 6),
-                      Text('Madrid • 5 km', style: Theme.of(context).textTheme.bodyMedium),
-                      const Spacer(),
-                      GradientButton(
-                        label: 'Filtros',
-                        icon: Icons.tune,
-                        height: 40,
-                        radius: 16,
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: const [
-                        CategoryChip(label: 'Remoto', color: AppColors.electronics),
-                        SizedBox(width: 8),
-                        CategoryChip(label: 'Part-time', color: AppColors.clothing),
-                        SizedBox(width: 8),
-                        CategoryChip(label: 'Full-time', color: AppColors.furniture),
-                        SizedBox(width: 8),
-                        CategoryChip(label: '€ Salário', color: AppColors.price),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const _MicroCard(
-                    title: '5 vagas novas hoje',
-                    subtitle: 'Empregos locais e oportunidades remotas.',
-                  ),
-                  const SizedBox(height: 16),
-                  Text('Vagas recomendadas', style: Theme.of(context).textTheme.titleMedium),
-                ],
-              ),
-            ),
-          ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final job = mockJobs[index % mockJobs.length];
-                return _JobCard(job: job);
-              },
-              childCount: 10,
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-              child: GradientButton(
-                label: 'Publicar vaga',
-                icon: Icons.add_business_outlined,
-                onPressed: () {},
-              ),
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Empregos'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.home_rounded),
+            onPressed: () => _goHome(context),
+            tooltip: 'Home',
           ),
         ],
       ),
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Empregos perto de você', style: Theme.of(context).textTheme.titleLarge),
+                    const SizedBox(height: 10),
+                    const _JobSearchBar(),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Icon(Icons.place_outlined, size: 18, color: AppColors.primary),
+                        const SizedBox(width: 6),
+                        Text('Madrid • 5 km', style: Theme.of(context).textTheme.bodyMedium),
+                        const Spacer(),
+                        GradientButton(
+                          label: 'Filtros',
+                          icon: Icons.tune,
+                          height: 40,
+                          radius: 16,
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          onPressed: () {},
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: const [
+                          CategoryChip(label: 'Remoto', color: AppColors.electronics),
+                          SizedBox(width: 8),
+                          CategoryChip(label: 'Part-time', color: AppColors.clothing),
+                          SizedBox(width: 8),
+                          CategoryChip(label: 'Full-time', color: AppColors.furniture),
+                          SizedBox(width: 8),
+                          CategoryChip(label: '€ Salário', color: AppColors.price),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const _MicroCard(
+                      title: '5 vagas novas hoje',
+                      subtitle: 'Empregos locais e oportunidades remotas.',
+                    ),
+                    const SizedBox(height: 16),
+                    Text('Vagas recomendadas', style: Theme.of(context).textTheme.titleMedium),
+                  ],
+                ),
+              ),
+            ),
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final job = mockJobs[index % mockJobs.length];
+                  return _JobCard(job: job);
+                },
+                childCount: 10,
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+                child: GradientButton(
+                  label: 'Publicar vaga',
+                  icon: Icons.add_business_outlined,
+                  onPressed: () {},
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _goHome(BuildContext context) {
+    Navigator.popUntil(
+      context,
+      (route) => route.settings.name == '/home' || route.isFirst,
     );
   }
 }
