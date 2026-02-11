@@ -359,7 +359,7 @@ class _HeroSearch extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.search, color: AppColors.primaryEnd, size: 20),
+                  child: const Icon(Icons.satellite_alt_outlined, color: AppColors.primaryEnd, size: 20),
                 ),
                 suffixIcon: controller.text.isEmpty
                     ? null
