@@ -310,12 +310,12 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
   }
 
   void _handleContinue() {
-    final verified = ProfileState.isVerified.value;
-    if (!verified) {
-      _showVerificationRequired();
-      return;
-    }
     if (_currentStep == 3) {
+      final verified = ProfileState.isVerified.value;
+      if (!verified) {
+        _showVerificationRequired();
+        return;
+      }
       if (_requiresPhoto() && _photos.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -358,13 +358,12 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
           content: const Text('Para publicar vendas, complete seu perfil com dados reais.'),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Agora não')),
-            GradientButton(
-              label: 'Completar',
+            FilledButton(
               onPressed: () {
                 Navigator.pop(context);
                 Navigator.pushNamed(context, '/profile-verification');
               },
-              height: 42,
+              child: const Text('Completar'),
             ),
           ],
         );
