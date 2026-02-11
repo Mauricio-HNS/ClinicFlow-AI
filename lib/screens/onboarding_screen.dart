@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../widgets/gradient_button.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -59,28 +60,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   _Dots(count: _pages.length, index: _page),
                   const Spacer(),
-                  _NeumorphicPillButton(
+                  GradientButton(
                     label: 'Pular',
-                    compact: true,
+                    height: 40,
+                    radius: 16,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
                     onPressed: () => Navigator.pushReplacementNamed(context, '/auth'),
                   ),
                   const SizedBox(width: 8),
-                  _NeumorphicRoundButton(
-                    icon: Icons.arrow_forward_rounded,
-                    onPressed: () {
-                      if (_page < _pages.length - 1) {
-                        _controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeOutCubic);
-                      } else {
-                        Navigator.pushReplacementNamed(context, '/auth');
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  _NeumorphicPillButton(
+                  GradientButton(
                     label: _page == _pages.length - 1 ? 'Começar' : 'Próximo',
                     onPressed: () {
                       if (_page < _pages.length - 1) {
-                        _controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeOutCubic);
+                        _controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
                       } else {
                         Navigator.pushReplacementNamed(context, '/auth');
                       }
@@ -229,106 +221,6 @@ class _Dots extends StatelessWidget {
           decoration: BoxDecoration(
             color: i == index ? AppColors.primary : AppColors.primary.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(999),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NeumorphicRoundButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onPressed;
-
-  const _NeumorphicRoundButton({
-    required this.icon,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 54,
-      height: 54,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(999),
-          child: Ink(
-            decoration: BoxDecoration(
-              color: AppColors.neumorphicBase,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withValues(alpha: 0.82)),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.neumorphicLightShadow,
-                  blurRadius: 10,
-                  offset: const Offset(-5, -5),
-                ),
-                BoxShadow(
-                  color: AppColors.neumorphicDarkShadow,
-                  blurRadius: 12,
-                  offset: const Offset(5, 5),
-                ),
-              ],
-            ),
-            child: Icon(icon, color: AppColors.primaryEnd, size: 28),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NeumorphicPillButton extends StatelessWidget {
-  final String label;
-  final VoidCallback onPressed;
-  final bool compact;
-
-  const _NeumorphicPillButton({
-    required this.label,
-    required this.onPressed,
-    this.compact = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: compact ? 42 : 54,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(999),
-          child: Ink(
-            padding: EdgeInsets.symmetric(horizontal: compact ? 14 : 22),
-            decoration: BoxDecoration(
-              color: AppColors.neumorphicBase,
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.82)),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.neumorphicLightShadow,
-                  blurRadius: 10,
-                  offset: const Offset(-5, -5),
-                ),
-                BoxShadow(
-                  color: AppColors.neumorphicDarkShadow,
-                  blurRadius: 12,
-                  offset: const Offset(5, 5),
-                ),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                label,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppColors.primaryEnd,
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-            ),
           ),
         ),
       ),
