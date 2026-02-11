@@ -28,21 +28,21 @@ class GarageSaleApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primary,
-          brightness: Brightness.dark,
+          brightness: Brightness.light,
         ),
-        scaffoldBackgroundColor: AppColors.canvas,
+        scaffoldBackgroundColor: Colors.transparent,
         shadowColor: AppColors.glow,
         iconTheme: const IconThemeData(
-          color: Color(0xFFEAF3FF),
+          color: AppColors.primary,
         ),
         useMaterial3: true,
         navigationBarTheme: NavigationBarThemeData(
-          backgroundColor: AppColors.surface,
-          indicatorColor: AppColors.primary.withValues(alpha: 0.22),
+          backgroundColor: AppColors.surface.withValues(alpha: 0.75),
+          indicatorColor: AppColors.primary.withValues(alpha: 0.18),
           iconTheme: WidgetStateProperty.resolveWith(
             (states) => IconThemeData(
               size: 26,
-              color: states.contains(WidgetState.selected) ? const Color(0xFFEAF3FF) : AppColors.textMuted,
+              color: states.contains(WidgetState.selected) ? AppColors.primaryEnd : AppColors.textMuted,
             ),
           ),
           labelTextStyle: WidgetStateProperty.resolveWith(
@@ -61,6 +61,35 @@ class GarageSaleApp extends StatelessWidget {
           bodyMedium: TextStyle(fontSize: 14, height: 1.4, color: AppColors.textMuted),
           bodySmall: TextStyle(fontSize: 12, height: 1.4, color: AppColors.textMuted),
         ),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          titleTextStyle: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+          iconTheme: const IconThemeData(color: AppColors.primary),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white.withValues(alpha: 0.65),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          hintStyle: const TextStyle(color: AppColors.textMuted),
+          labelStyle: const TextStyle(color: AppColors.textMuted),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.65)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.55)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.55), width: 1.2),
+          ),
+        ),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.primary,
@@ -71,13 +100,18 @@ class GarageSaleApp extends StatelessWidget {
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xFFEAF3FF),
-            backgroundColor: AppColors.highlight.withValues(alpha: 0.55),
+            foregroundColor: AppColors.primaryEnd,
+            backgroundColor: Colors.white.withValues(alpha: 0.65),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.18)),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.78)),
           ),
         ),
       ),
+      builder: (context, child) {
+        return _AppBackground(
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       initialRoute: '/splash',
       routes: {
         '/splash': (_) => const SplashScreen(),
@@ -91,6 +125,76 @@ class GarageSaleApp extends StatelessWidget {
         '/jobs': (_) => const JobsScreen(),
         '/home': (_) => const AppShell(),
       },
+    );
+  }
+}
+
+class _AppBackground extends StatelessWidget {
+  final Widget child;
+
+  const _AppBackground({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFFEAF5FF),
+            Color(0xFFD7EBFF),
+            Color(0xFFC6E0FF),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: -40,
+            right: -30,
+            child: _BlurOrb(
+              size: 210,
+              color: AppColors.primary.withValues(alpha: 0.25),
+            ),
+          ),
+          Positioned(
+            bottom: -60,
+            left: -35,
+            child: _BlurOrb(
+              size: 240,
+              color: AppColors.glow.withValues(alpha: 0.2),
+            ),
+          ),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _BlurOrb extends StatelessWidget {
+  final double size;
+  final Color color;
+
+  const _BlurOrb({required this.size, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        boxShadow: [
+          BoxShadow(
+            color: color,
+            blurRadius: 60,
+            spreadRadius: 12,
+          ),
+        ],
+      ),
     );
   }
 }
