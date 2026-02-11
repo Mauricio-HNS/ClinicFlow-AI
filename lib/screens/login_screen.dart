@@ -12,12 +12,16 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _emailFocus = FocusNode();
+  final _passwordFocus = FocusNode();
   bool _obscure = true;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
@@ -25,7 +29,8 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
           child: Form(
             key: _formKey,
@@ -43,8 +48,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
                 TextFormField(
                   controller: _emailController,
+                  focusNode: _emailFocus,
                   validator: (value) => (value == null || value.isEmpty) ? 'Email obrigatório' : null,
                   keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.email],
+                  onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
                   decoration: InputDecoration(
                     labelText: 'Email',
                     hintText: 'email@exemplo.com',
@@ -54,8 +63,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _passwordController,
+                  focusNode: _passwordFocus,
                   validator: (value) => (value == null || value.length < 6) ? 'Senha mínima 6 caracteres' : null,
                   obscureText: _obscure,
+                  keyboardType: TextInputType.visiblePassword,
+                  textInputAction: TextInputAction.done,
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  autofillHints: const [AutofillHints.password],
+                  onFieldSubmitted: (_) => _submit(),
                   decoration: InputDecoration(
                     labelText: 'Senha',
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
@@ -80,6 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   label: 'Criar conta',
                   onPressed: () => Navigator.pushReplacementNamed(context, '/register'),
                 ),
+                SizedBox(height: MediaQuery.of(context).viewInsets.bottom > 0 ? 20 : 0),
               ],
             ),
           ),
