@@ -6,6 +6,7 @@ import 'screens/favorites_screen.dart';
 import 'screens/create_sale_screen.dart';
 import 'screens/messages_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/jobs_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/auth_screen.dart';
@@ -82,6 +83,7 @@ class GarageSaleApp extends StatelessWidget {
         '/profile-verification': (_) => const ProfileVerificationScreen(),
         '/categories': (_) => const CategoriesScreen(),
         '/filters': (_) => const FiltersScreen(),
+        '/jobs': (_) => const JobsScreen(),
         '/home': (_) => const AppShell(),
       },
     );
