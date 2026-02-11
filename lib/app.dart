@@ -112,6 +112,9 @@ class GarageSaleApp extends StatelessWidget {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.buttonRadius)),
             side: BorderSide(color: Colors.white.withValues(alpha: 0.78)),
             shadowColor: AppColors.neumorphicDarkShadow,
+            surfaceTintColor: Colors.transparent,
+            disabledBackgroundColor: AppColors.neumorphicBase.withValues(alpha: 0.65),
+            disabledForegroundColor: AppColors.textMuted,
           ),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
@@ -122,6 +125,7 @@ class GarageSaleApp extends StatelessWidget {
             side: BorderSide(color: Colors.white.withValues(alpha: 0.78)),
             shadowColor: AppColors.neumorphicDarkShadow,
             elevation: 0,
+            surfaceTintColor: Colors.transparent,
           ),
         ),
         textButtonTheme: TextButtonThemeData(
@@ -130,6 +134,7 @@ class GarageSaleApp extends StatelessWidget {
             foregroundColor: AppColors.primaryEnd,
             backgroundColor: AppColors.neumorphicBase,
             side: BorderSide(color: Colors.white.withValues(alpha: 0.78)),
+            surfaceTintColor: Colors.transparent,
           ),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
@@ -139,6 +144,7 @@ class GarageSaleApp extends StatelessWidget {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.buttonRadius)),
             shadowColor: AppColors.neumorphicDarkShadow,
             elevation: 0,
+            surfaceTintColor: Colors.transparent,
           ),
         ),
         floatingActionButtonTheme: FloatingActionButtonThemeData(
