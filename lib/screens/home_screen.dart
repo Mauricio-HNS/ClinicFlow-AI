@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import '../data/mock_sales.dart';
 import '../models/sale.dart';
 import '../search/semantic_search.dart';
@@ -269,7 +270,7 @@ class _HeroSearch extends StatelessWidget {
               Expanded(
                 child: _TopActionButton(
                   onPressed: onOpenSell,
-                  icon: Icons.sell_outlined,
+                  icon: CupertinoIcons.tag,
                   label: 'Vender',
                 ),
               ),
@@ -277,7 +278,7 @@ class _HeroSearch extends StatelessWidget {
               Expanded(
                 child: _TopActionButton(
                   onPressed: onOpenEvent,
-                  icon: Icons.event_available_outlined,
+                  icon: CupertinoIcons.calendar,
                   label: 'Criar Evento',
                 ),
               ),
@@ -285,7 +286,7 @@ class _HeroSearch extends StatelessWidget {
               Expanded(
                 child: _TopActionButton(
                   onPressed: onOpenJobs,
-                  icon: Icons.folder_open_outlined,
+                  icon: CupertinoIcons.folder,
                   label: 'Empregos',
                 ),
               ),
@@ -349,27 +350,30 @@ class _TopActionButton extends StatelessWidget {
                   width: 38,
                   height: 38,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFEEF6FF), Color(0xFFD9E9FF)],
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withValues(alpha: 0.95),
+                        const Color(0xFFE3EEFF).withValues(alpha: 0.92),
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(13),
                     border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.white.withValues(alpha: 0.85),
-                        blurRadius: 7,
+                        blurRadius: 6,
                         offset: const Offset(-1, -1),
                       ),
                       BoxShadow(
                         color: const Color(0xFF89B4E8).withValues(alpha: 0.5),
-                        blurRadius: 7,
-                        offset: const Offset(3, 4),
+                        blurRadius: 6,
+                        offset: const Offset(2, 3),
                       ),
                     ],
                   ),
-                  child: Icon(icon, color: AppColors.primaryEnd, size: 22),
+                  child: Icon(icon, color: AppColors.primaryEnd, size: 20),
                 ),
                 const SizedBox(height: 7),
                 Text(
