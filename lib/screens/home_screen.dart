@@ -634,14 +634,13 @@ class _ProductCard extends StatelessWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: sale.imageUrl == null
-                    ? Center(child: Icon(sale.icon, size: 62, color: sale.color))
-                    : Image.network(
-                        sale.imageUrl!,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        errorBuilder: (context, error, stackTrace) => Center(child: Icon(sale.icon, size: 62, color: sale.color)),
-                      ),
+                child: _SaleImage(
+                  asset: sale.imageAsset,
+                  url: sale.imageUrl,
+                  icon: sale.icon,
+                  color: sale.color,
+                  iconSize: 62,
+                ),
               ),
             ),
             const SizedBox(height: 10),
@@ -691,6 +690,45 @@ class _Badge extends StatelessWidget {
       ),
     );
   }
+}
+
+class _SaleImage extends StatelessWidget {
+  final String? asset;
+  final String? url;
+  final IconData icon;
+  final Color color;
+  final double iconSize;
+
+  const _SaleImage({
+    required this.asset,
+    required this.url,
+    required this.icon,
+    required this.color,
+    required this.iconSize,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (asset != null && asset!.isNotEmpty) {
+      return Image.asset(
+        asset!,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        errorBuilder: (context, error, stackTrace) => _fallback(),
+      );
+    }
+    if (url != null && url!.isNotEmpty) {
+      return Image.network(
+        url!,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        errorBuilder: (context, error, stackTrace) => _fallback(),
+      );
+    }
+    return _fallback();
+  }
+
+  Widget _fallback() => Center(child: Icon(icon, size: iconSize, color: color));
 }
 
 Color _chipAccent(String value) {

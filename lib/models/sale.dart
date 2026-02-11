@@ -7,6 +7,7 @@ class Sale {
   final String price;
   final String distance;
   final String date;
+  final String? imageAsset;
   final String? imageUrl;
   final Color color;
   final IconData icon;
@@ -21,6 +22,7 @@ class Sale {
     required this.price,
     required this.distance,
     required this.date,
+    this.imageAsset,
     this.imageUrl,
     required this.color,
     required this.icon,
