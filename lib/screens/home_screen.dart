@@ -469,13 +469,14 @@ class _SoftChip extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: AppColors.neumorphicLightShadow,
-              blurRadius: 8,
-              offset: const Offset(-4, -4),
+              blurRadius: 11,
+              offset: const Offset(-5, -5),
             ),
             BoxShadow(
               color: AppColors.neumorphicDarkShadow,
-              blurRadius: 10,
-              offset: const Offset(4, 4),
+              blurRadius: 14,
+              spreadRadius: 0.6,
+              offset: const Offset(6, 6),
             ),
           ],
         ),
@@ -491,8 +492,9 @@ class _SoftChip extends StatelessWidget {
                 boxShadow: [
                   BoxShadow(
                     color: accent.withValues(alpha: 0.45),
-                    blurRadius: 5,
-                    offset: const Offset(0, 1),
+                    blurRadius: 7,
+                    spreadRadius: 0.4,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),

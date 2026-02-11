@@ -19,13 +19,14 @@ class CategoryChip extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: AppColors.neumorphicLightShadow,
-            blurRadius: 8,
-            offset: const Offset(-4, -4),
+            blurRadius: 11,
+            offset: const Offset(-5, -5),
           ),
           BoxShadow(
             color: AppColors.neumorphicDarkShadow,
-            blurRadius: 10,
-            offset: const Offset(4, 4),
+            blurRadius: 14,
+            spreadRadius: 0.6,
+            offset: const Offset(6, 6),
           ),
         ],
       ),
