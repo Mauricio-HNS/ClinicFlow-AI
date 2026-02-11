@@ -162,32 +162,24 @@ class _AppBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Color(0xFFEAF5FF),
-            Color(0xFFD7EBFF),
-            Color(0xFFC6E0FF),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppColors.neumorphicBase,
       ),
       child: Stack(
         children: [
           Positioned(
-            top: -40,
-            right: -30,
+            top: -48,
+            right: -42,
             child: _BlurOrb(
-              size: 210,
-              color: AppColors.primary.withValues(alpha: 0.25),
+              size: 220,
+              color: Colors.white.withValues(alpha: 0.55),
             ),
           ),
           Positioned(
-            bottom: -60,
-            left: -35,
+            bottom: -70,
+            left: -48,
             child: _BlurOrb(
-              size: 240,
-              color: AppColors.glow.withValues(alpha: 0.2),
+              size: 250,
+              color: Colors.black.withValues(alpha: 0.12),
             ),
           ),
           child,
@@ -214,8 +206,8 @@ class _BlurOrb extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: color,
-            blurRadius: 60,
-            spreadRadius: 12,
+            blurRadius: 52,
+            spreadRadius: 10,
           ),
         ],
       ),
