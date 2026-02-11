@@ -73,68 +73,73 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-          children: [
-            Text('Criar venda', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text('Cadastro rápido em 4 passos', style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(height: 20),
-            ValueListenableBuilder<bool>(
-              valueListenable: ProfileState.isVerified,
-              builder: (context, verified, _) {
-                if (verified) return const SizedBox.shrink();
-                return Container(
-                  padding: const EdgeInsets.all(14),
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.lock_outline, color: AppColors.primary),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Complete seu perfil para publicar.',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pushNamed(context, '/profile-verification'),
-                        child: const Text('Completar'),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-            Stepper(
-              currentStep: _currentStep,
-              onStepContinue: _handleContinue,
-              onStepCancel: _handleBack,
-              controlsBuilder: (context, details) {
-                return Row(
-                  children: [
-                    GradientButton(
-                      label: _currentStep == 3 ? 'Publicar' : 'Continuar',
-                      onPressed: details.onStepContinue,
-                      height: 46,
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Vender item'),
+      ),
+      body: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+            children: [
+              Text('Criar venda', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 8),
+              Text('Cadastro rápido em 4 passos', style: Theme.of(context).textTheme.bodyMedium),
+              const SizedBox(height: 20),
+              ValueListenableBuilder<bool>(
+                valueListenable: ProfileState.isVerified,
+                builder: (context, verified, _) {
+                  if (verified) return const SizedBox.shrink();
+                  return Container(
+                    padding: const EdgeInsets.all(14),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    const SizedBox(width: 12),
-                    if (_currentStep > 0)
-                      TextButton(
-                        onPressed: details.onStepCancel,
-                        child: const Text('Voltar'),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.lock_outline, color: AppColors.primary),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Complete seu perfil para publicar.',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pushNamed(context, '/profile-verification'),
+                          child: const Text('Completar'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              Stepper(
+                currentStep: _currentStep,
+                onStepContinue: _handleContinue,
+                onStepCancel: _handleBack,
+                onStepTapped: (value) => setState(() => _currentStep = value),
+                controlsBuilder: (context, details) {
+                  return Row(
+                    children: [
+                      GradientButton(
+                        label: _currentStep == 3 ? 'Publicar' : 'Continuar',
+                        onPressed: details.onStepContinue,
+                        height: 46,
                       ),
-                  ],
-                );
-              },
-              steps: [
+                      const SizedBox(width: 12),
+                      if (_currentStep > 0)
+                        TextButton(
+                          onPressed: details.onStepCancel,
+                          child: const Text('Voltar'),
+                        ),
+                    ],
+                  );
+                },
+                steps: [
                 Step(
                   title: const Text('Cadastro rápido'),
                   isActive: _currentStep >= 0,
@@ -181,6 +186,10 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                         initialValue: _category,
                         decoration: const InputDecoration(labelText: 'Categoria'),
                         items: const [
+                          DropdownMenuItem(value: 'Móveis', child: Text('Móveis')),
+                          DropdownMenuItem(value: 'Roupas', child: Text('Roupas')),
+                          DropdownMenuItem(value: 'Cozinha', child: Text('Cozinha')),
+                          DropdownMenuItem(value: 'Ferramentas e equipamentos', child: Text('Ferramentas e equipamentos')),
                           DropdownMenuItem(value: 'Veículos', child: Text('Veículos')),
                           DropdownMenuItem(value: 'Imóveis', child: Text('Imóveis')),
                           DropdownMenuItem(value: 'Eletrônicos', child: Text('Eletrônicos')),
@@ -190,6 +199,7 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                           DropdownMenuItem(value: 'Bebês e Crianças', child: Text('Bebês e Crianças')),
                           DropdownMenuItem(value: 'Animais', child: Text('Animais')),
                           DropdownMenuItem(value: 'Colecionáveis e Hobby', child: Text('Colecionáveis e Hobby')),
+                          DropdownMenuItem(value: 'Misc', child: Text('Misc')),
                           DropdownMenuItem(value: 'Empregos', child: Text('Empregos')),
                           DropdownMenuItem(value: 'Serviços', child: Text('Serviços')),
                           DropdownMenuItem(value: 'Aulas', child: Text('Aulas')),
@@ -301,9 +311,10 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                     ],
                   ),
                 ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
