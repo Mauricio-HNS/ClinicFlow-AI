@@ -14,7 +14,9 @@ import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/profile_verification_screen.dart';
 import 'screens/categories_screen.dart';
+import 'screens/category_detail_screen.dart';
 import 'screens/filters_screen.dart';
+import 'data/categories.dart';
 
 class GarageSaleApp extends StatelessWidget {
   const GarageSaleApp({super.key});
@@ -148,6 +150,18 @@ class GarageSaleApp extends StatelessWidget {
         '/filters': (_) => const FiltersScreen(),
         '/jobs': (_) => const JobsScreen(),
         '/home': (_) => const AppShell(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/category') {
+          final category = settings.arguments;
+          if (category is CategoryItem) {
+            return MaterialPageRoute<void>(
+              builder: (_) => CategoryDetailScreen(category: category),
+              settings: settings,
+            );
+          }
+        }
+        return null;
       },
     );
   }

@@ -82,11 +82,7 @@ class MapScreen extends StatelessWidget {
                         physics: const BouncingScrollPhysics(),
                         children: coreCategories
                             .map(
-                              (item) => _CategoryShortcut(
-                                label: item.label,
-                                color: item.color,
-                                icon: item.icon,
-                              ),
+                              (item) => _CategoryShortcut(item: item),
                             )
                             .toList(),
                       ),
@@ -176,22 +172,16 @@ class _SearchBar extends StatelessWidget {
 }
 
 class _CategoryShortcut extends StatelessWidget {
-  final String label;
-  final Color color;
-  final IconData icon;
+  final CategoryItem item;
 
-  const _CategoryShortcut({required this.label, required this.color, required this.icon});
+  const _CategoryShortcut({required this.item});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(right: 12),
       child: GestureDetector(
-        onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Categoria: $label')),
-          );
-        },
+        onTap: () => Navigator.pushNamed(context, '/category', arguments: item),
         child: GlassContainer(
           width: 84,
           padding: const EdgeInsets.all(10),
@@ -204,14 +194,14 @@ class _CategoryShortcut extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.18),
+                  color: item.color.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: color, size: 26),
+                child: Icon(item.icon, color: item.color, size: 26),
               ),
               const SizedBox(height: 6),
               Text(
-                label,
+                item.label,
                 style: Theme.of(context).textTheme.bodySmall,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

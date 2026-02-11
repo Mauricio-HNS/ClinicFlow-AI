@@ -24,11 +24,7 @@ class CategoriesScreen extends StatelessWidget {
         itemBuilder: (context, index) {
           final item = allCategories[index];
           return GestureDetector(
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Abrir categoria: ${item.label}')),
-              );
-            },
+            onTap: () => Navigator.pushNamed(context, '/category', arguments: item),
             child: GlassContainer(
               padding: const EdgeInsets.all(16),
               borderRadius: BorderRadius.circular(18),
