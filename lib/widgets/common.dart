@@ -58,20 +58,30 @@ class CategoryChip extends StatelessWidget {
 class StatTile extends StatelessWidget {
   final String label;
   final String value;
+  final VoidCallback? onTap;
 
-  const StatTile({super.key, required this.label, required this.value});
+  const StatTile({
+    super.key,
+    required this.label,
+    required this.value,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return GlassContainer(
-      padding: const EdgeInsets.all(14),
+    return InkWell(
       borderRadius: BorderRadius.circular(16),
-      child: Column(
-        children: [
-          Text(value, style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary)),
-          const SizedBox(height: 4),
-          Text(label, style: Theme.of(context).textTheme.bodyMedium),
-        ],
+      onTap: onTap,
+      child: GlassContainer(
+        padding: const EdgeInsets.all(14),
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          children: [
+            Text(value, style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary)),
+            const SizedBox(height: 4),
+            Text(label, style: Theme.of(context).textTheme.bodyMedium),
+          ],
+        ),
       ),
     );
   }
@@ -80,28 +90,41 @@ class StatTile extends StatelessWidget {
 class ProfileListItem extends StatelessWidget {
   final String title;
   final String subtitle;
+  final VoidCallback? onTap;
 
-  const ProfileListItem({super.key, required this.title, required this.subtitle});
+  const ProfileListItem({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return GlassContainer(
-      padding: const EdgeInsets.all(16),
+    return InkWell(
+      onTap: onTap,
       borderRadius: BorderRadius.circular(16),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 4),
-                Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
-              ],
+      child: GlassContainer(
+        padding: const EdgeInsets.all(16),
+        borderRadius: BorderRadius.circular(16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 4),
+                  Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
+                ],
+              ),
             ),
-          ),
-          const Icon(Icons.chevron_right),
-        ],
+            Icon(
+              Icons.chevron_right,
+              color: onTap != null ? AppColors.primary : AppColors.textMuted,
+            ),
+          ],
+        ),
       ),
     );
   }

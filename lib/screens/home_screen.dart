@@ -8,6 +8,7 @@ import '../state/home_state.dart';
 import 'create_sale_screen.dart';
 import '../theme/app_colors.dart';
 import '../widgets/glass.dart';
+import '../widgets/gradient_button.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -110,9 +111,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text('Categorias', style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
                   SizedBox(
-                    height: 40,
+                    height: 56,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(vertical: 6),
                       itemBuilder: (context, index) {
                         final chip = _productQuickIntents[index];
                         return _SoftChip(
@@ -537,6 +539,7 @@ class _SoftChipState extends State<_SoftChip> with SingleTickerProviderStateMixi
   @override
   Widget build(BuildContext context) {
     final accent = _chipAccent(widget.label);
+    final ledHalo = accent.withValues(alpha: 0.2);
     return AnimatedBuilder(
       animation: _shakeX,
       builder: (context, child) {
@@ -550,10 +553,25 @@ class _SoftChipState extends State<_SoftChip> with SingleTickerProviderStateMixi
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
           decoration: BoxDecoration(
-            color: AppColors.neumorphicBase,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.neumorphicBase,
+                Color.alphaBlend(accent.withValues(alpha: 0.12), AppColors.neumorphicBase),
+              ],
+            ),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.72)),
+            border: Border.all(
+              color: Color.alphaBlend(accent.withValues(alpha: 0.28), Colors.white.withValues(alpha: 0.72)),
+            ),
             boxShadow: [
+              BoxShadow(
+                color: ledHalo,
+                blurRadius: 20,
+                spreadRadius: -0.6,
+                offset: const Offset(0, 3),
+              ),
               BoxShadow(
                 color: AppColors.neumorphicLightShadow,
                 blurRadius: 11,
@@ -578,9 +596,9 @@ class _SoftChipState extends State<_SoftChip> with SingleTickerProviderStateMixi
                   borderRadius: BorderRadius.circular(6),
                   boxShadow: [
                     BoxShadow(
-                      color: accent.withValues(alpha: 0.45),
-                      blurRadius: 7,
-                      spreadRadius: 0.4,
+                      color: accent.withValues(alpha: 0.5),
+                      blurRadius: 8,
+                      spreadRadius: 0.24,
                       offset: const Offset(0, 2),
                     ),
                   ],
@@ -607,6 +625,91 @@ class _ProductCard extends StatelessWidget {
 
   const _ProductCard({required this.sale});
 
+  String _sellerName(Sale sale) => 'Vendedor ${sale.id.padLeft(2, '0')}';
+
+  String _sellerPhone(Sale sale) {
+    final id = int.tryParse(sale.id) ?? 0;
+    final suffix = (100000 + (id * 731) % 899999).toString();
+    return '+34 6${suffix.substring(0, 2)} ${suffix.substring(2, 5)} ${suffix.substring(5)}';
+  }
+
+  void _showSaleDetails(BuildContext context) {
+    final sellerName = _sellerName(sale);
+    final sellerPhone = _sellerPhone(sale);
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.fromLTRB(20, 20, 20, 24 + MediaQuery.of(context).viewInsets.bottom),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(sale.title, style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 8),
+              Text('${sale.category} • ${sale.distance}', style: Theme.of(context).textTheme.bodyMedium),
+              const SizedBox(height: 8),
+              Text(
+                sale.price,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  const Icon(Icons.person_outline_rounded, size: 18, color: AppColors.primary),
+                  const SizedBox(width: 6),
+                  Expanded(child: Text(sellerName, style: Theme.of(context).textTheme.bodyMedium)),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  const Icon(Icons.phone_outlined, size: 18, color: AppColors.primary),
+                  const SizedBox(width: 6),
+                  Expanded(child: Text(sellerPhone, style: Theme.of(context).textTheme.bodyMedium)),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: GradientButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Mensagem enviada para $sellerName')),
+                        );
+                      },
+                      icon: Icons.chat_bubble_outline_rounded,
+                      label: 'Enviar mensagem',
+                      height: 44,
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _contactSeller(BuildContext context) {
+    final sellerName = _sellerName(sale);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Mensagem enviada para $sellerName')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final badges = <String>[
@@ -623,7 +726,7 @@ class _ProductCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              height: 178,
+              height: 186,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 gradient: LinearGradient(
@@ -631,15 +734,61 @@ class _ProductCard extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.78)),
+                boxShadow: [
+                  BoxShadow(
+                    color: sale.color.withValues(alpha: 0.18),
+                    blurRadius: 20,
+                    spreadRadius: 0.5,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: _SaleImage(
-                  asset: sale.imageAsset,
-                  url: sale.imageUrl,
-                  icon: sale.icon,
-                  color: sale.color,
-                  iconSize: 62,
+                child: Stack(
+                  children: [
+                    _SaleImage(
+                      asset: sale.imageAsset,
+                      url: sale.imageUrl,
+                      icon: sale.icon,
+                      color: sale.color,
+                      iconSize: 62,
+                    ),
+                    Positioned(
+                      left: 10,
+                      top: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.36),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.38)),
+                        ),
+                        child: Text(
+                          sale.category,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      right: 10,
+                      top: 10,
+                      child: Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.84),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.92)),
+                        ),
+                        child: Icon(sale.icon, size: 18, color: sale.color),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -661,6 +810,27 @@ class _ProductCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text('${sale.distance} • ${sale.date}', style: Theme.of(context).textTheme.bodyMedium),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                GradientButton(
+                  onPressed: () => _showSaleDetails(context),
+                  icon: Icons.info_outline_rounded,
+                  label: 'Ver detalhes',
+                  height: 40,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+                GradientButton(
+                  onPressed: () => _contactSeller(context),
+                  icon: Icons.chat_bubble_outline_rounded,
+                  label: 'Enviar mensagem',
+                  height: 40,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -722,9 +892,9 @@ class _SaleImage extends StatelessWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.white.withValues(alpha: 0.10),
-                AppColors.primary.withValues(alpha: 0.08),
-                Colors.black.withValues(alpha: 0.18),
+                Colors.white.withValues(alpha: 0.18),
+                AppColors.primary.withValues(alpha: 0.10),
+                Colors.black.withValues(alpha: 0.28),
               ],
             ),
           ),

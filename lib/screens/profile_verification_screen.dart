@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../state/profile_state.dart';
 import '../theme/app_colors.dart';
 import '../widgets/gradient_button.dart';
@@ -12,11 +13,14 @@ class ProfileVerificationScreen extends StatefulWidget {
 
 class _ProfileVerificationScreenState extends State<ProfileVerificationScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _picker = ImagePicker();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _docController = TextEditingController();
   final _neighborhoodController = TextEditingController();
+  XFile? _documentPhoto;
+  XFile? _selfiePhoto;
 
   @override
   void dispose() {
@@ -52,9 +56,19 @@ class _ProfileVerificationScreenState extends State<ProfileVerificationScreen> {
               const SizedBox(height: 12),
               _Field(controller: _neighborhoodController, label: 'Bairro'),
               const SizedBox(height: 12),
-              _UploadTile(label: 'Foto do documento'),
+              _UploadTile(
+                label: 'Foto do documento',
+                fileName: _documentPhoto?.name,
+                actionLabel: 'Selecionar',
+                onTap: _pickDocumentPhoto,
+              ),
               const SizedBox(height: 12),
-              _UploadTile(label: 'Selfie para verificação'),
+              _UploadTile(
+                label: 'Selfie para verificação',
+                fileName: _selfiePhoto?.name,
+                actionLabel: 'Capturar',
+                onTap: _pickSelfiePhoto,
+              ),
               const SizedBox(height: 20),
               GradientButton(
                 label: 'Concluir verificação',
@@ -70,8 +84,26 @@ class _ProfileVerificationScreenState extends State<ProfileVerificationScreen> {
   void _submit() {
     final valid = _formKey.currentState?.validate() ?? false;
     if (!valid) return;
+    if (_documentPhoto == null || _selfiePhoto == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Envie a foto do documento e a selfie para concluir.')),
+      );
+      return;
+    }
     ProfileState.isVerified.value = true;
     Navigator.pop(context);
+  }
+
+  Future<void> _pickDocumentPhoto() async {
+    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (picked == null) return;
+    setState(() => _documentPhoto = picked);
+  }
+
+  Future<void> _pickSelfiePhoto() async {
+    final picked = await _picker.pickImage(source: ImageSource.camera, imageQuality: 80);
+    if (picked == null) return;
+    setState(() => _selfiePhoto = picked);
   }
 }
 
@@ -98,8 +130,16 @@ class _Field extends StatelessWidget {
 
 class _UploadTile extends StatelessWidget {
   final String label;
+  final String? fileName;
+  final String actionLabel;
+  final VoidCallback onTap;
 
-  const _UploadTile({required this.label});
+  const _UploadTile({
+    required this.label,
+    required this.fileName,
+    required this.actionLabel,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -112,10 +152,32 @@ class _UploadTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.upload_file_outlined, color: AppColors.primary),
+          Icon(
+            fileName == null ? Icons.upload_file_outlined : Icons.check_circle_outline_rounded,
+            color: fileName == null ? AppColors.primary : const Color(0xFF22C55E),
+          ),
           const SizedBox(width: 12),
-          Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyMedium)),
-          TextButton(onPressed: () {}, child: const Text('Enviar')),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: Theme.of(context).textTheme.bodyMedium),
+                if (fileName != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    fileName!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textPrimary.withValues(alpha: 0.75),
+                          fontWeight: FontWeight.w600,
+                        ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          TextButton(onPressed: onTap, child: Text(actionLabel)),
         ],
       ),
     );

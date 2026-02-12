@@ -41,12 +41,17 @@ class GradientButton extends StatelessWidget {
           ),
           const SizedBox(width: 8),
         ],
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppColors.primaryEnd,
-                fontWeight: FontWeight.w700,
-              ),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            softWrap: false,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppColors.primaryEnd,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
         ),
       ],
     );
