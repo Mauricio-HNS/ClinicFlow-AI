@@ -1,7 +1,11 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 
-import '../data/mock_sales.dart';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+
 import '../models/sale.dart';
+import 'create_sale_screen.dart';
+import '../state/published_sales_state.dart';
 import '../theme/app_colors.dart';
 import '../widgets/glass.dart';
 import '../widgets/gradient_button.dart';
@@ -16,10 +20,11 @@ class ListScreen extends StatefulWidget {
 }
 
 class _ListScreenState extends State<ListScreen> {
-  final List<Sale> _sales = List<Sale>.from(mockSales);
+  late List<Sale> _sales;
   final Set<String> _selectedSaleIds = <String>{};
   final Map<String, _SaleStatus> _statusBySaleId = <String, _SaleStatus>{};
   final TextEditingController _searchController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
 
   _SaleStatus? _statusFilter;
   bool _sortPriceAsc = false;
@@ -27,20 +32,40 @@ class _ListScreenState extends State<ListScreen> {
   @override
   void initState() {
     super.initState();
+    _sales = List<Sale>.from(PublishedSalesState.sales.value);
+    PublishedSalesState.sales.addListener(_syncPublishedSales);
+    _ensureStatuses();
+  }
+
+  void _syncPublishedSales() {
+    if (!mounted) return;
+    setState(() {
+      _sales = List<Sale>.from(PublishedSalesState.sales.value);
+      _selectedSaleIds.removeWhere(
+        (id) => !_sales.any((sale) => sale.id == id),
+      );
+      _ensureStatuses();
+    });
+  }
+
+  void _ensureStatuses() {
     for (final sale in _sales) {
-      final id = int.tryParse(sale.id) ?? 0;
-      if (id % 5 == 0) {
-        _statusBySaleId[sale.id] = _SaleStatus.sold;
-      } else if (id % 3 == 0) {
-        _statusBySaleId[sale.id] = _SaleStatus.paused;
-      } else {
+      _statusBySaleId.putIfAbsent(sale.id, () {
+        final id = int.tryParse(sale.id) ?? 0;
+        if (id % 5 == 0) return _SaleStatus.sold;
+        if (id % 3 == 0) return _SaleStatus.paused;
         _statusBySaleId[sale.id] = _SaleStatus.active;
-      }
+        return _SaleStatus.active;
+      });
     }
+    _statusBySaleId.removeWhere(
+      (saleId, _) => !_sales.any((sale) => sale.id == saleId),
+    );
   }
 
   @override
   void dispose() {
+    PublishedSalesState.sales.removeListener(_syncPublishedSales);
     _searchController.dispose();
     super.dispose();
   }
@@ -198,7 +223,7 @@ class _ListScreenState extends State<ListScreen> {
 
   void _deleteOne(Sale sale) {
     setState(() {
-      _sales.removeWhere((item) => item.id == sale.id);
+      PublishedSalesState.removeSale(sale.id);
       _selectedSaleIds.remove(sale.id);
       _statusBySaleId.remove(sale.id);
     });
@@ -212,9 +237,10 @@ class _ListScreenState extends State<ListScreen> {
     if (_selectedSaleIds.isEmpty) return;
 
     final deletedCount = _selectedSaleIds.length;
+    final saleIdsToDelete = _selectedSaleIds.toList(growable: false);
     setState(() {
-      _sales.removeWhere((sale) => _selectedSaleIds.contains(sale.id));
-      for (final saleId in _selectedSaleIds) {
+      for (final saleId in saleIdsToDelete) {
+        PublishedSalesState.removeSale(saleId);
         _statusBySaleId.remove(saleId);
       }
       _selectedSaleIds.clear();
@@ -243,213 +269,444 @@ class _ListScreenState extends State<ListScreen> {
     });
   }
 
+  Future<void> _editSale(Sale sale) async {
+    final titleController = TextEditingController(text: sale.title);
+    final priceController = TextEditingController(text: sale.price);
+    final List<String> editablePhotos = List<String>.from(sale.photoPaths);
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            Future<void> pickPhoto() async {
+              final picked = await _picker.pickImage(
+                source: ImageSource.gallery,
+                imageQuality: 80,
+              );
+              if (picked == null) return;
+              setModalState(() => editablePhotos.add(picked.path));
+            }
+
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                20,
+                20,
+                24 + MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Editar anúncio',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: titleController,
+                      decoration: const InputDecoration(
+                        labelText: 'Título',
+                        hintText: 'Ex: Geladeira frost free',
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: priceController,
+                      decoration: const InputDecoration(
+                        labelText: 'Preço',
+                        hintText: 'Ex: R\$ 1.200',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Text(
+                          'Fotos (${editablePhotos.length})',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const Spacer(),
+                        TextButton.icon(
+                          onPressed: pickPhoto,
+                          icon: const Icon(Icons.add_a_photo_outlined),
+                          label: const Text('Adicionar'),
+                        ),
+                      ],
+                    ),
+                    if (editablePhotos.isEmpty)
+                      Text(
+                        'Nenhuma foto adicionada.',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      )
+                    else
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: editablePhotos
+                            .map((path) {
+                              return Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.file(
+                                      File(path),
+                                      width: 88,
+                                      height: 88,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return Container(
+                                              width: 88,
+                                              height: 88,
+                                              decoration: BoxDecoration(
+                                                color: AppColors.surface,
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: const Icon(
+                                                Icons.image_not_supported,
+                                              ),
+                                            );
+                                          },
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 4,
+                                    right: 4,
+                                    child: InkWell(
+                                      onTap: () {
+                                        setModalState(
+                                          () => editablePhotos.remove(path),
+                                        );
+                                      },
+                                      child: Container(
+                                        width: 24,
+                                        height: 24,
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.6,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            999,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.close,
+                                          size: 14,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            })
+                            .toList(growable: false),
+                      ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Cancelar'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: () {
+                              final updatedSale = sale.copyWith(
+                                title: titleController.text.trim().isEmpty
+                                    ? sale.title
+                                    : titleController.text.trim(),
+                                price: priceController.text.trim().isEmpty
+                                    ? sale.price
+                                    : priceController.text.trim(),
+                                photoPaths: List<String>.from(editablePhotos),
+                                date: 'Atualizado agora',
+                              );
+                              PublishedSalesState.updateSale(updatedSale);
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Anúncio atualizado com sucesso.',
+                                  ),
+                                ),
+                              );
+                            },
+                            child: const Text('Salvar alterações'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final sales = _filteredSales;
 
-    return SafeArea(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () {
-                    if (Navigator.of(context).canPop()) {
-                      Navigator.of(context).pop();
-                    } else {
-                      Navigator.of(context).pushReplacementNamed('/home');
-                    }
-                  },
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                  tooltip: 'Voltar',
-                ),
-                Expanded(
-                  child: Text(
-                    'Vendas publicadas',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
-                GradientButton(
-                  label: _sortPriceAsc ? 'Preço ↑' : 'Preço ↓',
-                  icon: Icons.swap_vert,
-                  height: 36,
-                  radius: 12,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  onPressed: () =>
-                      setState(() => _sortPriceAsc = !_sortPriceAsc),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-            child: GlassContainer(
-              borderRadius: BorderRadius.circular(18),
-              padding: const EdgeInsets.all(12),
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
               child: Row(
                 children: [
-                  _TopStat(
-                    label: 'Ativas',
-                    value: _activeCount.toString(),
-                    color: AppColors.primary,
+                  IconButton(
+                    onPressed: () {
+                      if (Navigator.of(context).canPop()) {
+                        Navigator.of(context).pop();
+                      } else {
+                        Navigator.of(context).pushReplacementNamed('/home');
+                      }
+                    },
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                    tooltip: 'Voltar',
                   ),
-                  _TopStat(
-                    label: 'Pausadas',
-                    value: _pausedCount.toString(),
-                    color: AppColors.price,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Minhas vendas',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        Text(
+                          '${_sales.length} anúncio(s) criado(s)',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
                   ),
-                  _TopStat(
-                    label: 'Vendidas',
-                    value: _soldCount.toString(),
-                    color: Colors.green.shade600,
+                  GradientButton(
+                    label: _sortPriceAsc ? 'Preço ↑' : 'Preço ↓',
+                    icon: Icons.swap_vert,
+                    height: 36,
+                    radius: 12,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    onPressed: () =>
+                        setState(() => _sortPriceAsc = !_sortPriceAsc),
                   ),
                 ],
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search_rounded),
-                hintText: 'Buscar por título, categoria ou preço',
-                suffixIcon: _searchController.text.isEmpty
-                    ? null
-                    : IconButton(
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {});
-                        },
-                        icon: const Icon(Icons.close_rounded),
-                      ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child: GlassContainer(
+                borderRadius: BorderRadius.circular(18),
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    _TopStat(
+                      label: 'Ativas',
+                      value: _activeCount.toString(),
+                      color: AppColors.primary,
+                    ),
+                    _TopStat(
+                      label: 'Pausadas',
+                      value: _pausedCount.toString(),
+                      color: AppColors.price,
+                    ),
+                    _TopStat(
+                      label: 'Vendidas',
+                      value: _soldCount.toString(),
+                      color: Colors.green.shade600,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _FilterChip(
-                  label: 'Todos',
-                  selected: _statusFilter == null,
-                  onTap: () => setState(() => _statusFilter = null),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  hintText: 'Buscar por título, categoria ou preço',
+                  suffixIcon: _searchController.text.isEmpty
+                      ? null
+                      : IconButton(
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {});
+                          },
+                          icon: const Icon(Icons.close_rounded),
+                        ),
                 ),
-                _FilterChip(
-                  label: 'Ativos',
-                  selected: _statusFilter == _SaleStatus.active,
-                  onTap: () =>
-                      setState(() => _statusFilter = _SaleStatus.active),
-                ),
-                _FilterChip(
-                  label: 'Pausados',
-                  selected: _statusFilter == _SaleStatus.paused,
-                  onTap: () =>
-                      setState(() => _statusFilter = _SaleStatus.paused),
-                ),
-                _FilterChip(
-                  label: 'Vendidos',
-                  selected: _statusFilter == _SaleStatus.sold,
-                  onTap: () => setState(() => _statusFilter = _SaleStatus.sold),
-                ),
-              ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                GradientButton(
-                  label: _areAllFilteredSelected
-                      ? 'Desmarcar tudo'
-                      : 'Selecionar tudo',
-                  icon: _areAllFilteredSelected
-                      ? Icons.check_box_rounded
-                      : Icons.check_box_outline_blank_rounded,
-                  height: 36,
-                  radius: 12,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  onPressed: _toggleSelectAllFiltered,
-                ),
-                GradientButton(
-                  label: _selectedSaleIds.isEmpty
-                      ? 'Apagar selecionados'
-                      : 'Apagar (${_selectedSaleIds.length})',
-                  icon: Icons.delete_outline_rounded,
-                  height: 36,
-                  radius: 12,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  onPressed: _selectedSaleIds.isEmpty ? null : _deleteSelected,
-                ),
-              ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _FilterChip(
+                    label: 'Todos',
+                    selected: _statusFilter == null,
+                    onTap: () => setState(() => _statusFilter = null),
+                  ),
+                  _FilterChip(
+                    label: 'Ativos',
+                    selected: _statusFilter == _SaleStatus.active,
+                    onTap: () =>
+                        setState(() => _statusFilter = _SaleStatus.active),
+                  ),
+                  _FilterChip(
+                    label: 'Pausados',
+                    selected: _statusFilter == _SaleStatus.paused,
+                    onTap: () =>
+                        setState(() => _statusFilter = _SaleStatus.paused),
+                  ),
+                  _FilterChip(
+                    label: 'Vendidos',
+                    selected: _statusFilter == _SaleStatus.sold,
+                    onTap: () =>
+                        setState(() => _statusFilter = _SaleStatus.sold),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: sales.isEmpty
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: GlassContainer(
-                        borderRadius: BorderRadius.circular(18),
-                        padding: const EdgeInsets.all(18),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.inventory_2_outlined,
-                              color: AppColors.primary,
-                              size: 30,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Nenhuma venda encontrada para esse filtro.',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                          ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  GradientButton(
+                    label: _areAllFilteredSelected
+                        ? 'Desmarcar tudo'
+                        : 'Selecionar tudo',
+                    icon: _areAllFilteredSelected
+                        ? Icons.check_box_rounded
+                        : Icons.check_box_outline_blank_rounded,
+                    height: 36,
+                    radius: 12,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    onPressed: _toggleSelectAllFiltered,
+                  ),
+                  GradientButton(
+                    label: _selectedSaleIds.isEmpty
+                        ? 'Apagar selecionados'
+                        : 'Apagar (${_selectedSaleIds.length})',
+                    icon: Icons.delete_outline_rounded,
+                    height: 36,
+                    radius: 12,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    onPressed: _selectedSaleIds.isEmpty
+                        ? null
+                        : _deleteSelected,
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: _sales.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: GlassContainer(
+                          borderRadius: BorderRadius.circular(18),
+                          padding: const EdgeInsets.all(18),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.sell_outlined,
+                                color: AppColors.primary,
+                                size: 30,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Você ainda não publicou itens para venda.',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              const SizedBox(height: 10),
+                              TextButton.icon(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) => const CreateSaleScreen(),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.add_box_outlined),
+                                label: const Text('Publicar um item'),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                    itemCount: sales.length,
-                    separatorBuilder: (_, index) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final sale = sales[index];
-                      final status =
-                          _statusBySaleId[sale.id] ?? _SaleStatus.active;
+                    )
+                  : sales.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: GlassContainer(
+                          borderRadius: BorderRadius.circular(18),
+                          padding: const EdgeInsets.all(18),
+                          child: Text(
+                            'Nenhum item encontrado para os filtros atuais.',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ),
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                      itemCount: sales.length,
+                      separatorBuilder: (_, index) =>
+                          const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final sale = sales[index];
+                        final status =
+                            _statusBySaleId[sale.id] ?? _SaleStatus.active;
 
-                      return _SaleListCard(
-                        sale: sale,
-                        status: status,
-                        isSelected: _selectedSaleIds.contains(sale.id),
-                        onToggleSelected: (selected) {
-                          setState(() {
-                            if (selected) {
-                              _selectedSaleIds.add(sale.id);
-                            } else {
-                              _selectedSaleIds.remove(sale.id);
-                            }
-                          });
-                        },
-                        onShowDetails: () => _showSaleDetails(sale),
-                        onSendMessage: () => _sendMessage(sale),
-                        onTogglePause: () => _togglePause(sale),
-                        onMarkSold: () => _markAsSold(sale),
-                        onDelete: () => _deleteOne(sale),
-                      );
-                    },
-                  ),
-          ),
-        ],
+                        return _SaleListCard(
+                          sale: sale,
+                          status: status,
+                          isSelected: _selectedSaleIds.contains(sale.id),
+                          onToggleSelected: (selected) {
+                            setState(() {
+                              if (selected) {
+                                _selectedSaleIds.add(sale.id);
+                              } else {
+                                _selectedSaleIds.remove(sale.id);
+                              }
+                            });
+                          },
+                          onShowDetails: () => _showSaleDetails(sale),
+                          onSendMessage: () => _sendMessage(sale),
+                          onEdit: () => _editSale(sale),
+                          onTogglePause: () => _togglePause(sale),
+                          onMarkSold: () => _markAsSold(sale),
+                          onDelete: () => _deleteOne(sale),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -593,6 +850,7 @@ class _SaleListCard extends StatelessWidget {
   final ValueChanged<bool> onToggleSelected;
   final VoidCallback onShowDetails;
   final VoidCallback onSendMessage;
+  final VoidCallback onEdit;
   final VoidCallback onTogglePause;
   final VoidCallback onMarkSold;
   final VoidCallback onDelete;
@@ -604,6 +862,7 @@ class _SaleListCard extends StatelessWidget {
     required this.onToggleSelected,
     required this.onShowDetails,
     required this.onSendMessage,
+    required this.onEdit,
     required this.onTogglePause,
     required this.onMarkSold,
     required this.onDelete,
@@ -656,7 +915,23 @@ class _SaleListCard extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: sale.imageAsset != null
+                  child: sale.photoPaths.isNotEmpty
+                      ? Image.file(
+                          File(sale.photoPaths.first),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            if (sale.imageAsset != null) {
+                              return Image.asset(
+                                sale.imageAsset!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Icon(sale.icon, color: sale.color),
+                              );
+                            }
+                            return Icon(sale.icon, color: sale.color);
+                          },
+                        )
+                      : sale.imageAsset != null
                       ? Image.asset(
                           sale.imageAsset!,
                           fit: BoxFit.cover,
@@ -718,6 +993,14 @@ class _SaleListCard extends StatelessWidget {
                 onPressed: onSendMessage,
                 icon: Icons.chat_bubble_outline_rounded,
                 label: 'Mensagem',
+                height: 34,
+                radius: 12,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+              ),
+              GradientButton(
+                onPressed: onEdit,
+                icon: Icons.edit_outlined,
+                label: 'Editar',
                 height: 34,
                 radius: 12,
                 padding: const EdgeInsets.symmetric(horizontal: 10),

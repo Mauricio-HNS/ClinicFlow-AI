@@ -6,6 +6,7 @@ import 'screens/favorites_screen.dart';
 import 'screens/create_sale_screen.dart';
 import 'screens/messages_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/list_screen.dart';
 import 'screens/jobs_screen.dart';
 import 'screens/job_applications_screen.dart';
 import 'screens/splash_screen.dart';
@@ -215,6 +216,7 @@ class GarageSaleApp extends StatelessWidget {
         '/search-alerts': (_) => const SearchAlertsScreen(),
         '/jobs': (_) => const JobsScreen(),
         '/job-applications': (_) => const JobApplicationsScreen(),
+        '/my-sales': (_) => const ListScreen(),
         '/home': (_) => const AppShell(),
       },
       onGenerateRoute: (settings) {

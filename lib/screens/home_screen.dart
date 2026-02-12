@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import '../data/mock_sales.dart';
 import '../models/sale.dart';
 import '../search/semantic_search.dart';
+import '../state/favorites_state.dart';
 import '../state/home_state.dart';
 import 'create_sale_screen.dart';
 import '../theme/app_colors.dart';
@@ -40,26 +41,47 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   bool get _isSearching => _searchController.text.trim().isNotEmpty;
-  bool get _hasCategoryFilter => _selectedCategory != null && _selectedCategory!.isNotEmpty;
+  bool get _hasCategoryFilter =>
+      _selectedCategory != null && _selectedCategory!.isNotEmpty;
   List<Sale> get _categoryResults {
     if (!_hasCategoryFilter) return mockSales;
     final target = _normalize(_selectedCategory!);
-    final filtered = mockSales.where((sale) {
-      final category = _normalize(sale.category);
-      final title = _normalize(sale.title);
-      if (target == 'imoveis') return category.contains('imove');
-      if (target == 'veiculos') return category.contains('veiculo') || title.contains('carro') || title.contains('moto');
-      if (target == 'eletronicos e tecnologia') return category.contains('eletronico') || title.contains('tv') || title.contains('notebook');
-      if (target == 'casa e jardim') return category.contains('cozinha') || category.contains('moveis') || title.contains('casa');
-      if (target == 'moda e beleza') return category.contains('roupas') || title.contains('roupa');
-      if (target == 'infantil') return title.contains('bebe') || title.contains('crianc');
-      if (target == 'animais') return title.contains('pet') || title.contains('animal');
-      if (target == 'esportes e lazer') return title.contains('bike') || title.contains('lazer') || title.contains('esporte');
-      if (target == 'servicos') return title.contains('servico') || category.contains('servico');
-      if (target == 'empregos') return title.contains('vaga') || category.contains('emprego');
-      if (target == 'industria e negocios') return title.contains('industrial') || title.contains('negocio');
-      return false;
-    }).toList(growable: false);
+    final filtered = mockSales
+        .where((sale) {
+          final category = _normalize(sale.category);
+          final title = _normalize(sale.title);
+          if (target == 'imoveis') return category.contains('imove');
+          if (target == 'veiculos')
+            return category.contains('veiculo') ||
+                title.contains('carro') ||
+                title.contains('moto');
+          if (target == 'eletronicos e tecnologia')
+            return category.contains('eletronico') ||
+                title.contains('tv') ||
+                title.contains('notebook');
+          if (target == 'casa e jardim')
+            return category.contains('cozinha') ||
+                category.contains('moveis') ||
+                title.contains('casa');
+          if (target == 'moda e beleza')
+            return category.contains('roupas') || title.contains('roupa');
+          if (target == 'infantil')
+            return title.contains('bebe') || title.contains('crianc');
+          if (target == 'animais')
+            return title.contains('pet') || title.contains('animal');
+          if (target == 'esportes e lazer')
+            return title.contains('bike') ||
+                title.contains('lazer') ||
+                title.contains('esporte');
+          if (target == 'servicos')
+            return title.contains('servico') || category.contains('servico');
+          if (target == 'empregos')
+            return title.contains('vaga') || category.contains('emprego');
+          if (target == 'industria e negocios')
+            return title.contains('industrial') || title.contains('negocio');
+          return false;
+        })
+        .toList(growable: false);
     return filtered.isEmpty ? mockSales : filtered;
   }
 
@@ -89,14 +111,18 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Descoberta rapida', style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    'Descoberta rapida',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   const SizedBox(height: 12),
                   _HeroSearch(
                     cityLabel: _city,
                     controller: _searchController,
                     onSearchChanged: _applySemanticSearch,
                     onChangeCity: _openCityPicker,
-                    onOpenAlerts: () => Navigator.pushNamed(context, '/search-alerts'),
+                    onOpenAlerts: () =>
+                        Navigator.pushNamed(context, '/search-alerts'),
                     onOpenSell: () {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
@@ -108,7 +134,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     onOpenJobs: () => Navigator.pushNamed(context, '/jobs'),
                   ),
                   const SizedBox(height: 12),
-                  Text('Categorias', style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    'Categorias',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 8),
                   SizedBox(
                     height: 56,
@@ -121,9 +150,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           label: chip,
                           onTap: () {
                             _searchController.text = chip;
-                            _searchController.selection = TextSelection.fromPosition(
-                              TextPosition(offset: chip.length),
-                            );
+                            _searchController.selection =
+                                TextSelection.fromPosition(
+                                  TextPosition(offset: chip.length),
+                                );
                             _applySemanticSearch(chip);
                           },
                         );
@@ -175,9 +205,21 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverList.builder(
               itemCount: 24,
               itemBuilder: (context, index) {
-                if (index == 2) return const _HighlightBanner('Perto de voce', 'Achamos 12 resultados em ate 2 km');
-                if (index == 8) return const _HighlightBanner('Ofertas do dia', 'Precos caindo nas categorias mais buscadas');
-                if (index == 15) return const _HighlightBanner('Recomendados para voce', 'Feed ajustado pelo seu comportamento');
+                if (index == 2)
+                  return const _HighlightBanner(
+                    'Perto de voce',
+                    'Achamos 12 resultados em ate 2 km',
+                  );
+                if (index == 8)
+                  return const _HighlightBanner(
+                    'Ofertas do dia',
+                    'Precos caindo nas categorias mais buscadas',
+                  );
+                if (index == 15)
+                  return const _HighlightBanner(
+                    'Recomendados para voce',
+                    'Feed ajustado pelo seu comportamento',
+                  );
                 final Sale sale = mockSales[index % mockSales.length];
                 return _ProductCard(sale: sale);
               },
@@ -185,12 +227,14 @@ class _HomeScreenState extends State<HomeScreen> {
           if (_isSearching)
             SliverList.builder(
               itemCount: _searchResults.length,
-              itemBuilder: (context, index) => _ProductCard(sale: _searchResults[index]),
+              itemBuilder: (context, index) =>
+                  _ProductCard(sale: _searchResults[index]),
             ),
           if (!_isSearching && _hasCategoryFilter)
             SliverList.builder(
               itemCount: _categoryResults.length,
-              itemBuilder: (context, index) => _ProductCard(sale: _categoryResults[index]),
+              itemBuilder: (context, index) =>
+                  _ProductCard(sale: _categoryResults[index]),
             ),
           if (!_isSearching && !_hasCategoryFilter)
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
@@ -262,8 +306,12 @@ class _HomeScreenState extends State<HomeScreen> {
               for (final city in cities)
                 ListTile(
                   leading: Icon(
-                    city == _city ? Icons.radio_button_checked : Icons.radio_button_off,
-                    color: city == _city ? AppColors.primary : AppColors.textMuted,
+                    city == _city
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_off,
+                    color: city == _city
+                        ? AppColors.primary
+                        : AppColors.textMuted,
                   ),
                   title: Text(city),
                   onTap: () {
@@ -350,7 +398,11 @@ class _HeroSearch extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.search, color: AppColors.primaryEnd, size: 20),
+                  child: const Icon(
+                    Icons.search,
+                    color: AppColors.primaryEnd,
+                    size: 20,
+                  ),
                 ),
                 suffixIcon: controller.text.isEmpty
                     ? null
@@ -363,22 +415,32 @@ class _HeroSearch extends StatelessWidget {
                       ),
                 filled: true,
                 fillColor: AppColors.neumorphicBase,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppColors.textMuted,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: AppColors.textMuted,
+                  fontWeight: FontWeight.w600,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(22),
-                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.9)),
+                  borderSide: BorderSide(
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(22),
-                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.9)),
+                  borderSide: BorderSide(
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(22),
-                  borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.55), width: 1.3),
+                  borderSide: BorderSide(
+                    color: AppColors.primary.withValues(alpha: 0.55),
+                    width: 1.3,
+                  ),
                 ),
               ),
             ),
@@ -386,11 +448,18 @@ class _HeroSearch extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              const Icon(Icons.place_outlined, size: 18, color: AppColors.primary),
+              const Icon(
+                Icons.place_outlined,
+                size: 18,
+                color: AppColors.primary,
+              ),
               const SizedBox(width: 6),
               Text(cityLabel, style: Theme.of(context).textTheme.bodyMedium),
               const Spacer(),
-              TextButton(onPressed: onChangeCity, child: const Text('Mudar cidade')),
+              TextButton(
+                onPressed: onChangeCity,
+                child: const Text('Mudar cidade'),
+              ),
               const SizedBox(width: 6),
               IconButton(
                 onPressed: onOpenAlerts,
@@ -462,7 +531,9 @@ class _TopActionButton extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.neumorphicBase,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.76)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.76),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.neumorphicLightShadow,
@@ -485,9 +556,9 @@ class _TopActionButton extends StatelessWidget {
                 label,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
@@ -507,7 +578,8 @@ class _SoftChip extends StatefulWidget {
   State<_SoftChip> createState() => _SoftChipState();
 }
 
-class _SoftChipState extends State<_SoftChip> with SingleTickerProviderStateMixin {
+class _SoftChipState extends State<_SoftChip>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _shakeX;
   Timer? _timer;
@@ -515,7 +587,10 @@ class _SoftChipState extends State<_SoftChip> with SingleTickerProviderStateMixi
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
     _shakeX = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 0, end: -1.0), weight: 24),
       TweenSequenceItem(tween: Tween(begin: -1.0, end: 1.0), weight: 28),
@@ -558,12 +633,18 @@ class _SoftChipState extends State<_SoftChip> with SingleTickerProviderStateMixi
               end: Alignment.bottomRight,
               colors: [
                 AppColors.neumorphicBase,
-                Color.alphaBlend(accent.withValues(alpha: 0.12), AppColors.neumorphicBase),
+                Color.alphaBlend(
+                  accent.withValues(alpha: 0.12),
+                  AppColors.neumorphicBase,
+                ),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Color.alphaBlend(accent.withValues(alpha: 0.28), Colors.white.withValues(alpha: 0.72)),
+              color: Color.alphaBlend(
+                accent.withValues(alpha: 0.28),
+                Colors.white.withValues(alpha: 0.72),
+              ),
             ),
             boxShadow: [
               BoxShadow(
@@ -608,9 +689,9 @@ class _SoftChipState extends State<_SoftChip> with SingleTickerProviderStateMixi
               Text(
                 widget.label,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
               ),
             ],
           ),
@@ -645,36 +726,62 @@ class _ProductCard extends StatelessWidget {
       ),
       builder: (context) {
         return Padding(
-          padding: EdgeInsets.fromLTRB(20, 20, 20, 24 + MediaQuery.of(context).viewInsets.bottom),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            20,
+            20,
+            24 + MediaQuery.of(context).viewInsets.bottom,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(sale.title, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 8),
-              Text('${sale.category} • ${sale.distance}', style: Theme.of(context).textTheme.bodyMedium),
+              Text(
+                '${sale.category} • ${sale.distance}',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
               const SizedBox(height: 8),
               Text(
                 sale.price,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Icon(Icons.person_outline_rounded, size: 18, color: AppColors.primary),
+                  const Icon(
+                    Icons.person_outline_rounded,
+                    size: 18,
+                    color: AppColors.primary,
+                  ),
                   const SizedBox(width: 6),
-                  Expanded(child: Text(sellerName, style: Theme.of(context).textTheme.bodyMedium)),
+                  Expanded(
+                    child: Text(
+                      sellerName,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 6),
               Row(
                 children: [
-                  const Icon(Icons.phone_outlined, size: 18, color: AppColors.primary),
+                  const Icon(
+                    Icons.phone_outlined,
+                    size: 18,
+                    color: AppColors.primary,
+                  ),
                   const SizedBox(width: 6),
-                  Expanded(child: Text(sellerPhone, style: Theme.of(context).textTheme.bodyMedium)),
+                  Expanded(
+                    child: Text(
+                      sellerPhone,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 14),
@@ -685,7 +792,9 @@ class _ProductCard extends StatelessWidget {
                       onPressed: () {
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Mensagem enviada para $sellerName')),
+                          SnackBar(
+                            content: Text('Mensagem enviada para $sellerName'),
+                          ),
                         );
                       },
                       icon: Icons.chat_bubble_outline_rounded,
@@ -730,7 +839,10 @@ class _ProductCard extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 gradient: LinearGradient(
-                  colors: [sale.color.withValues(alpha: 0.45), sale.color.withValues(alpha: 0.12)],
+                  colors: [
+                    sale.color.withValues(alpha: 0.45),
+                    sale.color.withValues(alpha: 0.12),
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -759,15 +871,21 @@ class _ProductCard extends StatelessWidget {
                       left: 10,
                       top: 10,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.36),
                           borderRadius: BorderRadius.circular(999),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.38)),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.38),
+                          ),
                         ),
                         child: Text(
                           sale.category,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -777,15 +895,50 @@ class _ProductCard extends StatelessWidget {
                     Positioned(
                       right: 10,
                       top: 10,
-                      child: Container(
-                        width: 34,
-                        height: 34,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.84),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.92)),
-                        ),
-                        child: Icon(sale.icon, size: 18, color: sale.color),
+                      child: ValueListenableBuilder<Set<String>>(
+                        valueListenable: FavoritesState.favoriteSaleIds,
+                        builder: (context, favoriteIds, _) {
+                          final isFavorite = favoriteIds.contains(sale.id);
+                          return Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.88),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.94),
+                              ),
+                            ),
+                            child: IconButton(
+                              padding: EdgeInsets.zero,
+                              splashRadius: 18,
+                              onPressed: () {
+                                FavoritesState.toggleSale(sale);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      isFavorite
+                                          ? 'Removido dos favoritos'
+                                          : 'Adicionado aos favoritos',
+                                    ),
+                                  ),
+                                );
+                              },
+                              icon: Icon(
+                                isFavorite
+                                    ? Icons.favorite_rounded
+                                    : Icons.favorite_border_rounded,
+                                size: 20,
+                                color: isFavorite
+                                    ? AppColors.price
+                                    : sale.color,
+                              ),
+                              tooltip: isFavorite
+                                  ? 'Remover dos favoritos'
+                                  : 'Favoritar anúncio',
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -804,12 +957,15 @@ class _ProductCard extends StatelessWidget {
             Text(
               sale.price,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w800,
-                  ),
+                color: AppColors.primary,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             const SizedBox(height: 4),
-            Text('${sale.distance} • ${sale.date}', style: Theme.of(context).textTheme.bodyMedium),
+            Text(
+              '${sale.distance} • ${sale.date}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
             const SizedBox(height: 10),
             Wrap(
               spacing: 8,
@@ -854,9 +1010,9 @@ class _Badge extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w700,
-            ),
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -915,7 +1071,9 @@ class _SaleImage extends StatelessWidget {
     return null;
   }
 
-  Widget _fallback() => Center(child: Icon(icon, size: iconSize, color: color));
+  Widget _fallback() => Center(
+    child: Icon(icon, size: iconSize, color: color),
+  );
 }
 
 Color _chipAccent(String value) {
@@ -942,7 +1100,8 @@ Color _chipAccent(String value) {
   if (key.contains('animais')) return const Color(0xFF8A6E5A);
   if (key.contains('esporte')) return const Color(0xFF23A0A2);
   if (key.contains('servico')) return const Color(0xFFFF9E57);
-  if (key.contains('emprego') || key.contains('vaga')) return const Color(0xFF4D6BFF);
+  if (key.contains('emprego') || key.contains('vaga'))
+    return const Color(0xFF4D6BFF);
   if (key.contains('industria')) return const Color(0xFF7384A8);
   if (key.contains('outros')) return const Color(0xFF5F6B7A);
   if (key.contains('ofertas')) return const Color(0xFFFF8E72);
@@ -1009,7 +1168,10 @@ void _openEventInfoSheet(BuildContext context) {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Criar Evento', style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                'Criar Evento',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 6),
               Text(
                 'Pacote promocional: 3€ para publicar ate 15 itens. Os itens entram no feed em ondas para manter visibilidade durante o dia.',
@@ -1019,7 +1181,10 @@ void _openEventInfoSheet(BuildContext context) {
               FilledButton.icon(
                 onPressed: () {
                   Navigator.pop(context);
-                  _showHint(context, 'Checkout de evento (3€) sera conectado em seguida.');
+                  _showHint(
+                    context,
+                    'Checkout de evento (3€) sera conectado em seguida.',
+                  );
                 },
                 icon: const Icon(Icons.payments_outlined),
                 label: const Text('Publicar evento por 3€'),

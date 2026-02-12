@@ -3,11 +3,18 @@ import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 import '../widgets/glass.dart';
 import '../state/profile_state.dart';
-import 'list_screen.dart';
+import 'create_sale_screen.dart';
 import 'favorites_screen.dart';
+import 'list_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  void _openMySales(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const ListScreen()));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,19 +34,26 @@ class ProfileScreen extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(
-                      verified ? Icons.verified_outlined : Icons.warning_amber_outlined,
+                      verified
+                          ? Icons.verified_outlined
+                          : Icons.warning_amber_outlined,
                       color: verified ? AppColors.primary : AppColors.clothing,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        verified ? 'Perfil verificado' : 'Complete seus dados para publicar',
+                        verified
+                            ? 'Perfil verificado'
+                            : 'Complete seus dados para publicar',
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ),
                     if (!verified)
                       TextButton(
-                        onPressed: () => Navigator.pushNamed(context, '/profile-verification'),
+                        onPressed: () => Navigator.pushNamed(
+                          context,
+                          '/profile-verification',
+                        ),
                         child: const Text('Completar'),
                       ),
                   ],
@@ -62,9 +76,15 @@ class ProfileScreen extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Clara Martinez', style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      'Clara Martinez',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 4),
-                    Text('4.8 ⭐ • 230 pontos', style: Theme.of(context).textTheme.bodyMedium),
+                    Text(
+                      '4.8 ⭐ • 230 pontos',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                   ],
                 ),
               ],
@@ -75,15 +95,9 @@ class ProfileScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: StatTile(
-                  label: 'Vendas',
-                  value: '12',
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const ListScreen(),
-                      ),
-                    );
-                  },
+                  label: 'Minhas vendas',
+                  value: 'Painel',
+                  onTap: () => _openMySales(context),
                 ),
               ),
               const SizedBox(width: 12),
@@ -114,12 +128,17 @@ class ProfileScreen extends StatelessWidget {
           Text('Histórico', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           ProfileListItem(
-            title: 'Vendas publicadas',
-            subtitle: 'Última venda há 2 dias',
+            title: 'Minhas vendas',
+            subtitle: 'Editar preço, fotos, status e remover anúncios',
+            onTap: () => _openMySales(context),
+          ),
+          ProfileListItem(
+            title: 'Publicar item',
+            subtitle: 'Crie um novo anúncio para venda',
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) => const ListScreen(),
+                  builder: (_) => const CreateSaleScreen(),
                 ),
               );
             },
@@ -146,10 +165,16 @@ class ProfileScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             child: Row(
               children: [
-                const Icon(Icons.emoji_events_outlined, color: AppColors.primary),
+                const Icon(
+                  Icons.emoji_events_outlined,
+                  color: AppColors.primary,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text('Ranking semanal: mantenha sua posição e ganhe destaque grátis.', style: Theme.of(context).textTheme.bodyMedium),
+                  child: Text(
+                    'Ranking semanal: mantenha sua posição e ganhe destaque grátis.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ),
               ],
             ),
@@ -179,7 +204,10 @@ class ProfileScreen extends StatelessWidget {
           separatorBuilder: (_, index) => const SizedBox(height: 10),
           itemBuilder: (context, index) {
             if (index == 0) {
-              return Text('Avaliações recentes', style: Theme.of(context).textTheme.titleLarge);
+              return Text(
+                'Avaliações recentes',
+                style: Theme.of(context).textTheme.titleLarge,
+              );
             }
             final item = ratings[index - 1];
             return GlassContainer(
@@ -190,25 +218,35 @@ class ProfileScreen extends StatelessWidget {
                   CircleAvatar(
                     radius: 18,
                     backgroundColor: AppColors.primary.withValues(alpha: 0.2),
-                    child: const Icon(Icons.person_outline, size: 18, color: AppColors.primary),
+                    child: const Icon(
+                      Icons.person_outline,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(item.$1, style: Theme.of(context).textTheme.titleMedium),
+                        Text(
+                          item.$1,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                         const SizedBox(height: 2),
-                        Text(item.$2, style: Theme.of(context).textTheme.bodyMedium),
+                        Text(
+                          item.$2,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
                       ],
                     ),
                   ),
                   Text(
                     '${item.$3} ⭐',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ],
               ),
@@ -241,7 +279,10 @@ class ProfileScreen extends StatelessWidget {
           separatorBuilder: (_, index) => const SizedBox(height: 10),
           itemBuilder: (context, index) {
             if (index == 0) {
-              return Text('Ranking semanal', style: Theme.of(context).textTheme.titleLarge);
+              return Text(
+                'Ranking semanal',
+                style: Theme.of(context).textTheme.titleLarge,
+              );
             }
             final item = leaderboard[index - 1];
             return GlassContainer(
@@ -252,18 +293,24 @@ class ProfileScreen extends StatelessWidget {
                   CircleAvatar(
                     radius: 16,
                     backgroundColor: AppColors.primary.withValues(alpha: 0.2),
-                    child: Text(item.$2.replaceAll('#', ''), style: Theme.of(context).textTheme.bodySmall),
+                    child: Text(
+                      item.$2.replaceAll('#', ''),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(item.$1, style: Theme.of(context).textTheme.titleMedium),
+                    child: Text(
+                      item.$1,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                   ),
                   Text(
                     item.$3,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ],
               ),
