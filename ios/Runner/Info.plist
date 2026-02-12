@@ -45,6 +45,12 @@
 		<true/>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
+		<key>NSCameraUsageDescription</key>
+		<string>Precisamos da câmera para capturar sua selfie de verificação.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Precisamos acessar sua galeria para anexar a foto do documento.</string>
+		<key>NSPhotoLibraryAddUsageDescription</key>
+		<string>Podemos salvar imagens de confirmação quando necessário.</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
 	</dict>

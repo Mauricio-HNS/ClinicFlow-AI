@@ -65,14 +65,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     height: 40,
                     radius: 16,
                     padding: const EdgeInsets.symmetric(horizontal: 14),
-                    onPressed: () => Navigator.pushReplacementNamed(context, '/auth'),
+                    onPressed: () =>
+                        Navigator.pushReplacementNamed(context, '/auth'),
                   ),
                   const SizedBox(width: 8),
                   GradientButton(
                     label: _page == _pages.length - 1 ? 'Começar' : 'Próximo',
                     onPressed: () {
                       if (_page < _pages.length - 1) {
-                        _controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+                        _controller.nextPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeOut,
+                        );
                       } else {
                         Navigator.pushReplacementNamed(context, '/auth');
                       }
@@ -109,21 +113,42 @@ class _OnboardPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 120,
-            height: 120,
+            width: 146,
+            height: 146,
             decoration: BoxDecoration(
-              color: AppColors.highlight,
-              borderRadius: BorderRadius.circular(36),
+              color: Colors.white.withValues(alpha: 0.78),
+              borderRadius: BorderRadius.circular(42),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.92)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 20,
-                  offset: const Offset(0, 12),
+                  color: AppColors.neumorphicLightShadow,
+                  blurRadius: 16,
+                  offset: const Offset(-6, -6),
+                ),
+                BoxShadow(
+                  color: AppColors.neumorphicDarkShadow,
+                  blurRadius: 18,
+                  offset: const Offset(8, 8),
+                ),
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.16),
+                  blurRadius: 16,
+                  spreadRadius: 0.2,
                 ),
               ],
             ),
-            padding: const EdgeInsets.all(18),
-            child: Image.asset('assets/logo/logo.png', fit: BoxFit.contain),
+            padding: const EdgeInsets.all(12),
+            child: Image.asset(
+              'assets/logo/logo.png',
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(
+                  Icons.diamond_outlined,
+                  color: AppColors.primary,
+                  size: 64,
+                );
+              },
+            ),
           ),
           const SizedBox(height: 32),
           Text(title, style: Theme.of(context).textTheme.displaySmall),
@@ -142,10 +167,16 @@ class _OnboardPage extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.check_circle_outline, color: AppColors.primary),
+                const Icon(
+                  Icons.check_circle_outline,
+                  color: AppColors.primary,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text('Tudo local, rápido e seguro.', style: Theme.of(context).textTheme.bodyMedium),
+                  child: Text(
+                    'Tudo local, rápido e seguro.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ),
               ],
             ),
@@ -190,7 +221,11 @@ class _OnboardImage extends StatelessWidget {
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Center(
-                    child: Icon(fallbackIcon, size: 64, color: AppColors.primary),
+                    child: Icon(
+                      fallbackIcon,
+                      size: 64,
+                      color: AppColors.primary,
+                    ),
                   );
                 },
               ),
@@ -219,7 +254,9 @@ class _Dots extends StatelessWidget {
           width: i == index ? 20 : 8,
           height: 8,
           decoration: BoxDecoration(
-            color: i == index ? AppColors.primary : AppColors.primary.withValues(alpha: 0.3),
+            color: i == index
+                ? AppColors.primary
+                : AppColors.primary.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(999),
           ),
         ),

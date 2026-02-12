@@ -31,9 +31,31 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Favoritos', style: Theme.of(context).textTheme.titleLarge),
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        if (Navigator.of(context).canPop()) {
+                          Navigator.of(context).pop();
+                        } else {
+                          Navigator.of(context).pushReplacementNamed('/home');
+                        }
+                      },
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                      tooltip: 'Voltar',
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                      'Favoritos',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 8),
-                Text('Acompanhe produtos e vagas salvos.', style: Theme.of(context).textTheme.bodyMedium),
+                Text(
+                  'Acompanhe produtos e vagas salvos.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
               ],
             );
           }
@@ -41,7 +63,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             return GlassContainer(
               borderRadius: BorderRadius.circular(18),
               padding: const EdgeInsets.all(14),
-              child: Text('Sem favoritos no momento.', style: Theme.of(context).textTheme.bodyMedium),
+              child: Text(
+                'Sem favoritos no momento.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
             );
           }
           final sale = _favorites[index - 1];
@@ -64,8 +89,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(sale.title, style: Theme.of(context).textTheme.titleMedium),
-                      Text('${sale.distance} • ${sale.date}', style: Theme.of(context).textTheme.bodySmall),
+                      Text(
+                        sale.title,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      Text(
+                        '${sale.distance} • ${sale.date}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     ],
                   ),
                 ),

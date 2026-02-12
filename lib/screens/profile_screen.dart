@@ -3,6 +3,8 @@ import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 import '../widgets/glass.dart';
 import '../state/profile_state.dart';
+import 'list_screen.dart';
+import 'favorites_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -70,20 +72,74 @@ class ProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Row(
-            children: const [
-              Expanded(child: StatTile(label: 'Vendas', value: '12')),
-              SizedBox(width: 12),
-              Expanded(child: StatTile(label: 'Compras', value: '7')),
-              SizedBox(width: 12),
-              Expanded(child: StatTile(label: 'Ranking', value: '#5')),
+            children: [
+              Expanded(
+                child: StatTile(
+                  label: 'Vendas',
+                  value: '12',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const ListScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: StatTile(
+                  label: 'Compras',
+                  value: '7',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const FavoritesScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: StatTile(
+                  label: 'Ranking',
+                  value: '#5',
+                  onTap: () => _showRankingSheet(context),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
           Text('Histórico', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
-          const ProfileListItem(title: 'Vendas publicadas', subtitle: 'Última venda há 2 dias'),
-          const ProfileListItem(title: 'Compras', subtitle: '3 compras concluídas este mês'),
-          const ProfileListItem(title: 'Avaliações', subtitle: '9 avaliações recentes'),
+          ProfileListItem(
+            title: 'Vendas publicadas',
+            subtitle: 'Última venda há 2 dias',
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const ListScreen(),
+                ),
+              );
+            },
+          ),
+          ProfileListItem(
+            title: 'Compras',
+            subtitle: '3 compras concluídas este mês',
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const FavoritesScreen(),
+                ),
+              );
+            },
+          ),
+          ProfileListItem(
+            title: 'Avaliações',
+            subtitle: '9 avaliações recentes',
+            onTap: () => _showRatingsSheet(context),
+          ),
           const SizedBox(height: 20),
           GlassContainer(
             padding: const EdgeInsets.all(16),
@@ -100,6 +156,121 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showRatingsSheet(BuildContext context) {
+    const ratings = [
+      ('Ana', 'Vendedor super atencioso e pontual.', '5.0'),
+      ('Luis', 'Produto exatamente como nas fotos.', '4.8'),
+      ('Marta', 'Ótima comunicação durante a compra.', '4.9'),
+    ];
+
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return ListView.separated(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+          itemCount: ratings.length + 1,
+          separatorBuilder: (_, index) => const SizedBox(height: 10),
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return Text('Avaliações recentes', style: Theme.of(context).textTheme.titleLarge);
+            }
+            final item = ratings[index - 1];
+            return GlassContainer(
+              padding: const EdgeInsets.all(14),
+              borderRadius: BorderRadius.circular(14),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.2),
+                    child: const Icon(Icons.person_outline, size: 18, color: AppColors.primary),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(item.$1, style: Theme.of(context).textTheme.titleMedium),
+                        const SizedBox(height: 2),
+                        Text(item.$2, style: Theme.of(context).textTheme.bodyMedium),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    '${item.$3} ⭐',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showRankingSheet(BuildContext context) {
+    const leaderboard = [
+      ('Clara Martinez', '#5', '230 pts'),
+      ('Diego Ramos', '#1', '412 pts'),
+      ('Luna Costa', '#2', '378 pts'),
+      ('Pablo Ruiz', '#3', '320 pts'),
+      ('Sara Gomez', '#4', '288 pts'),
+    ];
+
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return ListView.separated(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+          itemCount: leaderboard.length + 1,
+          separatorBuilder: (_, index) => const SizedBox(height: 10),
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return Text('Ranking semanal', style: Theme.of(context).textTheme.titleLarge);
+            }
+            final item = leaderboard[index - 1];
+            return GlassContainer(
+              padding: const EdgeInsets.all(14),
+              borderRadius: BorderRadius.circular(14),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 16,
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.2),
+                    child: Text(item.$2.replaceAll('#', ''), style: Theme.of(context).textTheme.bodySmall),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(item.$1, style: Theme.of(context).textTheme.titleMedium),
+                  ),
+                  Text(
+                    item.$3,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
