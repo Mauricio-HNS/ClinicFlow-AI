@@ -137,17 +137,19 @@ class _OnboardPage extends StatelessWidget {
                 ),
               ],
             ),
-            padding: const EdgeInsets.all(12),
-            child: Image.asset(
-              'assets/logo/logo.png',
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(
-                  Icons.diamond_outlined,
-                  color: AppColors.primary,
-                  size: 64,
-                );
-              },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(42),
+              child: Image.asset(
+                'assets/logo/logo.png',
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(
+                    Icons.diamond_outlined,
+                    color: AppColors.primary,
+                    size: 64,
+                  );
+                },
+              ),
             ),
           ),
           const SizedBox(height: 32),

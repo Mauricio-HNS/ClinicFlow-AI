@@ -36,9 +36,16 @@ class MapScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Image.asset('assets/logo/logo.png', height: 28),
+                        Image.asset(
+                          'assets/logo/logo.png',
+                          height: 28,
+                          fit: BoxFit.cover,
+                        ),
                         const SizedBox(width: 10),
-                        Text('GarageSale Madrid', style: Theme.of(context).textTheme.titleLarge),
+                        Text(
+                          'GarageSale Madrid',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 10),
@@ -46,9 +53,16 @@ class MapScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     Row(
                       children: [
-                        const Icon(Icons.place_outlined, size: 18, color: AppColors.primary),
+                        const Icon(
+                          Icons.place_outlined,
+                          size: 18,
+                          color: AppColors.primary,
+                        ),
                         const SizedBox(width: 6),
-                        Text('Madrid • 2 km', style: Theme.of(context).textTheme.bodyMedium),
+                        Text(
+                          'Madrid • 2 km',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
                         const Spacer(),
                         GradientButton(
                           label: 'Filtros',
@@ -56,21 +70,26 @@ class MapScreen extends StatelessWidget {
                           height: 40,
                           radius: 16,
                           padding: const EdgeInsets.symmetric(horizontal: 14),
-                          onPressed: () => Navigator.pushNamed(context, '/filters'),
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/filters'),
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        Text('Categorias', style: Theme.of(context).textTheme.titleMedium),
+                        Text(
+                          'Categorias',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                         const Spacer(),
                         GradientButton(
                           label: 'Ver tudo',
                           height: 36,
                           radius: 14,
                           padding: const EdgeInsets.symmetric(horizontal: 12),
-                          onPressed: () => Navigator.pushNamed(context, '/categories'),
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/categories'),
                         ),
                       ],
                     ),
@@ -81,9 +100,7 @@ class MapScreen extends StatelessWidget {
                         scrollDirection: Axis.horizontal,
                         physics: const BouncingScrollPhysics(),
                         children: coreCategories
-                            .map(
-                              (item) => _CategoryShortcut(item: item),
-                            )
+                            .map((item) => _CategoryShortcut(item: item))
                             .toList(),
                       ),
                     ),
@@ -93,31 +110,31 @@ class MapScreen extends StatelessWidget {
                       subtitle: 'Sofás, mesas e luminárias perto de você.',
                     ),
                     const SizedBox(height: 18),
-                    Text('Feed principal', style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      'Feed principal',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                   ],
                 ),
               ),
             ),
             SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final sale = mockSales[index % mockSales.length];
-                  if (index == 2) {
-                    return const _NearbyNow();
-                  }
-                  if (index == 4) {
-                    return const _EventAlertCard();
-                  }
-                  if (index == 5) {
-                    return const _RecommendationSection();
-                  }
-                  if (index == 8) {
-                    return const _ChatPreview();
-                  }
-                  return _FeedCard(sale: sale);
-                },
-                childCount: 12,
-              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final sale = mockSales[index % mockSales.length];
+                if (index == 2) {
+                  return const _NearbyNow();
+                }
+                if (index == 4) {
+                  return const _EventAlertCard();
+                }
+                if (index == 5) {
+                  return const _RecommendationSection();
+                }
+                if (index == 8) {
+                  return const _ChatPreview();
+                }
+                return _FeedCard(sale: sale);
+              }, childCount: 12),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 120)),
           ],
@@ -136,9 +153,14 @@ void _guardVerification(BuildContext context) {
     builder: (context) {
       return AlertDialog(
         title: const Text('Verificação necessária'),
-        content: const Text('Para publicar vendas ou eventos, complete seu perfil.'),
+        content: const Text(
+          'Para publicar vendas ou eventos, complete seu perfil.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Agora não')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Agora não'),
+          ),
           FilledButton(
             onPressed: () {
               Navigator.pop(context);
@@ -164,7 +186,10 @@ class _SearchBar extends StatelessWidget {
         children: [
           const Icon(Icons.search, color: AppColors.primary),
           const SizedBox(width: 12),
-          Text('Buscar móveis, roupas, eletrônicos…', style: Theme.of(context).textTheme.bodyMedium),
+          Text(
+            'Buscar móveis, roupas, eletrônicos…',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
         ],
       ),
     );
@@ -245,40 +270,57 @@ class _FeedCard extends StatelessWidget {
                           sale.imageAsset!,
                           fit: BoxFit.cover,
                           width: double.infinity,
-                          errorBuilder: (context, error, stackTrace) => Center(child: Icon(sale.icon, size: 60, color: sale.color)),
+                          errorBuilder: (context, error, stackTrace) => Center(
+                            child: Icon(sale.icon, size: 60, color: sale.color),
+                          ),
                         )
-                      : Center(child: Icon(sale.icon, size: 60, color: sale.color)),
+                      : Center(
+                          child: Icon(sale.icon, size: 60, color: sale.color),
+                        ),
                 ),
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(child: Text(sale.title, style: Theme.of(context).textTheme.titleMedium)),
-                  Text(sale.price, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.primary)),
+                  Expanded(
+                    child: Text(
+                      sale.title,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  Text(
+                    sale.price,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(color: AppColors.primary),
+                  ),
                 ],
               ),
               const SizedBox(height: 6),
-              Text('${sale.category} • ${sale.distance} • ${sale.date}', style: Theme.of(context).textTheme.bodyMedium),
+              Text(
+                '${sale.category} • ${sale.distance} • ${sale.date}',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
               const SizedBox(height: 10),
-            Row(
-              children: [
-                GradientButton(
-                  label: 'Detalhes',
-                  height: 44,
-                  radius: 16,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  onPressed: () {},
-                ),
-                const SizedBox(width: 10),
-                GradientButton(
-                  label: 'Chat',
-                  height: 44,
-                  radius: 16,
-                  padding: const EdgeInsets.symmetric(horizontal: 18),
-                  onPressed: () {},
-                ),
-              ],
-            ),
+              Row(
+                children: [
+                  GradientButton(
+                    label: 'Detalhes',
+                    height: 44,
+                    radius: 16,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    onPressed: () {},
+                  ),
+                  const SizedBox(width: 10),
+                  GradientButton(
+                    label: 'Chat',
+                    height: 44,
+                    radius: 16,
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    onPressed: () {},
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -297,13 +339,19 @@ class _NearbyNow extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Perto de você agora', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Perto de você agora',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 10),
           GlassContainer(
             height: 120,
             borderRadius: BorderRadius.circular(18),
             child: Center(
-              child: Text('Mini mapa', style: Theme.of(context).textTheme.bodyMedium),
+              child: Text(
+                'Mini mapa',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
             ),
           ),
           const SizedBox(height: 10),
@@ -335,9 +383,17 @@ class _NearbyNow extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text(sale.title, style: Theme.of(context).textTheme.bodyMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
+                                Text(
+                                  sale.title,
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                                 const SizedBox(height: 4),
-                                Text(sale.distance, style: Theme.of(context).textTheme.bodySmall),
+                                Text(
+                                  sale.distance,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
                               ],
                             ),
                           ),
@@ -364,7 +420,10 @@ class _RecommendationSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Achamos que você vai gostar', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Achamos que você vai gostar',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 10),
           ...mockSales.take(2).map((sale) => _FeedCard(sale: sale)),
         ],
@@ -384,7 +443,9 @@ class _MicroCard extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Aplicar recomendação baseada em buscas')),
+          const SnackBar(
+            content: Text('Aplicar recomendação baseada em buscas'),
+          ),
         );
       },
       child: GlassContainer(
@@ -426,16 +487,25 @@ class _ChatPreview extends StatelessWidget {
             CircleAvatar(
               radius: 22,
               backgroundColor: AppColors.primary.withValues(alpha: 0.15),
-              child: const Icon(Icons.chat_bubble_outline, color: AppColors.primary),
+              child: const Icon(
+                Icons.chat_bubble_outline,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Chat recente', style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    'Chat recente',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 4),
-                  Text('“Ainda está disponível?” • 2 novas mensagens', style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    '“Ainda está disponível?” • 2 novas mensagens',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ],
               ),
             ),
@@ -473,23 +543,29 @@ class _EventAlertCard extends StatelessWidget {
                 color: AppColors.highlight,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Icon(Icons.campaign_outlined, color: AppColors.primary),
+              child: const Icon(
+                Icons.campaign_outlined,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Evento perto de você', style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    'Evento perto de você',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 4),
-                  Text('Feira de garagem em Malasaña hoje, 17:00', style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    'Feira de garagem em Malasaña hoje, 17:00',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ],
               ),
             ),
-            GradientButton(
-              label: 'Ver',
-              onPressed: () {},
-            ),
+            GradientButton(label: 'Ver', onPressed: () {}),
           ],
         ),
       ),

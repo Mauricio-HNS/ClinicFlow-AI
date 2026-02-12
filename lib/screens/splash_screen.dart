@@ -40,13 +40,24 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                 ],
               ),
-              padding: const EdgeInsets.all(18),
-              child: Image.asset('assets/logo/logo.png', fit: BoxFit.contain),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(40),
+                child: Image.asset(
+                  'assets/logo/logo.png',
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
             const SizedBox(height: 20),
-            Text('GarageSale Madrid', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              'GarageSale Madrid',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 8),
-            Text('Compras rápidas por perto', style: Theme.of(context).textTheme.bodyMedium),
+            Text(
+              'Compras rápidas por perto',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
           ],
         ),
       ),
