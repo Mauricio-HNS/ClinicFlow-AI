@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import '../utils/input_rules.dart';
 import '../state/profile_state.dart';
 import '../theme/app_colors.dart';
 import '../widgets/gradient_button.dart';
@@ -8,7 +10,8 @@ class ProfileVerificationScreen extends StatefulWidget {
   const ProfileVerificationScreen({super.key});
 
   @override
-  State<ProfileVerificationScreen> createState() => _ProfileVerificationScreenState();
+  State<ProfileVerificationScreen> createState() =>
+      _ProfileVerificationScreenState();
 }
 
 class _ProfileVerificationScreenState extends State<ProfileVerificationScreen> {
@@ -21,6 +24,14 @@ class _ProfileVerificationScreenState extends State<ProfileVerificationScreen> {
   final _neighborhoodController = TextEditingController();
   XFile? _documentPhoto;
   XFile? _selfiePhoto;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController.text = ProfileState.name.value;
+    _emailController.text = ProfileState.email.value;
+    _phoneController.text = ProfileState.phone.value;
+  }
 
   @override
   void dispose() {
@@ -42,19 +53,61 @@ class _ProfileVerificationScreenState extends State<ProfileVerificationScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
             children: [
-              Text('Verificação obrigatória', style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                'Verificação obrigatória',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 8),
-              Text('Para publicar vendas e eventos, complete seus dados.', style: Theme.of(context).textTheme.bodyMedium),
+              Text(
+                'Para publicar vendas e eventos, complete seus dados.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
               const SizedBox(height: 16),
-              _Field(controller: _nameController, label: 'Nome completo'),
+              _Field(
+                controller: _nameController,
+                label: 'Nome completo',
+                validator: AppInputRules.name,
+                inputFormatters: AppInputRules.nameFormatters(),
+                maxLength: 60,
+              ),
               const SizedBox(height: 12),
-              _Field(controller: _emailController, label: 'Email', keyboardType: TextInputType.emailAddress),
+              _Field(
+                controller: _emailController,
+                label: 'Email',
+                keyboardType: TextInputType.emailAddress,
+                validator: AppInputRules.email,
+                inputFormatters: AppInputRules.emailFormatters(),
+                maxLength: 80,
+              ),
               const SizedBox(height: 12),
-              _Field(controller: _phoneController, label: 'Telefone', keyboardType: TextInputType.phone),
+              _Field(
+                controller: _phoneController,
+                label: 'Telefone',
+                keyboardType: TextInputType.phone,
+                validator: (value) => AppInputRules.phone(value),
+                inputFormatters: AppInputRules.phoneFormatters(),
+                maxLength: 17,
+              ),
               const SizedBox(height: 12),
-              _Field(controller: _docController, label: 'Documento (DNI/NIE)'),
+              _Field(
+                controller: _docController,
+                label: 'Documento (DNI/NIE)',
+                validator: AppInputRules.document,
+                inputFormatters: AppInputRules.documentFormatters(),
+                maxLength: 14,
+                textCapitalization: TextCapitalization.characters,
+              ),
               const SizedBox(height: 12),
-              _Field(controller: _neighborhoodController, label: 'Bairro'),
+              _Field(
+                controller: _neighborhoodController,
+                label: 'Bairro',
+                validator: (value) => AppInputRules.required(value, 'Bairro'),
+                inputFormatters: AppInputRules.shortTextFormatters(
+                  maxLength: 60,
+                ),
+                maxLength: 60,
+                textCapitalization: TextCapitalization.words,
+              ),
               const SizedBox(height: 12),
               _UploadTile(
                 label: 'Foto do documento',
@@ -70,10 +123,7 @@ class _ProfileVerificationScreenState extends State<ProfileVerificationScreen> {
                 onTap: _pickSelfiePhoto,
               ),
               const SizedBox(height: 20),
-              GradientButton(
-                label: 'Concluir verificação',
-                onPressed: _submit,
-              ),
+              GradientButton(label: 'Concluir verificação', onPressed: _submit),
             ],
           ),
         ),
@@ -86,22 +136,35 @@ class _ProfileVerificationScreenState extends State<ProfileVerificationScreen> {
     if (!valid) return;
     if (_documentPhoto == null || _selfiePhoto == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Envie a foto do documento e a selfie para concluir.')),
+        const SnackBar(
+          content: Text('Envie a foto do documento e a selfie para concluir.'),
+        ),
       );
       return;
     }
+    ProfileState.updateBasicData(
+      updatedName: _nameController.text,
+      updatedEmail: _emailController.text,
+      updatedPhone: _phoneController.text,
+    );
     ProfileState.isVerified.value = true;
     Navigator.pop(context);
   }
 
   Future<void> _pickDocumentPhoto() async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
     if (picked == null) return;
     setState(() => _documentPhoto = picked);
   }
 
   Future<void> _pickSelfiePhoto() async {
-    final picked = await _picker.pickImage(source: ImageSource.camera, imageQuality: 80);
+    final picked = await _picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 80,
+    );
     if (picked == null) return;
     setState(() => _selfiePhoto = picked);
   }
@@ -111,15 +174,30 @@ class _Field extends StatelessWidget {
   final TextEditingController controller;
   final String label;
   final TextInputType keyboardType;
+  final String? Function(String?)? validator;
+  final List<TextInputFormatter>? inputFormatters;
+  final int? maxLength;
+  final TextCapitalization textCapitalization;
 
-  const _Field({required this.controller, required this.label, this.keyboardType = TextInputType.text});
+  const _Field({
+    required this.controller,
+    required this.label,
+    this.keyboardType = TextInputType.text,
+    this.validator,
+    this.inputFormatters,
+    this.maxLength,
+    this.textCapitalization = TextCapitalization.none,
+  });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
-      validator: (value) => (value == null || value.isEmpty) ? 'Campo obrigatório' : null,
+      textCapitalization: textCapitalization,
+      inputFormatters: inputFormatters,
+      maxLength: maxLength,
+      validator: validator ?? (value) => AppInputRules.required(value, 'Campo'),
       decoration: InputDecoration(
         labelText: label,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
@@ -153,8 +231,12 @@ class _UploadTile extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            fileName == null ? Icons.upload_file_outlined : Icons.check_circle_outline_rounded,
-            color: fileName == null ? AppColors.primary : const Color(0xFF22C55E),
+            fileName == null
+                ? Icons.upload_file_outlined
+                : Icons.check_circle_outline_rounded,
+            color: fileName == null
+                ? AppColors.primary
+                : const Color(0xFF22C55E),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -167,9 +249,9 @@ class _UploadTile extends StatelessWidget {
                   Text(
                     fileName!,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textPrimary.withValues(alpha: 0.75),
-                          fontWeight: FontWeight.w600,
-                        ),
+                      color: AppColors.textPrimary.withValues(alpha: 0.75),
+                      fontWeight: FontWeight.w600,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

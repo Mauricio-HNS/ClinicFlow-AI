@@ -14,6 +14,9 @@ class Sale {
   final double lat;
   final double lng;
   final bool featured;
+  final bool isEvent;
+  final bool consumeEventCredit;
+  final String? eventPaymentId;
   final List<String> photoPaths;
 
   const Sale({
@@ -30,6 +33,9 @@ class Sale {
     required this.lat,
     required this.lng,
     this.featured = false,
+    this.isEvent = false,
+    this.consumeEventCredit = false,
+    this.eventPaymentId,
     this.photoPaths = const <String>[],
   });
 
@@ -47,6 +53,9 @@ class Sale {
     double? lat,
     double? lng,
     bool? featured,
+    bool? isEvent,
+    bool? consumeEventCredit,
+    String? eventPaymentId,
     List<String>? photoPaths,
   }) {
     return Sale(
@@ -63,6 +72,9 @@ class Sale {
       lat: lat ?? this.lat,
       lng: lng ?? this.lng,
       featured: featured ?? this.featured,
+      isEvent: isEvent ?? this.isEvent,
+      consumeEventCredit: consumeEventCredit ?? this.consumeEventCredit,
+      eventPaymentId: eventPaymentId ?? this.eventPaymentId,
       photoPaths: photoPaths ?? this.photoPaths,
     );
   }

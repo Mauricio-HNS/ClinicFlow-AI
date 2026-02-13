@@ -3,9 +3,8 @@
 Backend inicial em `ASP.NET Core` para suportar o app e evolução para arquitetura de microserviços.
 
 ## Stack inicial
-- .NET 8
+- .NET 9
 - ASP.NET Core Web API
-- Swagger/OpenAPI
 - CORS liberado para integração com frontend durante MVP
 
 ## Estrutura
@@ -24,7 +23,6 @@ dotnet run
 
 API local padrão: `http://localhost:5000` (ou porta exibida no terminal)
 
-Swagger: `/swagger`
 Health check: `/health`
 
 ## Endpoints IA (MVP)
@@ -33,6 +31,51 @@ Health check: `/health`
 - `POST /api/ai/search/semantic`
 - `POST /api/ai/pricing/suggest`
 - `POST /api/ai/reviews/summarize`
+
+## Endpoints de autenticação
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me` (Bearer token)
+
+## Endpoints de anúncios
+- `GET /api/listings/mine` (Bearer token)
+- `POST /api/listings` (Bearer token)
+- `PUT /api/listings/{listingId}` (Bearer token)
+- `DELETE /api/listings/{listingId}` (Bearer token)
+- Regra de evento pago:
+  - se `isEvent=true` e `consumeEventCredit=false`, enviar `eventPaymentId` com pagamento `paid` do próprio usuário.
+
+## Endpoints de favoritos
+- `GET /api/favorites` (Bearer token)
+- `POST /api/favorites` (Bearer token)
+- `DELETE /api/favorites/{listingId}` (Bearer token)
+
+## Endpoints de mensagens
+- `GET /api/messages/mine` (Bearer token)
+- `POST /api/messages` (Bearer token)
+- `PUT /api/messages/{messageId}/open` (Bearer token)
+- `DELETE /api/messages/{messageId}` (Bearer token)
+- `DELETE /api/messages/mine` (Bearer token)
+
+## Endpoints de candidaturas
+- `GET /api/job-applications/mine` (Bearer token)
+- `POST /api/job-applications` (Bearer token)
+
+## Endpoints de pagamentos
+- `POST /api/payments/event/checkout` (Bearer token)
+- `GET /api/payments/mine` (Bearer token)
+- `GET /api/payments/{paymentId}` (Bearer token)
+- `POST /api/payments/confirm/{paymentId}` (Bearer token; fluxo mock/dev)
+- `POST /api/payments/webhook/stripe` (webhook Stripe)
+
+## Configuração de auth
+- `Auth:Secret` (opcional): segredo usado para assinar tokens.
+- Em desenvolvimento, se não for informado, a API usa um valor padrão local.
+
+## Configuração de pagamentos
+- `Payments:Stripe:SecretKey` (opcional): chave secreta da Stripe.
+- `Payments:Stripe:WebhookSecret` (opcional): segredo de assinatura do webhook Stripe.
+- Sem `SecretKey`, o backend opera em modo `mock` para desenvolvimento.
 
 ## Observação importante
 Nesta fase, as respostas são heurísticas (mock inteligente) para acelerar integração de frontend e contratos.

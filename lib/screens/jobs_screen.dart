@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../data/mock_jobs.dart';
 import '../models/job.dart';
 import '../theme/app_colors.dart';
+import '../utils/input_rules.dart';
 import '../state/job_applications_state.dart';
 import '../state/notifications_state.dart';
 import '../widgets/glass.dart';
@@ -97,18 +98,7 @@ class _JobsScreenState extends State<JobsScreen> {
 
   bool _isNewToday(Job job) => job.relativePosted().toLowerCase() == 'hoje';
 
-  bool _isValidSinglePhone(String value) {
-    final normalized = value.trim();
-    if (normalized.isEmpty) return false;
-    if (normalized.contains(',') ||
-        normalized.contains(';') ||
-        normalized.contains('/') ||
-        normalized.contains('|')) {
-      return false;
-    }
-    final digits = normalized.replaceAll(RegExp(r'\D'), '');
-    return digits.length >= 8 && digits.length <= 15;
-  }
+  bool _isValidSinglePhone(String value) => AppInputRules.phone(value) == null;
 
   bool _hasExplicitSalary(Job job) {
     final salary = job.salary.trim().toLowerCase();
@@ -457,6 +447,11 @@ class _JobsScreenState extends State<JobsScreen> {
                       ),
                       const SizedBox(height: 14),
                       TextField(
+                        textCapitalization: TextCapitalization.sentences,
+                        inputFormatters: AppInputRules.shortTextFormatters(
+                          maxLength: 80,
+                        ),
+                        maxLength: 80,
                         decoration: _publishInputDecoration(
                           label: 'Título da vaga',
                           hint: 'Ex: Assistente de loja',
@@ -466,6 +461,11 @@ class _JobsScreenState extends State<JobsScreen> {
                       ),
                       const SizedBox(height: 10),
                       TextField(
+                        textCapitalization: TextCapitalization.words,
+                        inputFormatters: AppInputRules.shortTextFormatters(
+                          maxLength: 80,
+                        ),
+                        maxLength: 80,
                         decoration: _publishInputDecoration(
                           label: 'Empresa',
                           hint: 'Ex: Mercado Lavapiés',
@@ -476,6 +476,8 @@ class _JobsScreenState extends State<JobsScreen> {
                       const SizedBox(height: 10),
                       TextField(
                         keyboardType: TextInputType.phone,
+                        inputFormatters: AppInputRules.phoneFormatters(),
+                        maxLength: 17,
                         decoration: _publishInputDecoration(
                           label: 'Celular da empresa',
                           hint: 'Ex: +34 600 123 456',
@@ -487,6 +489,11 @@ class _JobsScreenState extends State<JobsScreen> {
                       TextFormField(
                         key: ValueKey<String>(location),
                         initialValue: location,
+                        inputFormatters: AppInputRules.shortTextFormatters(
+                          maxLength: 80,
+                        ),
+                        maxLength: 80,
+                        textCapitalization: TextCapitalization.words,
                         decoration:
                             _publishInputDecoration(
                               label: 'Localização/região (opcional)',
@@ -586,6 +593,10 @@ class _JobsScreenState extends State<JobsScreen> {
                         key: ValueKey<bool>(salaryNegotiable),
                         initialValue: salaryNegotiable ? 'A combinar' : salary,
                         readOnly: salaryNegotiable,
+                        inputFormatters: AppInputRules.priceFormatters(
+                          maxLength: 24,
+                        ),
+                        maxLength: 24,
                         decoration: _publishInputDecoration(
                           label: 'Salário',
                           hint: 'Ex: €1.400–€1.700 ou €12/h',
@@ -709,6 +720,11 @@ class _JobsScreenState extends State<JobsScreen> {
                       TextField(
                         minLines: 3,
                         maxLines: 5,
+                        textCapitalization: TextCapitalization.sentences,
+                        inputFormatters: AppInputRules.longTextFormatters(
+                          maxLength: 360,
+                        ),
+                        maxLength: 360,
                         decoration: _publishInputDecoration(
                           label: 'Descrição',
                           hint: 'Resumo das atividades e requisitos',
@@ -1116,6 +1132,9 @@ class _JobSearchBar extends StatelessWidget {
       child: TextField(
         controller: controller,
         onChanged: onChanged,
+        textCapitalization: TextCapitalization.sentences,
+        inputFormatters: AppInputRules.shortTextFormatters(maxLength: 90),
+        maxLength: 90,
         decoration: InputDecoration(
           border: InputBorder.none,
           hintText: 'Buscar cargo, empresa ou área',
@@ -1231,18 +1250,7 @@ class _JobCard extends StatelessWidget {
 
   const _JobCard({required this.job});
 
-  bool _isValidSinglePhone(String value) {
-    final normalized = value.trim();
-    if (normalized.isEmpty) return false;
-    if (normalized.contains(',') ||
-        normalized.contains(';') ||
-        normalized.contains('/') ||
-        normalized.contains('|')) {
-      return false;
-    }
-    final digits = normalized.replaceAll(RegExp(r'\D'), '');
-    return digits.length >= 8 && digits.length <= 15;
-  }
+  bool _isValidSinglePhone(String value) => AppInputRules.phone(value) == null;
 
   @override
   Widget build(BuildContext context) {
@@ -1495,6 +1503,9 @@ class _JobCard extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               TextField(
+                textCapitalization: TextCapitalization.words,
+                inputFormatters: AppInputRules.nameFormatters(maxLength: 60),
+                maxLength: 60,
                 decoration: const InputDecoration(
                   labelText: 'Seu nome',
                   hintText: 'Ex: Ana Silva',
@@ -1504,6 +1515,8 @@ class _JobCard extends StatelessWidget {
               const SizedBox(height: 10),
               TextField(
                 keyboardType: TextInputType.phone,
+                inputFormatters: AppInputRules.phoneFormatters(),
+                maxLength: 17,
                 decoration: const InputDecoration(
                   labelText: 'Seu celular',
                   hintText: 'Ex: +34 600 123 456',
@@ -1514,6 +1527,11 @@ class _JobCard extends StatelessWidget {
               TextField(
                 minLines: 2,
                 maxLines: 4,
+                textCapitalization: TextCapitalization.sentences,
+                inputFormatters: AppInputRules.longTextFormatters(
+                  maxLength: 280,
+                ),
+                maxLength: 280,
                 decoration: const InputDecoration(
                   labelText: 'Mensagem (opcional)',
                   hintText: 'Fale brevemente da sua experiência',

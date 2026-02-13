@@ -1,19 +1,33 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import '../data/categories.dart';
 import '../state/notifications_state.dart';
 import '../state/published_sales_state.dart';
 import '../state/reputation_state.dart';
 import '../state/search_alert_state.dart';
+import '../state/event_rewards_state.dart';
 import '../theme/app_colors.dart';
+import '../utils/input_rules.dart';
 import '../widgets/common.dart';
 import '../widgets/gradient_button.dart';
 import '../state/profile_state.dart';
 import '../models/sale.dart';
 
 class CreateSaleScreen extends StatefulWidget {
-  const CreateSaleScreen({super.key});
+  final bool isEvent;
+  final bool consumeEventCreditOnPublish;
+  final String? paidEventPaymentId;
+  final String? initialCategory;
+
+  const CreateSaleScreen({
+    super.key,
+    this.isEvent = false,
+    this.consumeEventCreditOnPublish = false,
+    this.paidEventPaymentId,
+    this.initialCategory,
+  });
 
   @override
   State<CreateSaleScreen> createState() => _CreateSaleScreenState();
@@ -23,7 +37,7 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
   final _formKey = GlobalKey<FormState>();
   int _currentStep = 0;
   bool _featured = false;
-  String _category = allCategories.first.label;
+  late String _category = widget.initialCategory ?? allCategories.first.label;
   final List<XFile> _photos = [];
   final ImagePicker _picker = ImagePicker();
   static const int _maxPhotos = 12;
@@ -77,8 +91,22 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final nounLabel = widget.isEvent ? 'Evento' : 'Venda';
+    final titleFieldLabel = widget.isEvent
+        ? 'Título do evento'
+        : 'Título da venda';
+    final priceFieldLabel = widget.isEvent
+        ? 'Preço do ingresso ou faixa'
+        : 'Preço ou faixa';
+    final priceFieldHint = widget.isEvent ? '€5–€30' : '€10–€60';
+    final descriptionHint = widget.isEvent
+        ? 'Ex: feira local com música, alimentação e atividades.'
+        : 'Itens em ótimo estado, retirada rápida.';
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Vender item')),
+      appBar: AppBar(
+        title: Text(widget.isEvent ? 'Criar evento' : 'Vender item'),
+      ),
       body: SafeArea(
         child: Form(
           key: _formKey,
@@ -86,7 +114,7 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
             children: [
               Text(
-                'Criar venda',
+                widget.isEvent ? 'Criar evento' : 'Criar venda',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 8),
@@ -166,6 +194,10 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                           controller: _nameController,
                           label: 'Nome',
                           hint: 'Seu nome completo',
+                          validator: AppInputRules.name,
+                          inputFormatters: AppInputRules.nameFormatters(),
+                          maxLength: 60,
+                          textCapitalization: TextCapitalization.words,
                         ),
                         const SizedBox(height: 12),
                         _TextField(
@@ -173,6 +205,9 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                           label: 'Email',
                           hint: 'email@exemplo.com',
                           keyboardType: TextInputType.emailAddress,
+                          validator: AppInputRules.email,
+                          inputFormatters: AppInputRules.emailFormatters(),
+                          maxLength: 80,
                         ),
                         const SizedBox(height: 12),
                         _TextField(
@@ -180,6 +215,9 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                           label: 'Telefone',
                           hint: '+34 600 000 000',
                           keyboardType: TextInputType.phone,
+                          validator: (value) => AppInputRules.phone(value),
+                          inputFormatters: AppInputRules.phoneFormatters(),
+                          maxLength: 17,
                         ),
                       ],
                     ),
@@ -193,6 +231,13 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                           controller: _addressController,
                           label: 'Endereço aproximado',
                           hint: 'Barrio / rua aproximada',
+                          validator: (value) =>
+                              AppInputRules.required(value, 'Endereço'),
+                          inputFormatters: AppInputRules.shortTextFormatters(
+                            maxLength: 80,
+                          ),
+                          maxLength: 80,
+                          textCapitalization: TextCapitalization.words,
                         ),
                         const SizedBox(height: 12),
                         Row(
@@ -202,6 +247,14 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                                 controller: _dateController,
                                 label: 'Data',
                                 hint: '12/02/2026',
+                                validator: _validateDate,
+                                inputFormatters: <TextInputFormatter>[
+                                  FilteringTextInputFormatter.allow(
+                                    RegExp(r'[0-9/]'),
+                                  ),
+                                  LengthLimitingTextInputFormatter(10),
+                                ],
+                                maxLength: 10,
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -210,6 +263,14 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                                 controller: _timeController,
                                 label: 'Hora',
                                 hint: '15:00',
+                                validator: _validateTime,
+                                inputFormatters: <TextInputFormatter>[
+                                  FilteringTextInputFormatter.allow(
+                                    RegExp(r'[0-9:]'),
+                                  ),
+                                  LengthLimitingTextInputFormatter(5),
+                                ],
+                                maxLength: 5,
                               ),
                             ),
                           ],
@@ -225,8 +286,15 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                       children: [
                         _TextField(
                           controller: _titleController,
-                          label: 'Título da venda',
+                          label: titleFieldLabel,
                           hint: 'Ex: Sala completa + decoração',
+                          validator: (value) =>
+                              AppInputRules.required(value, 'Título'),
+                          inputFormatters: AppInputRules.shortTextFormatters(
+                            maxLength: 80,
+                          ),
+                          maxLength: 80,
+                          textCapitalization: TextCapitalization.sentences,
                         ),
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
@@ -249,15 +317,25 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                         const SizedBox(height: 12),
                         _TextField(
                           controller: _priceController,
-                          label: 'Preço ou faixa',
-                          hint: '€10–€60',
+                          label: priceFieldLabel,
+                          hint: priceFieldHint,
+                          validator: _validatePrice,
+                          inputFormatters: AppInputRules.priceFormatters(),
+                          maxLength: 24,
                         ),
                         const SizedBox(height: 12),
                         _TextField(
                           controller: _descriptionController,
                           label: 'Descrição curta',
-                          hint: 'Itens em ótimo estado, retirada rápida.',
+                          hint: descriptionHint,
                           maxLines: 3,
+                          validator: (value) =>
+                              AppInputRules.required(value, 'Descrição'),
+                          inputFormatters: AppInputRules.longTextFormatters(
+                            maxLength: 320,
+                          ),
+                          maxLength: 320,
+                          textCapitalization: TextCapitalization.sentences,
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -310,7 +388,7 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Venda destacada',
+                                      '$nounLabel destacado',
                                       style: Theme.of(
                                         context,
                                       ).textTheme.titleMedium,
@@ -384,7 +462,7 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
     );
   }
 
-  void _handleContinue() {
+  Future<void> _handleContinue() async {
     if (_currentStep == 3) {
       final verified = ProfileState.isVerified.value;
       if (!verified) {
@@ -403,8 +481,11 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
       }
       final valid = _formKey.currentState?.validate() ?? false;
       if (valid) {
-        _publishSale();
-        ReputationState.addPublishedSalePoints();
+        await _publishSale();
+        if (!mounted) return;
+        if (!widget.isEvent) {
+          ReputationState.addPublishedSalePoints();
+        }
         _triggerSearchAlertNotifications();
         if (_photos.length == 1) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -422,7 +503,13 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
           );
         }
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Venda publicada com sucesso.')),
+          SnackBar(
+            content: Text(
+              widget.isEvent
+                  ? 'Evento publicado com sucesso.'
+                  : 'Venda publicada com sucesso.',
+            ),
+          ),
         );
         Navigator.pushNamed(context, '/my-sales');
       }
@@ -437,13 +524,14 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
   }
 
   void _showVerificationRequired() {
+    final publicationLabel = widget.isEvent ? 'eventos' : 'vendas';
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Verificação necessária'),
-          content: const Text(
-            'Para publicar vendas, complete seu perfil com dados reais.',
+          content: Text(
+            'Para publicar $publicationLabel, complete seu perfil com dados reais.',
           ),
           actions: [
             TextButton(
@@ -496,7 +584,46 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
     );
   }
 
-  void _publishSale() {
+  String? _validateDate(String? value) {
+    final raw = value?.trim() ?? '';
+    if (raw.isEmpty) return 'Data obrigatória';
+    final parts = raw.split('/');
+    if (parts.length != 3) return 'Use o formato DD/MM/AAAA';
+    final day = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    final year = int.tryParse(parts[2]);
+    if (day == null || month == null || year == null) {
+      return 'Data inválida';
+    }
+    if (day < 1 || day > 31 || month < 1 || month > 12 || year < 2024) {
+      return 'Data inválida';
+    }
+    return null;
+  }
+
+  String? _validateTime(String? value) {
+    final raw = value?.trim() ?? '';
+    if (raw.isEmpty) return 'Hora obrigatória';
+    final parts = raw.split(':');
+    if (parts.length != 2) return 'Use o formato HH:MM';
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) return 'Hora inválida';
+    if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+      return 'Hora inválida';
+    }
+    return null;
+  }
+
+  String? _validatePrice(String? value) {
+    final raw = value?.trim() ?? '';
+    if (raw.isEmpty) return 'Preço obrigatório';
+    final hasDigit = RegExp(r'\d').hasMatch(raw);
+    if (!hasDigit) return 'Preço inválido';
+    return null;
+  }
+
+  Future<void> _publishSale() async {
     final title = _titleController.text.trim();
     final price = _priceController.text.trim();
     final date = _dateController.text.trim();
@@ -523,10 +650,16 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
       lat: 40.4168,
       lng: -3.7038,
       featured: _featured,
+      isEvent: widget.isEvent,
+      consumeEventCredit: widget.consumeEventCreditOnPublish,
+      eventPaymentId: widget.paidEventPaymentId,
       photoPaths: _photos.map((photo) => photo.path).toList(growable: false),
     );
 
-    PublishedSalesState.addSale(publishedSale);
+    await PublishedSalesState.createSmart(publishedSale);
+    if (widget.consumeEventCreditOnPublish) {
+      EventRewardsState.consumeFreeCredit();
+    }
   }
 }
 
@@ -536,6 +669,10 @@ class _TextField extends StatelessWidget {
   final String hint;
   final TextInputType keyboardType;
   final int maxLines;
+  final String? Function(String?)? validator;
+  final List<TextInputFormatter>? inputFormatters;
+  final int? maxLength;
+  final TextCapitalization textCapitalization;
 
   const _TextField({
     required this.controller,
@@ -543,6 +680,10 @@ class _TextField extends StatelessWidget {
     required this.hint,
     this.keyboardType = TextInputType.text,
     this.maxLines = 1,
+    this.validator,
+    this.inputFormatters,
+    this.maxLength,
+    this.textCapitalization = TextCapitalization.none,
   });
 
   @override
@@ -551,8 +692,10 @@ class _TextField extends StatelessWidget {
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
-      validator: (value) =>
-          (value == null || value.isEmpty) ? 'Campo obrigatório' : null,
+      inputFormatters: inputFormatters,
+      maxLength: maxLength,
+      textCapitalization: textCapitalization,
+      validator: validator ?? (value) => AppInputRules.required(value, 'Campo'),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,

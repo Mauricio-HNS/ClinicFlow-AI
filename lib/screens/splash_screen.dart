@@ -1,5 +1,8 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
+import '../state/auth_session_state.dart';
+import '../state/favorites_state.dart';
+import '../state/job_applications_state.dart';
+import '../state/published_sales_state.dart';
 import '../theme/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -13,9 +16,24 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(milliseconds: 1200), () {
-      Navigator.pushReplacementNamed(context, '/onboarding');
-    });
+    _bootstrap();
+  }
+
+  Future<void> _bootstrap() async {
+    await Future<void>.delayed(const Duration(milliseconds: 1200));
+    final restored = await AuthSessionState.restoreFromStorage();
+    if (!mounted) return;
+
+    if (restored) {
+      await PublishedSalesState.syncMine();
+      await FavoritesState.syncMine();
+      await JobApplicationsState.syncMine();
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/home');
+      return;
+    }
+
+    Navigator.pushReplacementNamed(context, '/onboarding');
   }
 
   @override
@@ -42,10 +60,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(40),
-                child: Image.asset(
-                  'assets/logo/logo.png',
-                  fit: BoxFit.cover,
-                ),
+                child: Image.asset('assets/logo/logo.png', fit: BoxFit.cover),
               ),
             ),
             const SizedBox(height: 20),

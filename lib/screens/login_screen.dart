@@ -1,4 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../services/auth_api_client.dart';
+import '../state/auth_session_state.dart';
+import '../state/favorites_state.dart';
+import '../state/job_applications_state.dart';
+import '../state/published_sales_state.dart';
+import '../utils/input_rules.dart';
 import '../widgets/gradient_button.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -15,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailFocus = FocusNode();
   final _passwordFocus = FocusNode();
   bool _obscure = true;
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -52,9 +60,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextFormField(
                   controller: _emailController,
                   focusNode: _emailFocus,
-                  validator: (value) => (value == null || value.isEmpty)
-                      ? 'Email obrigatório'
-                      : null,
+                  validator: AppInputRules.email,
+                  inputFormatters: AppInputRules.emailFormatters(),
+                  maxLength: 80,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   autofillHints: const [AutofillHints.email],
@@ -71,9 +79,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextFormField(
                   controller: _passwordController,
                   focusNode: _passwordFocus,
-                  validator: (value) => (value == null || value.length < 6)
-                      ? 'Senha mínima 6 caracteres'
-                      : null,
+                  validator: AppInputRules.password,
+                  inputFormatters: AppInputRules.shortTextFormatters(
+                    maxLength: 64,
+                  ),
+                  maxLength: 64,
                   obscureText: _obscure,
                   keyboardType: TextInputType.visiblePassword,
                   textInputAction: TextInputAction.done,
@@ -102,15 +112,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: const Text('Esqueci a senha'),
                   ),
                 ),
+                if (kDebugMode) ...[
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: _quickAccess,
+                    icon: const Icon(Icons.flash_on_outlined),
+                    label: const Text('Entrar sem código (dev)'),
+                  ),
+                ],
                 const SizedBox(height: 12),
-                // TODO(mauricio): remover este atalho temporário antes de publicar em produção.
-                OutlinedButton.icon(
-                  onPressed: _quickAccess,
-                  icon: const Icon(Icons.flash_on_outlined),
-                  label: const Text('Entrar sem código'),
+                GradientButton(
+                  label: _isSubmitting ? 'Entrando...' : 'Entrar',
+                  onPressed: _isSubmitting ? null : _submit,
                 ),
-                const SizedBox(height: 12),
-                GradientButton(label: 'Entrar', onPressed: _submit),
                 const SizedBox(height: 12),
                 GradientButton(
                   label: 'Criar conta',
@@ -128,7 +142,8 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _submit() {
+  Future<void> _submit() async {
+    if (_isSubmitting) return;
     final valid = _formKey.currentState?.validate() ?? false;
     if (!valid) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -136,7 +151,29 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       return;
     }
-    Navigator.pushReplacementNamed(context, '/home');
+
+    setState(() => _isSubmitting = true);
+    try {
+      final session = await AuthApiClient.instance.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+      await AuthSessionState.applyAndPersist(session);
+      await PublishedSalesState.syncMine();
+      await FavoritesState.syncMine();
+      await JobApplicationsState.syncMine();
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/home');
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Falha ao entrar: $error')));
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 
   void _quickAccess() {

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using GarageSales.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,15 @@ builder.Services
     });
 
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<UserStore>();
+builder.Services.AddSingleton<ListingStore>();
+builder.Services.AddSingleton<FavoriteStore>();
+builder.Services.AddSingleton<MessageStore>();
+builder.Services.AddSingleton<JobApplicationStore>();
+builder.Services.AddSingleton<PaymentStore>();
+builder.Services.AddSingleton<StripeCheckoutService>();
+builder.Services.AddSingleton<AuthTokenService>();
 
 builder.Services.AddCors(options =>
 {

@@ -10,6 +10,7 @@ import '../state/event_rewards_state.dart';
 import '../state/published_sales_state.dart';
 import '../state/reputation_state.dart';
 import '../theme/app_colors.dart';
+import '../utils/input_rules.dart';
 import '../widgets/glass.dart';
 import '../widgets/gradient_button.dart';
 
@@ -36,6 +37,7 @@ class _ListScreenState extends State<ListScreen> {
     super.initState();
     _sales = List<Sale>.from(PublishedSalesState.sales.value);
     PublishedSalesState.sales.addListener(_syncPublishedSales);
+    PublishedSalesState.syncMine();
     _ensureStatuses();
   }
 
@@ -196,30 +198,34 @@ class _ListScreenState extends State<ListScreen> {
     });
   }
 
-  void _deleteOne(Sale sale) {
+  Future<void> _deleteOne(Sale sale) async {
     setState(() {
-      PublishedSalesState.removeSale(sale.id);
       _selectedSaleIds.remove(sale.id);
       _statusBySaleId.remove(sale.id);
     });
+    await PublishedSalesState.removeSmart(sale.id);
+    if (!mounted) return;
 
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text('Item "${sale.title}" apagado')));
   }
 
-  void _deleteSelected() {
+  Future<void> _deleteSelected() async {
     if (_selectedSaleIds.isEmpty) return;
 
     final deletedCount = _selectedSaleIds.length;
     final saleIdsToDelete = _selectedSaleIds.toList(growable: false);
     setState(() {
       for (final saleId in saleIdsToDelete) {
-        PublishedSalesState.removeSale(saleId);
         _statusBySaleId.remove(saleId);
       }
       _selectedSaleIds.clear();
     });
+    for (final saleId in saleIdsToDelete) {
+      await PublishedSalesState.removeSmart(saleId);
+    }
+    if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('$deletedCount item(ns) apagado(s)')),
@@ -308,6 +314,11 @@ class _ListScreenState extends State<ListScreen> {
                     const SizedBox(height: 12),
                     TextField(
                       controller: titleController,
+                      textCapitalization: TextCapitalization.sentences,
+                      inputFormatters: AppInputRules.shortTextFormatters(
+                        maxLength: 80,
+                      ),
+                      maxLength: 80,
                       decoration: const InputDecoration(
                         labelText: 'Título',
                         hintText: 'Ex: Geladeira frost free',
@@ -316,6 +327,8 @@ class _ListScreenState extends State<ListScreen> {
                     const SizedBox(height: 10),
                     TextField(
                       controller: priceController,
+                      inputFormatters: AppInputRules.priceFormatters(),
+                      maxLength: 24,
                       decoration: const InputDecoration(
                         labelText: 'Preço',
                         hintText: 'Ex: R\$ 1.200',
@@ -418,7 +431,7 @@ class _ListScreenState extends State<ListScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: FilledButton(
-                            onPressed: () {
+                            onPressed: () async {
                               final updatedSale = sale.copyWith(
                                 title: titleController.text.trim().isEmpty
                                     ? sale.title
@@ -429,7 +442,10 @@ class _ListScreenState extends State<ListScreen> {
                                 photoPaths: List<String>.from(editablePhotos),
                                 date: 'Atualizado agora',
                               );
-                              PublishedSalesState.updateSale(updatedSale);
+                              await PublishedSalesState.updateSmart(
+                                updatedSale,
+                              );
+                              if (!context.mounted) return;
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -857,7 +873,7 @@ class _ListScreenState extends State<ListScreen> {
                     iconContainerSize: 32,
                     onPressed: _selectedSaleIds.isEmpty
                         ? null
-                        : _deleteSelected,
+                        : () => _deleteSelected(),
                   ),
                 ],
               ),
@@ -944,7 +960,7 @@ class _ListScreenState extends State<ListScreen> {
                           onEdit: () => _editSale(sale),
                           onTogglePause: () => _togglePause(sale),
                           onMarkSold: () => _markAsSold(sale),
-                          onDelete: () => _deleteOne(sale),
+                          onDelete: () async => _deleteOne(sale),
                         );
                       },
                     ),

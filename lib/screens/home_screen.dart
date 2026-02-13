@@ -1,14 +1,20 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../data/categories.dart';
 import '../data/mock_sales.dart';
 import '../models/sale.dart';
 import '../search/semantic_search.dart';
+import '../services/payments_api_client.dart';
+import '../state/auth_session_state.dart';
+import '../services/ai_api_client.dart';
 import '../state/event_rewards_state.dart';
 import '../state/favorites_state.dart';
 import '../state/home_state.dart';
 import 'create_sale_screen.dart';
 import '../theme/app_colors.dart';
+import '../utils/input_rules.dart';
 import '../widgets/glass.dart';
 import '../widgets/gradient_button.dart';
 
@@ -25,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Sale> _searchResults = const [];
   String _searchSummary = '';
   String? _selectedCategory;
+  int _searchRequestSeq = 0;
 
   final List<String> _productQuickIntents = const [
     'Imóveis',
@@ -246,11 +253,38 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _applySemanticSearch(String query) {
+  Future<void> _applySemanticSearch(String query) async {
     final result = SemanticSaleSearch.searchSales(query, mockSales);
+    final requestId = ++_searchRequestSeq;
     setState(() {
       _searchResults = result.sales;
       _searchSummary = result.summary;
+    });
+
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return;
+
+    final remote = await AiApiClient.instance.semanticSearch(
+      query: trimmed,
+      city: _city,
+      limit: 8,
+    );
+    if (!mounted || requestId != _searchRequestSeq || remote == null) {
+      return;
+    }
+
+    final mapped = remote.hits.map(_mapRemoteHitToSale).toList(growable: false);
+    if (mapped.isEmpty) {
+      setState(() {
+        _searchSummary = '${result.summary} (fallback local)';
+      });
+      return;
+    }
+
+    setState(() {
+      _searchResults = mapped;
+      _searchSummary =
+          'Busca IA ativa: ${remote.normalizedIntent.isEmpty ? trimmed : remote.normalizedIntent}';
     });
   }
 
@@ -279,6 +313,59 @@ class _HomeScreenState extends State<HomeScreen> {
         .replaceAll('õ', 'o')
         .replaceAll('ú', 'u')
         .replaceAll('ç', 'c');
+  }
+
+  Sale _mapRemoteHitToSale(RemoteSemanticHit hit) {
+    final categoryLabel = _mapRemoteCategory(hit.category);
+    final categoryData = allCategories.firstWhere(
+      (item) => item.label == categoryLabel,
+      orElse: () => allCategories.firstWhere(
+        (item) => item.label == 'Outros',
+        orElse: () => allCategories.first,
+      ),
+    );
+    final now = DateTime.now();
+    final minute = now.minute.toString().padLeft(2, '0');
+    final priceText =
+        '${hit.currency.toUpperCase()} ${hit.price.toStringAsFixed(hit.price % 1 == 0 ? 0 : 2)}';
+
+    return Sale(
+      id: hit.productId.isEmpty
+          ? 'ai-${DateTime.now().microsecondsSinceEpoch}'
+          : hit.productId,
+      title: hit.title.isEmpty ? 'Sugestão IA' : hit.title,
+      category: categoryLabel,
+      price: priceText,
+      distance: 'Resultado IA',
+      date: 'Hoje, ${now.hour}:$minute',
+      imageAsset: categoryCoverAssets[categoryLabel],
+      imageUrl: categoryCoverUrls[categoryLabel],
+      color: categoryData.color,
+      icon: categoryData.icon,
+      lat: 40.4168,
+      lng: -3.7038,
+      featured: hit.score >= 0.9,
+    );
+  }
+
+  String _mapRemoteCategory(String rawCategory) {
+    final normalized = _normalize(rawCategory);
+    if (normalized.contains('eletron')) return 'Eletrônicos e Tecnologia';
+    if (normalized.contains('casa') || normalized.contains('jardim')) {
+      return 'Casa e Jardim';
+    }
+    if (normalized.contains('esporte')) return 'Esportes e Lazer';
+    if (normalized.contains('imove')) return 'Imóveis';
+    if (normalized.contains('veiculo')) return 'Veículos';
+    if (normalized.contains('moda') || normalized.contains('beleza')) {
+      return 'Moda e Beleza';
+    }
+    if (normalized.contains('servic')) return 'Serviços';
+    if (normalized.contains('emprego')) return 'Empregos';
+    if (normalized.contains('industria') || normalized.contains('negocio')) {
+      return 'Indústria e Negócios';
+    }
+    return 'Outros';
   }
 
   void _openCityPicker() {
@@ -379,6 +466,9 @@ class _HeroSearch extends StatelessWidget {
             child: TextFormField(
               controller: controller,
               onChanged: onSearchChanged,
+              textCapitalization: TextCapitalization.sentences,
+              inputFormatters: AppInputRules.shortTextFormatters(maxLength: 90),
+              maxLength: 90,
               decoration: InputDecoration(
                 hintText: 'Ex: notebook barato para programar',
                 prefixIcon: Container(
@@ -1188,9 +1278,9 @@ void _showHint(BuildContext context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 }
 
-void _openEventInfoSheet(BuildContext context) {
+void _openEventInfoSheet(BuildContext rootContext) {
   showModalBottomSheet<void>(
-    context: context,
+    context: rootContext,
     backgroundColor: AppColors.surface,
     showDragHandle: true,
     builder: (context) {
@@ -1244,14 +1334,15 @@ void _openEventInfoSheet(BuildContext context) {
                       if (credits > 0)
                         FilledButton.icon(
                           onPressed: () {
-                            final consumed =
-                                EventRewardsState.consumeFreeCredit();
                             Navigator.pop(context);
-                            _showHint(
-                              context,
-                              consumed
-                                  ? 'Evento grátis publicado com sucesso.'
-                                  : 'Sem crédito disponível.',
+                            Navigator.of(rootContext).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const CreateSaleScreen(
+                                  isEvent: true,
+                                  consumeEventCreditOnPublish: true,
+                                  initialCategory: 'Serviços',
+                                ),
+                              ),
                             );
                           },
                           icon: const Icon(Icons.auto_awesome_outlined),
@@ -1264,12 +1355,105 @@ void _openEventInfoSheet(BuildContext context) {
                         ),
                       const SizedBox(height: 10),
                       OutlinedButton.icon(
-                        onPressed: () {
+                        onPressed: () async {
                           Navigator.pop(context);
-                          _showHint(
-                            context,
-                            'Checkout de evento (3€) sera conectado em seguida.',
-                          );
+                          final token = AuthSessionState.token.value;
+                          if (token == null || token.isEmpty) {
+                            _showHint(
+                              rootContext,
+                              'Faça login para iniciar pagamento do evento.',
+                            );
+                            return;
+                          }
+
+                          try {
+                            final myPayments = await PaymentsApiClient.instance
+                                .fetchMine(token);
+                            PaymentRecordResult? lastPaid;
+                            for (final payment in myPayments) {
+                              if (payment.status == 'paid') {
+                                lastPaid = payment;
+                                break;
+                              }
+                            }
+
+                            if (lastPaid != null) {
+                              final paid = lastPaid;
+                              if (!rootContext.mounted) return;
+                              _showHint(
+                                rootContext,
+                                'Pagamento confirmado (${paid.currency} ${paid.amount.toStringAsFixed(2)}).',
+                              );
+                              Navigator.of(rootContext).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => CreateSaleScreen(
+                                    isEvent: true,
+                                    initialCategory: 'Serviços',
+                                    paidEventPaymentId: paid.id,
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+
+                            final checkout = await PaymentsApiClient.instance
+                                .createEventCheckout(token);
+                            if (checkout.provider == 'mock') {
+                              await PaymentsApiClient.instance.confirmMock(
+                                token,
+                                checkout.paymentId,
+                              );
+                              if (!rootContext.mounted) return;
+                              Navigator.of(rootContext).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => CreateSaleScreen(
+                                    isEvent: true,
+                                    initialCategory: 'Serviços',
+                                    paidEventPaymentId: checkout.paymentId,
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+
+                            if (checkout.provider == 'stripe' &&
+                                checkout.checkoutUrl != null &&
+                                checkout.checkoutUrl!.isNotEmpty) {
+                              final uri = Uri.tryParse(checkout.checkoutUrl!);
+                              if (uri == null) {
+                                throw Exception('URL de checkout inválida.');
+                              }
+                              final opened = await launchUrl(
+                                uri,
+                                mode: LaunchMode.externalApplication,
+                              );
+                              if (!opened) {
+                                throw Exception(
+                                  'Não foi possível abrir o checkout Stripe.',
+                                );
+                              }
+                              if (!rootContext.mounted) return;
+                              _showHint(
+                                rootContext,
+                                'Checkout Stripe aberto. Após concluir o pagamento, volte ao app e publique o evento.',
+                              );
+                              return;
+                            }
+
+                            if (!rootContext.mounted) return;
+                            _showHint(
+                              rootContext,
+                              checkout.checkoutUrl == null
+                                  ? 'Pagamento iniciado (${checkout.currency} ${checkout.amount.toStringAsFixed(2)}).'
+                                  : 'Checkout criado. URL: ${checkout.checkoutUrl}',
+                            );
+                          } catch (error) {
+                            if (!rootContext.mounted) return;
+                            _showHint(
+                              rootContext,
+                              'Falha no pagamento: $error',
+                            );
+                          }
                         },
                         icon: const Icon(Icons.payments_outlined),
                         label: const Text('Publicar evento por 3€'),

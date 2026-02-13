@@ -12,7 +12,7 @@ Marketplace mobile (Flutter) para compra e venda local, com gestão de anúncios
 - Flutter (Material 3)
 - Estado local com `ValueNotifier`
 - `image_picker`
-- Backend: .NET 8 + ASP.NET Core Web API
+- Backend: .NET 9 + ASP.NET Core Web API
 
 ## Estrutura
 - `lib/` aplicação Flutter
@@ -81,7 +81,7 @@ Documentação técnica:
 
 ### Auth / Login / Register
 - Entrada e criação de conta com validação.
-- Login com fluxo de acesso rápido para desenvolvimento.
+- Login e sessão persistida entre reinícios do app.
 
 ### Home
 - Busca semântica local.
@@ -140,3 +140,8 @@ Documentação técnica:
 2. Persistência em PostgreSQL.
 3. Autenticação JWT real.
 4. Evolução IA com RAG (LLM + pgvector).
+
+## Publicação nas lojas
+- Checklist de release: `docs/release/STORE_RELEASE_CHECKLIST.md`
+- Build Android release: `./scripts/build_android_release.sh https://api.seudominio.com`
+- Build iOS release: `./scripts/build_ios_release.sh https://api.seudominio.com`

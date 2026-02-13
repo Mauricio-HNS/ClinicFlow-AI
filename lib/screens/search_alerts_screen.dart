@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../state/search_alert_state.dart';
+import '../utils/input_rules.dart';
 import '../widgets/glass.dart';
 
 class SearchAlertsScreen extends StatefulWidget {
@@ -21,9 +22,7 @@ class _SearchAlertsScreenState extends State<SearchAlertsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ativar buscas'),
-      ),
+      appBar: AppBar(title: const Text('Ativar buscas')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
         children: [
@@ -33,7 +32,10 @@ class _SearchAlertsScreenState extends State<SearchAlertsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Alertas por satélite', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  'Alertas por satélite',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 6),
                 Text(
                   'Digite o que você busca. Quando alguém publicar algo compatível, você recebe notificação.',
@@ -42,6 +44,11 @@ class _SearchAlertsScreenState extends State<SearchAlertsScreen> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: _controller,
+                  textCapitalization: TextCapitalization.sentences,
+                  inputFormatters: AppInputRules.shortTextFormatters(
+                    maxLength: 80,
+                  ),
+                  maxLength: 80,
                   decoration: const InputDecoration(
                     hintText: 'Ex: notebook barato, sofá retrô, bike aro 29',
                   ),
@@ -66,7 +73,10 @@ class _SearchAlertsScreenState extends State<SearchAlertsScreen> {
                 return GlassContainer(
                   padding: const EdgeInsets.all(14),
                   borderRadius: BorderRadius.circular(14),
-                  child: Text('Nenhuma busca ativa ainda.', style: Theme.of(context).textTheme.bodyMedium),
+                  child: Text(
+                    'Nenhuma busca ativa ainda.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 );
               }
               return Column(
@@ -75,15 +85,24 @@ class _SearchAlertsScreenState extends State<SearchAlertsScreen> {
                       (alert) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: GlassContainer(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 11,
+                          ),
                           borderRadius: BorderRadius.circular(14),
                           child: Row(
                             children: [
                               const Icon(Icons.satellite_alt, size: 18),
                               const SizedBox(width: 8),
-                              Expanded(child: Text(alert.term, style: Theme.of(context).textTheme.bodyMedium)),
+                              Expanded(
+                                child: Text(
+                                  alert.term,
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                              ),
                               IconButton(
-                                onPressed: () => SearchAlertState.removeAlert(alert),
+                                onPressed: () =>
+                                    SearchAlertState.removeAlert(alert),
                                 icon: const Icon(Icons.close),
                                 tooltip: 'Remover alerta',
                               ),
@@ -106,8 +125,8 @@ class _SearchAlertsScreenState extends State<SearchAlertsScreen> {
     if (term.isEmpty) return;
     SearchAlertState.addAlert(term);
     _controller.clear();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Busca ativada: "$term"')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Busca ativada: "$term"')));
   }
 }
