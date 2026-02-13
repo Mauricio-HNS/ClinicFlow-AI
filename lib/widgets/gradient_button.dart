@@ -9,6 +9,8 @@ class GradientButton extends StatelessWidget {
   final double radius;
   final double glowBlur;
   final EdgeInsetsGeometry padding;
+  final double iconSize;
+  final double iconContainerSize;
 
   const GradientButton({
     super.key,
@@ -19,6 +21,8 @@ class GradientButton extends StatelessWidget {
     this.radius = 6,
     this.glowBlur = 12,
     this.padding = const EdgeInsets.symmetric(horizontal: 20),
+    this.iconSize = 18,
+    this.iconContainerSize = 30,
   });
 
   @override
@@ -30,14 +34,14 @@ class GradientButton extends StatelessWidget {
       children: [
         if (icon != null) ...[
           Container(
-            width: 30,
-            height: 30,
+            width: iconContainerSize,
+            height: iconContainerSize,
             decoration: BoxDecoration(
               color: AppColors.neumorphicBase,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: Colors.white.withValues(alpha: 0.7)),
             ),
-            child: Icon(icon, color: AppColors.primaryEnd, size: 18),
+            child: Icon(icon, color: AppColors.primaryEnd, size: iconSize),
           ),
           const SizedBox(width: 8),
         ],
@@ -48,9 +52,9 @@ class GradientButton extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             softWrap: false,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColors.primaryEnd,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: AppColors.primaryEnd,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ],

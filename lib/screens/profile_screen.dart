@@ -3,8 +3,9 @@ import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 import '../widgets/glass.dart';
 import '../state/profile_state.dart';
+import '../state/reputation_state.dart';
+import '../state/event_rewards_state.dart';
 import 'create_sale_screen.dart';
-import 'favorites_screen.dart';
 import 'list_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -73,19 +74,31 @@ class ProfileScreen extends StatelessWidget {
                   child: const Icon(Icons.person, color: AppColors.primary),
                 ),
                 const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Clara Martinez',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '4.8 ⭐ • 230 pontos',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
+                Expanded(
+                  child: ValueListenableBuilder<int>(
+                    valueListenable: ReputationState.points,
+                    builder: (context, points, _) {
+                      return ValueListenableBuilder<double>(
+                        valueListenable: ReputationState.rating,
+                        builder: (context, rating, __) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Clara Martinez',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${rating.toStringAsFixed(1)} ⭐ • $points pontos',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
@@ -103,15 +116,9 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: StatTile(
-                  label: 'Compras',
-                  value: '7',
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const FavoritesScreen(),
-                      ),
-                    );
-                  },
+                  label: 'Evento grátis',
+                  value: '5 vendas',
+                  onTap: null,
                 ),
               ),
               const SizedBox(width: 12),
@@ -144,20 +151,36 @@ class ProfileScreen extends StatelessWidget {
             },
           ),
           ProfileListItem(
-            title: 'Compras',
-            subtitle: '3 compras concluídas este mês',
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const FavoritesScreen(),
-                ),
-              );
-            },
-          ),
-          ProfileListItem(
             title: 'Avaliações',
             subtitle: '9 avaliações recentes',
             onTap: () => _showRatingsSheet(context),
+          ),
+          const SizedBox(height: 20),
+          ValueListenableBuilder<int>(
+            valueListenable: EventRewardsState.freeEventCredits,
+            builder: (context, credits, _) {
+              return ValueListenableBuilder<int>(
+                valueListenable: EventRewardsState.soldSales,
+                builder: (context, soldSales, __) {
+                  return GlassContainer(
+                    padding: const EdgeInsets.all(14),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.auto_awesome, color: Colors.green),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Evento grátis: $credits crédito(s) • $soldSales/5 vendas para próximo bônus',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
           ),
           const SizedBox(height: 20),
           GlassContainer(

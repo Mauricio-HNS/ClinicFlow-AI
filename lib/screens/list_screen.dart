@@ -1,11 +1,14 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../models/sale.dart';
 import 'create_sale_screen.dart';
+import '../state/event_rewards_state.dart';
 import '../state/published_sales_state.dart';
+import '../state/reputation_state.dart';
 import '../theme/app_colors.dart';
 import '../widgets/glass.dart';
 import '../widgets/gradient_button.dart';
@@ -23,7 +26,6 @@ class _ListScreenState extends State<ListScreen> {
   late List<Sale> _sales;
   final Set<String> _selectedSaleIds = <String>{};
   final Map<String, _SaleStatus> _statusBySaleId = <String, _SaleStatus>{};
-  final TextEditingController _searchController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
 
   _SaleStatus? _statusFilter;
@@ -66,26 +68,16 @@ class _ListScreenState extends State<ListScreen> {
   @override
   void dispose() {
     PublishedSalesState.sales.removeListener(_syncPublishedSales);
-    _searchController.dispose();
     super.dispose();
   }
 
   List<Sale> get _filteredSales {
-    final query = _normalize(_searchController.text);
     final filtered = _sales.where((sale) {
       final status = _statusBySaleId[sale.id] ?? _SaleStatus.active;
       if (_statusFilter != null && status != _statusFilter) {
         return false;
       }
-
-      if (query.isEmpty) {
-        return true;
-      }
-
-      final haystack = _normalize(
-        '${sale.title} ${sale.category} ${sale.price}',
-      );
-      return haystack.contains(query);
+      return true;
     }).toList();
 
     filtered.sort((a, b) {
@@ -111,23 +103,6 @@ class _ListScreenState extends State<ListScreen> {
       _statusBySaleId.values.where((s) => s == _SaleStatus.paused).length;
   int get _soldCount =>
       _statusBySaleId.values.where((s) => s == _SaleStatus.sold).length;
-
-  String _normalize(String input) {
-    return input
-        .toLowerCase()
-        .replaceAll('á', 'a')
-        .replaceAll('à', 'a')
-        .replaceAll('â', 'a')
-        .replaceAll('ã', 'a')
-        .replaceAll('é', 'e')
-        .replaceAll('ê', 'e')
-        .replaceAll('í', 'i')
-        .replaceAll('ó', 'o')
-        .replaceAll('ô', 'o')
-        .replaceAll('õ', 'o')
-        .replaceAll('ú', 'u')
-        .replaceAll('ç', 'c');
-  }
 
   double? _extractMaxPrice(String raw) {
     final matches = RegExp(
@@ -264,9 +239,31 @@ class _ListScreenState extends State<ListScreen> {
   }
 
   void _markAsSold(Sale sale) {
+    if ((_statusBySaleId[sale.id] ?? _SaleStatus.active) == _SaleStatus.sold) {
+      return;
+    }
     setState(() {
       _statusBySaleId[sale.id] = _SaleStatus.sold;
     });
+    ReputationState.addSoldSalePoints();
+    final earnedCredit = EventRewardsState.registerSoldSale();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          earnedCredit
+              ? 'Você ganhou 1 evento grátis! 🎉'
+              : 'Venda concluída! Faltam ${EventRewardsState.salesUntilNextReward()} para ganhar evento grátis.',
+        ),
+      ),
+    );
+  }
+
+  List<int> _buildFunnelSteps() {
+    final total = _sales.length;
+    final active = _activeCount;
+    final sold = _soldCount;
+    final draft = math.max(total + 2, 2);
+    return <int>[draft, active, sold];
   }
 
   Future<void> _editSale(Sale sale) async {
@@ -501,6 +498,8 @@ class _ListScreenState extends State<ListScreen> {
                     height: 36,
                     radius: 12,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
+                    iconSize: 20,
+                    iconContainerSize: 32,
                     onPressed: () =>
                         setState(() => _sortPriceAsc = !_sortPriceAsc),
                   ),
@@ -512,45 +511,286 @@ class _ListScreenState extends State<ListScreen> {
               child: GlassContainer(
                 borderRadius: BorderRadius.circular(18),
                 padding: const EdgeInsets.all(12),
-                child: Row(
+                child: Column(
                   children: [
-                    _TopStat(
-                      label: 'Ativas',
-                      value: _activeCount.toString(),
-                      color: AppColors.primary,
+                    ValueListenableBuilder<int>(
+                      valueListenable: EventRewardsState.soldSales,
+                      builder: (context, soldSales, _) {
+                        return ValueListenableBuilder<int>(
+                          valueListenable: EventRewardsState.freeEventCredits,
+                          builder: (context, freeCredits, __) {
+                            final soldProgress = soldSales % 5;
+                            final reachedBonus =
+                                soldProgress == 0 && soldSales > 0;
+                            final progress = reachedBonus
+                                ? 1.0
+                                : soldProgress / 5;
+
+                            return Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Crédito para evento grátis',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                      ),
+                                    ),
+                                    AnimatedContainer(
+                                      duration: const Duration(
+                                        milliseconds: 240,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.neumorphicBase,
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                          color: reachedBonus
+                                              ? Colors.green.withValues(
+                                                  alpha: 0.35,
+                                                )
+                                              : Colors.white.withValues(
+                                                  alpha: 0.82,
+                                                ),
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                AppColors.neumorphicLightShadow,
+                                            blurRadius: 8,
+                                            offset: const Offset(-3, -3),
+                                          ),
+                                          BoxShadow(
+                                            color:
+                                                AppColors.neumorphicDarkShadow,
+                                            blurRadius: 10,
+                                            offset: const Offset(4, 4),
+                                          ),
+                                          if (reachedBonus)
+                                            BoxShadow(
+                                              color: Colors.green.withValues(
+                                                alpha: 0.24,
+                                              ),
+                                              blurRadius: 10,
+                                              spreadRadius: 0.1,
+                                            ),
+                                        ],
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.emoji_events_rounded,
+                                            size: 16,
+                                            color: reachedBonus
+                                                ? Colors.amber.shade700
+                                                : AppColors.textMuted,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            '$freeCredits crédito(s)',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w700,
+                                                  color: reachedBonus
+                                                      ? Colors.green.shade700
+                                                      : AppColors.textMuted,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  height: 14,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.neumorphicBase,
+                                    borderRadius: BorderRadius.circular(999),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.neumorphicLightShadow,
+                                        blurRadius: 6,
+                                        offset: const Offset(-2, -2),
+                                      ),
+                                      BoxShadow(
+                                        color: AppColors.neumorphicDarkShadow,
+                                        blurRadius: 8,
+                                        offset: const Offset(3, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      final width =
+                                          constraints.maxWidth * progress;
+                                      return Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: AnimatedContainer(
+                                          duration: const Duration(
+                                            milliseconds: 220,
+                                          ),
+                                          width: width < 10 ? 10 : width,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              999,
+                                            ),
+                                            gradient: LinearGradient(
+                                              colors: reachedBonus
+                                                  ? [
+                                                      Colors.green.shade400,
+                                                      Colors.green.shade600,
+                                                    ]
+                                                  : [
+                                                      AppColors.primary,
+                                                      AppColors.primaryEnd,
+                                                    ],
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color:
+                                                    (reachedBonus
+                                                            ? Colors.green
+                                                            : AppColors.primary)
+                                                        .withValues(
+                                                          alpha: 0.28,
+                                                        ),
+                                                blurRadius: 10,
+                                                spreadRadius: 0.2,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: [
+                                    Text(
+                                      '$soldProgress/5 vendas',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall,
+                                    ),
+                                    const Spacer(),
+                                    Text(
+                                      reachedBonus
+                                          ? 'Troféu aceso: crédito entrou na conta'
+                                          : 'Ao completar 5, ganha 1 crédito',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
                     ),
-                    _TopStat(
-                      label: 'Pausadas',
-                      value: _pausedCount.toString(),
-                      color: AppColors.price,
-                    ),
-                    _TopStat(
-                      label: 'Vendidas',
-                      value: _soldCount.toString(),
-                      color: Colors.green.shade600,
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        _TopStat(
+                          label: 'Ativas',
+                          value: _activeCount.toString(),
+                          color: AppColors.primary,
+                        ),
+                        _TopStat(
+                          label: 'Pausadas',
+                          value: _pausedCount.toString(),
+                          color: AppColors.price,
+                        ),
+                        _TopStat(
+                          label: 'Vendidas',
+                          value: _soldCount.toString(),
+                          color: Colors.green.shade600,
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search_rounded),
-                  hintText: 'Buscar por título, categoria ou preço',
-                  suffixIcon: _searchController.text.isEmpty
-                      ? null
-                      : IconButton(
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {});
-                          },
-                          icon: const Icon(Icons.close_rounded),
-                        ),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+              child: GlassContainer(
+                borderRadius: BorderRadius.circular(16),
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Evolucao do funil',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Rascunho -> Ativo -> Vendido',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      height: 98,
+                      child: _MiniFunnelChart(steps: _buildFunnelSteps()),
+                    ),
+                  ],
                 ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+              child: ValueListenableBuilder<int>(
+                valueListenable: ReputationState.points,
+                builder: (context, points, _) {
+                  return ValueListenableBuilder<double>(
+                    valueListenable: ReputationState.rating,
+                    builder: (context, rating, __) {
+                      return GlassContainer(
+                        borderRadius: BorderRadius.circular(16),
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.star_rounded, color: Colors.amber),
+                            const SizedBox(width: 6),
+                            Text(
+                              rating.toStringAsFixed(1),
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(width: 12),
+                            const Icon(
+                              Icons.emoji_events_outlined,
+                              color: Colors.green,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '$points pts',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const Spacer(),
+                            Text(
+                              'Reputacao',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
             Padding(
@@ -601,6 +841,8 @@ class _ListScreenState extends State<ListScreen> {
                     height: 36,
                     radius: 12,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
+                    iconSize: 20,
+                    iconContainerSize: 32,
                     onPressed: _toggleSelectAllFiltered,
                   ),
                   GradientButton(
@@ -611,6 +853,8 @@ class _ListScreenState extends State<ListScreen> {
                     height: 36,
                     radius: 12,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
+                    iconSize: 20,
+                    iconContainerSize: 32,
                     onPressed: _selectedSaleIds.isEmpty
                         ? null
                         : _deleteSelected,
@@ -876,6 +1120,26 @@ class _SaleListCard extends StatelessWidget {
     return GlassContainer(
       borderRadius: BorderRadius.circular(18),
       padding: const EdgeInsets.all(14),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.green.withValues(alpha: 0.12),
+          blurRadius: 16,
+          spreadRadius: 0.4,
+          offset: const Offset(0, 4),
+        ),
+        BoxShadow(
+          color: AppColors.neumorphicLightShadow,
+          blurRadius: 18,
+          spreadRadius: 0.6,
+          offset: const Offset(-5, -5),
+        ),
+        BoxShadow(
+          color: AppColors.neumorphicDarkShadow,
+          blurRadius: 20,
+          spreadRadius: 0.8,
+          offset: const Offset(6, 7),
+        ),
+      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -988,6 +1252,8 @@ class _SaleListCard extends StatelessWidget {
                 height: 34,
                 radius: 12,
                 padding: const EdgeInsets.symmetric(horizontal: 10),
+                iconSize: 20,
+                iconContainerSize: 32,
               ),
               GradientButton(
                 onPressed: onSendMessage,
@@ -996,6 +1262,8 @@ class _SaleListCard extends StatelessWidget {
                 height: 34,
                 radius: 12,
                 padding: const EdgeInsets.symmetric(horizontal: 10),
+                iconSize: 20,
+                iconContainerSize: 32,
               ),
               GradientButton(
                 onPressed: onEdit,
@@ -1004,6 +1272,8 @@ class _SaleListCard extends StatelessWidget {
                 height: 34,
                 radius: 12,
                 padding: const EdgeInsets.symmetric(horizontal: 10),
+                iconSize: 20,
+                iconContainerSize: 32,
               ),
               GradientButton(
                 onPressed: isSold ? null : onTogglePause,
@@ -1012,6 +1282,8 @@ class _SaleListCard extends StatelessWidget {
                 height: 34,
                 radius: 12,
                 padding: const EdgeInsets.symmetric(horizontal: 10),
+                iconSize: 20,
+                iconContainerSize: 32,
               ),
               GradientButton(
                 onPressed: isSold ? null : onMarkSold,
@@ -1020,6 +1292,8 @@ class _SaleListCard extends StatelessWidget {
                 height: 34,
                 radius: 12,
                 padding: const EdgeInsets.symmetric(horizontal: 10),
+                iconSize: 20,
+                iconContainerSize: 32,
               ),
               GradientButton(
                 onPressed: onDelete,
@@ -1028,11 +1302,100 @@ class _SaleListCard extends StatelessWidget {
                 height: 34,
                 radius: 12,
                 padding: const EdgeInsets.symmetric(horizontal: 10),
+                iconSize: 20,
+                iconContainerSize: 32,
               ),
             ],
           ),
         ],
       ),
+    );
+  }
+}
+
+class _MiniFunnelChart extends StatelessWidget {
+  final List<int> steps;
+
+  const _MiniFunnelChart({required this.steps});
+
+  @override
+  Widget build(BuildContext context) {
+    final maxValue = steps.fold<int>(1, (prev, e) => e > prev ? e : prev);
+    final labels = <String>['Rascunho', 'Ativo', 'Vendido'];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const reservedHeight = 36.0;
+        final maxBarHeight = math.max(
+          16.0,
+          constraints.maxHeight - reservedHeight,
+        );
+        const minBarHeight = 6.0;
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: List<Widget>.generate(steps.length, (index) {
+            final value = steps[index];
+            final factor = value / maxValue;
+            final barHeight =
+                minBarHeight + (factor * (maxBarHeight - minBarHeight));
+            final isSold = index == 2;
+            final color = isSold ? Colors.green.shade500 : AppColors.primary;
+
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  right: index == steps.length - 1 ? 0 : 8,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      value.toString(),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: color,
+                        fontSize: 11,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Container(
+                      height: barHeight,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [
+                            color.withValues(alpha: 0.85),
+                            color.withValues(alpha: 0.35),
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: color.withValues(alpha: 0.22),
+                            blurRadius: 8,
+                            spreadRadius: 0.2,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      labels[index],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(fontSize: 9),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        );
+      },
     );
   }
 }

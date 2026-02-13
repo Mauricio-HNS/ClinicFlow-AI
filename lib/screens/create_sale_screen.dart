@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '../data/categories.dart';
 import '../state/notifications_state.dart';
 import '../state/published_sales_state.dart';
+import '../state/reputation_state.dart';
 import '../state/search_alert_state.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
@@ -403,6 +404,7 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
       final valid = _formKey.currentState?.validate() ?? false;
       if (valid) {
         _publishSale();
+        ReputationState.addPublishedSalePoints();
         _triggerSearchAlertNotifications();
         if (_photos.length == 1) {
           ScaffoldMessenger.of(context).showSnackBar(

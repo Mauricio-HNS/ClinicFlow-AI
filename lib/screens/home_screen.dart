@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import '../data/mock_sales.dart';
 import '../models/sale.dart';
 import '../search/semantic_search.dart';
+import '../state/event_rewards_state.dart';
 import '../state/favorites_state.dart';
 import '../state/home_state.dart';
 import 'create_sale_screen.dart';
@@ -819,6 +820,16 @@ class _ProductCard extends StatelessWidget {
     );
   }
 
+  double _sellerRating(Sale sale) {
+    final seed = int.tryParse(sale.id) ?? 1;
+    return 4.2 + ((seed % 7) * 0.1);
+  }
+
+  int _sellerPoints(Sale sale) {
+    final seed = int.tryParse(sale.id) ?? 1;
+    return 120 + (seed * 13);
+  }
+
   @override
   Widget build(BuildContext context) {
     final badges = <String>[
@@ -953,6 +964,28 @@ class _ProductCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(sale.title, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
+                const SizedBox(width: 4),
+                Text(
+                  _sellerRating(sale).toStringAsFixed(1),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(width: 10),
+                const Icon(
+                  Icons.emoji_events_outlined,
+                  color: Colors.green,
+                  size: 16,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${_sellerPoints(sale)} pts',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
             const SizedBox(height: 4),
             Text(
               sale.price,
@@ -1161,37 +1194,93 @@ void _openEventInfoSheet(BuildContext context) {
     backgroundColor: AppColors.surface,
     showDragHandle: true,
     builder: (context) {
-      return SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Criar Evento',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Pacote promocional: 3€ para publicar ate 15 itens. Os itens entram no feed em ondas para manter visibilidade durante o dia.',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 12),
-              FilledButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _showHint(
-                    context,
-                    'Checkout de evento (3€) sera conectado em seguida.',
-                  );
-                },
-                icon: const Icon(Icons.payments_outlined),
-                label: const Text('Publicar evento por 3€'),
-              ),
-            ],
-          ),
-        ),
+      return ValueListenableBuilder<int>(
+        valueListenable: EventRewardsState.freeEventCredits,
+        builder: (context, credits, _) {
+          return ValueListenableBuilder<int>(
+            valueListenable: EventRewardsState.soldSales,
+            builder: (context, soldSales, __) {
+              final salesLeft = EventRewardsState.salesUntilNextReward();
+              return SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Criar Evento',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'A cada 5 vendas concluídas você ganha 1 publicação de evento grátis.',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.card_giftcard_outlined,
+                              color: Colors.green,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Créditos grátis: $credits • Vendas concluídas: $soldSales',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      if (credits > 0)
+                        FilledButton.icon(
+                          onPressed: () {
+                            final consumed =
+                                EventRewardsState.consumeFreeCredit();
+                            Navigator.pop(context);
+                            _showHint(
+                              context,
+                              consumed
+                                  ? 'Evento grátis publicado com sucesso.'
+                                  : 'Sem crédito disponível.',
+                            );
+                          },
+                          icon: const Icon(Icons.auto_awesome_outlined),
+                          label: const Text('Publicar evento grátis'),
+                        )
+                      else
+                        Text(
+                          'Faltam $salesLeft venda(s) para ganhar 1 evento grátis.',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _showHint(
+                            context,
+                            'Checkout de evento (3€) sera conectado em seguida.',
+                          );
+                        },
+                        icon: const Icon(Icons.payments_outlined),
+                        label: const Text('Publicar evento por 3€'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
       );
     },
   );
