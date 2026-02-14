@@ -11,7 +11,6 @@ import '../state/event_rewards_state.dart';
 import '../theme/app_colors.dart';
 import '../utils/input_rules.dart';
 import '../widgets/common.dart';
-import '../widgets/gradient_button.dart';
 import '../state/profile_state.dart';
 import '../models/sale.dart';
 
@@ -165,14 +164,56 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                 onStepCancel: _handleBack,
                 onStepTapped: (value) => setState(() => _currentStep = value),
                 controlsBuilder: (context, details) {
+                  final actionLabel = _currentStep == 3 ? 'Publicar' : 'Continuar';
                   return Padding(
                     padding: const EdgeInsets.only(top: 16),
                     child: Row(
                       children: [
-                        GradientButton(
-                          label: _currentStep == 3 ? 'Publicar' : 'Continuar',
-                          onPressed: details.onStepContinue,
+                        SizedBox(
                           height: 46,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFDFEFF),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: AppColors.primary,
+                                width: 1.8,
+                              ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0xFFFFFFFF),
+                                  offset: Offset(-3, -3),
+                                  blurRadius: 8,
+                                ),
+                                BoxShadow(
+                                  color: Color(0x260F2D57),
+                                  offset: Offset(5, 5),
+                                  blurRadius: 14,
+                                ),
+                              ],
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(14),
+                                onTap: details.onStepContinue,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 18,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      actionLabel,
+                                      style: const TextStyle(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                         const SizedBox(width: 12),
                         if (_currentStep > 0)

@@ -613,6 +613,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _logout() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Sair da conta?'),
+          content: const Text('Deseja realmente encerrar sua sessão neste dispositivo?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Sair'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldLogout != true) return;
     await AuthSessionState.clearPersisted();
     if (!mounted) return;
     Navigator.of(context).pushNamedAndRemoveUntil('/auth', (_) => false);

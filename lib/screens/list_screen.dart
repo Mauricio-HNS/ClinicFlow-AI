@@ -901,16 +901,63 @@ class _ListScreenState extends State<ListScreen> {
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                               const SizedBox(height: 10),
-                              TextButton.icon(
-                                onPressed: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute<void>(
-                                      builder: (_) => const CreateSaleScreen(),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFDFEFF),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: AppColors.primary,
+                                    width: 1.8,
+                                  ),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Color(0xFFFFFFFF),
+                                      offset: Offset(-3, -3),
+                                      blurRadius: 8,
                                     ),
-                                  );
-                                },
-                                icon: const Icon(Icons.add_box_outlined),
-                                label: const Text('Publicar um item'),
+                                    BoxShadow(
+                                      color: Color(0x260F2D57),
+                                      offset: Offset(5, 5),
+                                      blurRadius: 14,
+                                    ),
+                                  ],
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(14),
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute<void>(
+                                          builder: (_) => const CreateSaleScreen(),
+                                        ),
+                                      );
+                                    },
+                                    child: const Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 10,
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.add_box_outlined,
+                                            color: AppColors.primary,
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            'Publicar um item',
+                                            style: TextStyle(
+                                              color: AppColors.primary,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
