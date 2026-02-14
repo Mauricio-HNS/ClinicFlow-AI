@@ -25,6 +25,17 @@ API local padrão: `http://localhost:5000` (ou porta exibida no terminal)
 
 Health check: `/health`
 
+## Banco de dados (SQLite + EF Core Migrations)
+- Banco local padrão: `backend/src/GarageSales.Api/App_Data/garage_sales.db`
+- Migrations: `backend/src/GarageSales.Api/Data/Migrations`
+
+Comandos úteis:
+```bash
+cd backend/src/GarageSales.Api
+dotnet ef migrations add <NomeDaMigration> --output-dir Data/Migrations
+dotnet ef database update
+```
+
 ## Endpoints IA (MVP)
 - `POST /api/ai/chat-seller`
 - `POST /api/ai/listing/generate`

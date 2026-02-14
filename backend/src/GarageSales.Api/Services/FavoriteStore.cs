@@ -1,94 +1,54 @@
-using System.Text.Json;
+using GarageSales.Api.Data;
 using GarageSales.Api.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace GarageSales.Api.Services;
 
 public class FavoriteStore
 {
-    private readonly string _filePath;
-    private readonly SemaphoreSlim _mutex = new(1, 1);
-    private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
+    private readonly AppDbContext _db;
 
-    public FavoriteStore(IHostEnvironment environment)
+    public FavoriteStore(AppDbContext db)
     {
-        var dataDir = Path.Combine(environment.ContentRootPath, "App_Data");
-        Directory.CreateDirectory(dataDir);
-        _filePath = Path.Combine(dataDir, "favorites.json");
+        _db = db;
     }
 
     public async Task<IReadOnlyList<FavoriteItem>> GetByOwnerAsync(string ownerUserId)
     {
-        await _mutex.WaitAsync();
-        try
-        {
-            var items = await ReadAllInternalAsync();
-            return items
-                .Where(item => item.OwnerUserId == ownerUserId)
-                .OrderByDescending(item => item.CreatedAtUtc)
-                .ToList();
-        }
-        finally
-        {
-            _mutex.Release();
-        }
+        return await _db.Favorites
+            .AsNoTracking()
+            .Where(item => item.OwnerUserId == ownerUserId)
+            .OrderByDescending(item => item.CreatedAtUtc)
+            .ToListAsync();
     }
 
     public async Task AddAsync(string ownerUserId, string listingId)
     {
-        await _mutex.WaitAsync();
-        try
+        var exists = await _db.Favorites.AnyAsync(item => item.OwnerUserId == ownerUserId && item.ListingId == listingId);
+        if (exists)
         {
-            var items = await ReadAllInternalAsync();
-            if (items.Any(item => item.OwnerUserId == ownerUserId && item.ListingId == listingId))
-            {
-                return;
-            }
-
-            items.Add(new FavoriteItem
-            {
-                OwnerUserId = ownerUserId,
-                ListingId = listingId,
-                CreatedAtUtc = DateTime.UtcNow
-            });
-
-            await WriteAllInternalAsync(items);
+            return;
         }
-        finally
+
+        _db.Favorites.Add(new FavoriteItem
         {
-            _mutex.Release();
-        }
+            OwnerUserId = ownerUserId,
+            ListingId = listingId,
+            CreatedAtUtc = DateTime.UtcNow
+        });
+
+        await _db.SaveChangesAsync();
     }
 
     public async Task RemoveAsync(string ownerUserId, string listingId)
     {
-        await _mutex.WaitAsync();
-        try
+        var existing = await _db.Favorites.FirstOrDefaultAsync(item => item.OwnerUserId == ownerUserId && item.ListingId == listingId);
+        if (existing is null)
         {
-            var items = await ReadAllInternalAsync();
-            items.RemoveAll(item => item.OwnerUserId == ownerUserId && item.ListingId == listingId);
-            await WriteAllInternalAsync(items);
-        }
-        finally
-        {
-            _mutex.Release();
-        }
-    }
-
-    private async Task<List<FavoriteItem>> ReadAllInternalAsync()
-    {
-        if (!File.Exists(_filePath))
-        {
-            return new List<FavoriteItem>();
+            return;
         }
 
-        await using var stream = File.OpenRead(_filePath);
-        var items = await JsonSerializer.DeserializeAsync<List<FavoriteItem>>(stream);
-        return items ?? new List<FavoriteItem>();
-    }
-
-    private async Task WriteAllInternalAsync(List<FavoriteItem> items)
-    {
-        await using var stream = File.Create(_filePath);
-        await JsonSerializer.SerializeAsync(stream, items, _jsonOptions);
+        _db.Favorites.Remove(existing);
+        await _db.SaveChangesAsync();
     }
 }
