@@ -1,0 +1,13 @@
+@ClinicFlow.Api_HostAddress = http://localhost:5297
+
+#if (EnableOpenAPI)
+GET {{ClinicFlow.Api_HostAddress}}/openapi/v1.json
+Accept: application/json
+
+###
+#endif
+
+GET {{ClinicFlow.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
