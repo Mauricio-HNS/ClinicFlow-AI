@@ -2,6 +2,16 @@
 
 AI-powered multi-tenant SaaS for clinics, designed to look strong on GitHub, in portfolio reviews and in technical interviews.
 
+## Screenshots
+
+### Admin Dashboard
+
+![ClinicFlow AI dashboard](docs/screenshots/clinicflow-dashboard.png)
+
+### Mobile View
+
+![ClinicFlow AI mobile view](docs/screenshots/clinicflow-mobile.png)
+
 ## Product Vision
 
 ClinicFlow AI combines:
