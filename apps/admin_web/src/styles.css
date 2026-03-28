@@ -49,6 +49,22 @@ button:hover {
   box-shadow: 0 16px 30px rgba(115, 239, 211, 0.22);
 }
 
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid rgba(181, 226, 227, 0.14);
+  border-radius: 16px;
+  padding: 0.9rem 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: #eaf3f2;
+  font: inherit;
+}
+
+textarea {
+  resize: vertical;
+}
+
 .app-shell {
   width: min(1440px, calc(100% - 2rem));
   margin: 0 auto;
@@ -133,6 +149,19 @@ button:hover {
   gap: 0.45rem;
 }
 
+.nav-button {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  color: inherit;
+  box-shadow: none;
+  font-weight: 500;
+}
+
+.nav-button:hover {
+  box-shadow: none;
+}
+
 .nav-item {
   padding: 0.9rem 1rem;
   border-radius: 16px;
@@ -211,6 +240,11 @@ button:hover {
 
 .error-text {
   color: #ffb6b6;
+  font-size: 0.88rem;
+}
+
+.success-text {
+  color: #98f0cb;
   font-size: 0.88rem;
 }
 
@@ -515,6 +549,24 @@ button:hover {
   color: #9fb7bb;
 }
 
+.module-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+
+.module-form label {
+  display: grid;
+  gap: 0.45rem;
+  color: #cfe0e2;
+  font-size: 0.92rem;
+}
+
+.full-span {
+  grid-column: 1 / -1;
+}
+
 @media (max-width: 1120px) {
   .app-shell,
   .hero-grid,
@@ -536,7 +588,8 @@ button:hover {
 
   .topbar,
   .timeline-card,
-  .finance-summary {
+  .finance-summary,
+  .module-form {
     flex-direction: column;
   }
 
@@ -555,5 +608,10 @@ button:hover {
 
   .timeline-time {
     padding-top: 0;
+  }
+
+  .module-form {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 }
