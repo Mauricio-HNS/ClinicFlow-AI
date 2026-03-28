@@ -1,7 +1,7 @@
 import { startTransition, useEffect, useState, type FormEvent } from "react";
 
 const API_BASE_URL = "http://127.0.0.1:5057";
-const navItems = ["Dashboard", "Patients", "Scheduling", "Records", "Finance", "Automation"] as const;
+const navItems = ["Dashboard", "Patients", "Professionals", "Scheduling", "Records", "Finance", "Automation"] as const;
 const automations = [
   "AI patient summaries before consultation",
   "Smart reminder copy for WhatsApp",
@@ -88,6 +88,13 @@ type AppointmentForm = {
   notes: string;
 };
 
+type ProfessionalForm = {
+  fullName: string;
+  specialty: string;
+  licenseNumber: string;
+  appointmentDurationMinutes: string;
+};
+
 const appointmentStatusOptions = [
   { value: 1, label: "Scheduled" },
   { value: 2, label: "Confirmed" },
@@ -123,6 +130,13 @@ const emptyAppointmentForm: AppointmentForm = {
   clinicUnitName: "Madrid Central",
   startAtUtc: "",
   notes: ""
+};
+
+const emptyProfessionalForm: ProfessionalForm = {
+  fullName: "",
+  specialty: "",
+  licenseNumber: "",
+  appointmentDurationMinutes: "30"
 };
 
 async function fetchJson<T>(path: string, options?: RequestInit): Promise<T> {
@@ -194,11 +208,13 @@ export function App() {
   const [patientSummary, setPatientSummary] = useState<PatientSummary | null>(null);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [patientForm, setPatientForm] = useState<PatientForm>(emptyPatientForm);
+  const [professionalForm, setProfessionalForm] = useState<ProfessionalForm>(emptyProfessionalForm);
   const [appointmentForm, setAppointmentForm] = useState<AppointmentForm>(emptyAppointmentForm);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSavingPatient, setIsSavingPatient] = useState(false);
   const [isSavingAppointment, setIsSavingAppointment] = useState(false);
+  const [isSavingProfessional, setIsSavingProfessional] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
@@ -374,6 +390,41 @@ export function App() {
     }
   }
 
+  async function handleCreateProfessional(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!session) {
+      return;
+    }
+
+    setIsSavingProfessional(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      await fetchJson<Professional>("/api/professionals", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Tenant-Id": session.tenantId
+        },
+        body: JSON.stringify({
+          ...professionalForm,
+          appointmentDurationMinutes: Number(professionalForm.appointmentDurationMinutes)
+        })
+      });
+
+      setProfessionalForm(emptyProfessionalForm);
+      setSuccessMessage("Professional created successfully.");
+      await refreshData();
+      setActiveView("Professionals");
+    } catch (createError) {
+      setError(createError instanceof Error ? createError.message : "Unable to create professional.");
+    } finally {
+      setIsSavingProfessional(false);
+    }
+  }
+
   async function handleUpdateAppointmentStatus(appointmentId: string, status: number) {
     if (!session) {
       return;
@@ -458,8 +509,9 @@ export function App() {
             <h1>
               {activeView === "Dashboard" && "Run a premium clinic operation with AI in the workflow."}
               {activeView === "Patients" && "Manage patient CRM with context-rich records."}
+              {activeView === "Professionals" && "Manage specialists, consultation duration and clinic availability."}
               {activeView === "Scheduling" && "Book appointments with live professionals and conflict-aware slots."}
-              {activeView !== "Dashboard" && activeView !== "Patients" && activeView !== "Scheduling" && "ClinicFlow AI module preview."}
+              {activeView !== "Dashboard" && activeView !== "Patients" && activeView !== "Professionals" && activeView !== "Scheduling" && "ClinicFlow AI module preview."}
             </h1>
           </div>
           <div className="topbar-actions">
@@ -773,7 +825,63 @@ export function App() {
           </section>
         ) : null}
 
-        {activeView !== "Dashboard" && activeView !== "Patients" && activeView !== "Scheduling" ? (
+        {activeView === "Professionals" ? (
+          <section className="workspace-grid secondary">
+            <article className="panel form-panel">
+              <div className="panel-header">
+                <div>
+                  <p className="section-kicker">Create professional</p>
+                  <h3>Clinic staff management</h3>
+                </div>
+              </div>
+
+              <form className="module-form" onSubmit={(event) => void handleCreateProfessional(event)}>
+                <label>
+                  Full name
+                  <input value={professionalForm.fullName} onChange={(event) => setProfessionalForm({ ...professionalForm, fullName: event.target.value })} required />
+                </label>
+                <label>
+                  Specialty
+                  <input value={professionalForm.specialty} onChange={(event) => setProfessionalForm({ ...professionalForm, specialty: event.target.value })} required />
+                </label>
+                <label>
+                  License number
+                  <input value={professionalForm.licenseNumber} onChange={(event) => setProfessionalForm({ ...professionalForm, licenseNumber: event.target.value })} required />
+                </label>
+                <label>
+                  Appointment duration
+                  <input type="number" min="10" step="5" value={professionalForm.appointmentDurationMinutes} onChange={(event) => setProfessionalForm({ ...professionalForm, appointmentDurationMinutes: event.target.value })} required />
+                </label>
+                <button type="submit">{isSavingProfessional ? "Saving..." : "Create professional"}</button>
+              </form>
+            </article>
+
+            <article className="panel patient-panel">
+              <div className="panel-header">
+                <div>
+                  <p className="section-kicker">Live professionals</p>
+                  <h3>Specialists connected to the clinic</h3>
+                </div>
+                <span className="pill orange">{professionals.length} professionals</span>
+              </div>
+
+              <div className="patient-list">
+                {professionals.map((professional) => (
+                  <div className="patient-card" key={professional.id}>
+                    <div>
+                      <strong>{professional.fullName}</strong>
+                      <span>{professional.specialty}</span>
+                    </div>
+                    <p>License {professional.licenseNumber}</p>
+                    <p className="muted">{professional.appointmentDurationMinutes} minute default consultation</p>
+                  </div>
+                ))}
+              </div>
+            </article>
+          </section>
+        ) : null}
+
+        {activeView !== "Dashboard" && activeView !== "Patients" && activeView !== "Professionals" && activeView !== "Scheduling" ? (
           <section className="workspace-grid">
             <article className="panel insight-panel">
               <div className="panel-header">
