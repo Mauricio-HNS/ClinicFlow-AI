@@ -480,6 +480,11 @@ textarea {
   gap: 0.6rem;
 }
 
+.status-select {
+  min-width: 160px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
 .risk {
   color: #f6b393;
   font-size: 0.82rem;

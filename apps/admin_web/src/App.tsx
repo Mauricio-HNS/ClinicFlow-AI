@@ -88,6 +88,15 @@ type AppointmentForm = {
   notes: string;
 };
 
+const appointmentStatusOptions = [
+  { value: 1, label: "Scheduled" },
+  { value: 2, label: "Confirmed" },
+  { value: 3, label: "In progress" },
+  { value: 4, label: "Completed" },
+  { value: 5, label: "Cancelled" },
+  { value: 6, label: "No-show" }
+];
+
 const defaultSummary: DashboardSummary = {
   appointmentsToday: 0,
   confirmedAppointments: 0,
@@ -365,6 +374,34 @@ export function App() {
     }
   }
 
+  async function handleUpdateAppointmentStatus(appointmentId: string, status: number) {
+    if (!session) {
+      return;
+    }
+
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      await fetchJson<Appointment>(`/api/appointments/${appointmentId}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Tenant-Id": session.tenantId
+        },
+        body: JSON.stringify({
+          status,
+          cancellationReason: status === 5 ? "Cancelled from dashboard UI" : null
+        })
+      });
+
+      setSuccessMessage("Appointment status updated.");
+      await refreshData();
+    } catch (updateError) {
+      setError(updateError instanceof Error ? updateError.message : "Unable to update appointment.");
+    }
+  }
+
   const metrics = [
     { label: "Today's consultations", value: String(summary.appointmentsToday), trend: `${summary.confirmedAppointments} confirmed`, tone: "teal" },
     { label: "Occupancy rate", value: `${summary.appointmentsToday === 0 ? 0 : Math.round((summary.confirmedAppointments / summary.appointmentsToday) * 100)}%`, trend: `${summary.activeProfessionals} active professionals`, tone: "orange" },
@@ -520,6 +557,15 @@ export function App() {
                           <div className="timeline-meta">
                             <span className="pill dark">{mapStatus(item.status)}</span>
                             <span className="risk">No-show {item.noShowRiskScore}%</span>
+                            <select
+                              className="status-select"
+                              value={item.status}
+                              onChange={(event) => void handleUpdateAppointmentStatus(item.id, Number(event.target.value))}
+                            >
+                              {appointmentStatusOptions.map((option) => (
+                                <option key={option.value} value={option.value}>{option.label}</option>
+                              ))}
+                            </select>
                           </div>
                         </div>
                       </div>
@@ -709,6 +755,15 @@ export function App() {
                       <div className="timeline-meta">
                         <span className="pill dark">{mapStatus(item.status)}</span>
                         <span className="risk">No-show {item.noShowRiskScore}%</span>
+                        <select
+                          className="status-select"
+                          value={item.status}
+                          onChange={(event) => void handleUpdateAppointmentStatus(item.id, Number(event.target.value))}
+                        >
+                          {appointmentStatusOptions.map((option) => (
+                            <option key={option.value} value={option.value}>{option.label}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                   </div>
