@@ -1,40 +1,8 @@
-const metrics = [
-  { label: "Today's consultations", value: "28", trend: "+12%", tone: "teal" },
-  { label: "Occupancy rate", value: "84%", trend: "+6%", tone: "orange" },
-  { label: "Monthly revenue", value: "EUR 18.4k", trend: "+18%", tone: "blue" },
-  { label: "No-show watchlist", value: "6", trend: "-2", tone: "rose" }
-];
+import { startTransition, useEffect, useState } from "react";
 
-const timeline = [
-  { hour: "09:00", patient: "Marina Silva", professional: "Dr. Lucas Martins", status: "Confirmed", risk: "24%" },
-  { hour: "09:40", patient: "Elena Ruiz", professional: "Dr. Lucas Martins", status: "SOAP in progress", risk: "12%" },
-  { hour: "10:20", patient: "Joao Pereira", professional: "Dra. Sofia Ramirez", status: "Needs reminder", risk: "74%" },
-  { hour: "11:10", patient: "Lucia Gomez", professional: "Dr. Daniel Costa", status: "Checked in", risk: "18%" }
-];
+const API_BASE_URL = "http://127.0.0.1:5057";
 
-const patients = [
-  {
-    name: "Marina Silva",
-    specialty: "Cardiology",
-    summary: "Stable follow-up, consistent adherence, preventive return suggested in 30 days.",
-    action: "Generate WhatsApp confirmation"
-  },
-  {
-    name: "Joao Pereira",
-    specialty: "Dermatology",
-    summary: "High no-show probability due to long lead time and missed prior appointment.",
-    action: "Escalate manual confirmation"
-  }
-];
-
-const financeBars = [
-  { label: "Mon", value: 56 },
-  { label: "Tue", value: 72 },
-  { label: "Wed", value: 64 },
-  { label: "Thu", value: 88 },
-  { label: "Fri", value: 79 }
-];
-
+const navItems = ["Dashboard", "Patients", "Scheduling", "Records", "Finance", "Automation"];
 const automations = [
   "AI patient summaries before consultation",
   "Smart reminder copy for WhatsApp",
@@ -42,9 +10,231 @@ const automations = [
   "Operational dashboard across clinic units"
 ];
 
-const navItems = ["Dashboard", "Patients", "Scheduling", "Records", "Finance", "Automation"];
+type Session = {
+  accessToken: string;
+  tenantId: string;
+  tenantName: string;
+  userId: string;
+  fullName: string;
+  role: string;
+};
+
+type DashboardSummary = {
+  appointmentsToday: number;
+  confirmedAppointments: number;
+  revenueMonth: number;
+  noShowRate: number;
+  activePatients: number;
+  activeProfessionals: number;
+};
+
+type Appointment = {
+  id: string;
+  patientId: string;
+  patientName: string;
+  professionalId: string;
+  professionalName: string;
+  clinicUnitName: string;
+  startAtUtc: string;
+  endAtUtc: string;
+  status: number;
+  noShowRiskScore: number;
+};
+
+type Patient = {
+  id: string;
+  fullName: string;
+  birthDate: string;
+  gender: string;
+  phone: string;
+  email: string;
+  insurance: string;
+  notes: string;
+};
+
+type PatientSummary = {
+  patientId: string;
+  clinicalSummary: string;
+  attentionPoints: string;
+  suggestedNextSteps: string;
+};
+
+const defaultSummary: DashboardSummary = {
+  appointmentsToday: 0,
+  confirmedAppointments: 0,
+  revenueMonth: 0,
+  noShowRate: 0,
+  activePatients: 0,
+  activeProfessionals: 0
+};
+
+async function fetchJson<T>(path: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, options);
+
+  if (!response.ok) {
+    throw new Error(`API request failed with status ${response.status}`);
+  }
+
+  return response.json() as Promise<T>;
+}
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("en-IE", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0
+  }).format(value);
+}
+
+function formatTime(date: string) {
+  return new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "UTC"
+  }).format(new Date(date));
+}
+
+function formatDate(date: string) {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  }).format(new Date(date));
+}
+
+function mapStatus(status: number) {
+  switch (status) {
+    case 1:
+      return "Scheduled";
+    case 2:
+      return "Confirmed";
+    case 3:
+      return "In progress";
+    case 4:
+      return "Completed";
+    case 5:
+      return "Cancelled";
+    case 6:
+      return "No-show";
+    default:
+      return "Unknown";
+  }
+}
 
 export function App() {
+  const [session, setSession] = useState<Session | null>(null);
+  const [summary, setSummary] = useState<DashboardSummary>(defaultSummary);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [patientSummary, setPatientSummary] = useState<PatientSummary | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+
+  useEffect(() => {
+    void refreshDashboard();
+  }, []);
+
+  async function refreshDashboard() {
+    setLoading((current) => current && !session);
+    setIsRefreshing(true);
+    setError(null);
+
+    try {
+      const currentSession = session ?? await fetchJson<Session>("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: "admin@clinicflow.ai",
+          password: "demo",
+          tenantSlug: "demo-clinic"
+        })
+      });
+
+      if (!session) {
+        setSession(currentSession);
+      }
+
+      const tenantHeaders = {
+        "Content-Type": "application/json",
+        "X-Tenant-Id": currentSession.tenantId
+      };
+
+      const [dashboardData, appointmentsData, patientsData] = await Promise.all([
+        fetchJson<DashboardSummary>("/api/dashboard/summary", { headers: tenantHeaders }),
+        fetchJson<Appointment[]>("/api/appointments", { headers: tenantHeaders }),
+        fetchJson<Patient[]>("/api/patients", { headers: tenantHeaders })
+      ]);
+
+      let aiSummary: PatientSummary | null = patientSummary;
+      const preferredPatientId = selectedPatientId ?? patientsData[0]?.id;
+
+      if (preferredPatientId) {
+        aiSummary = await fetchJson<PatientSummary>(`/api/ai/patient-summary/${preferredPatientId}`, {
+          method: "POST",
+          headers: tenantHeaders
+        });
+      }
+
+      startTransition(() => {
+        setSummary(dashboardData);
+        setAppointments(appointmentsData);
+        setPatients(patientsData);
+        setPatientSummary(aiSummary);
+        setSelectedPatientId(preferredPatientId ?? null);
+        setLastUpdated(new Date().toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit"
+        }));
+      });
+    } catch (refreshError) {
+      setError(refreshError instanceof Error ? refreshError.message : "Unable to load dashboard.");
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  }
+
+  async function loadPatientSummary(patientId: string) {
+    if (!session) {
+      return;
+    }
+
+    setSelectedPatientId(patientId);
+
+    try {
+      const summaryResponse = await fetchJson<PatientSummary>(`/api/ai/patient-summary/${patientId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Tenant-Id": session.tenantId
+        }
+      });
+
+      setPatientSummary(summaryResponse);
+    } catch (summaryError) {
+      setError(summaryError instanceof Error ? summaryError.message : "Unable to load AI summary.");
+    }
+  }
+
+  const metrics = [
+    { label: "Today's consultations", value: String(summary.appointmentsToday), trend: `${summary.confirmedAppointments} confirmed`, tone: "teal" },
+    { label: "Occupancy rate", value: `${summary.appointmentsToday === 0 ? 0 : Math.round((summary.confirmedAppointments / summary.appointmentsToday) * 100)}%`, trend: `${summary.activeProfessionals} active professionals`, tone: "orange" },
+    { label: "Monthly revenue", value: formatCurrency(summary.revenueMonth), trend: `${summary.activePatients} active patients`, tone: "blue" },
+    { label: "No-show watchlist", value: `${summary.noShowRate}%`, trend: "Derived from completed visits", tone: "rose" }
+  ];
+
+  const financeBars = [
+    { label: "Today", value: Math.min(summary.appointmentsToday * 10, 100) || 8 },
+    { label: "Confirmed", value: Math.min(summary.confirmedAppointments * 14, 100) || 12 },
+    { label: "Patients", value: Math.min(summary.activePatients * 20, 100) || 16 },
+    { label: "Doctors", value: Math.min(summary.activeProfessionals * 24, 100) || 10 },
+    { label: "No-show", value: Math.min(Math.round(summary.noShowRate), 100) || 6 }
+  ];
+
   return (
     <main className="app-shell">
       <aside className="sidebar">
@@ -66,9 +256,9 @@ export function App() {
 
         <div className="login-card">
           <p className="section-kicker">Demo access</p>
-          <h3>Clinic admin</h3>
+          <h3>{session?.fullName ?? "Connecting..."}</h3>
           <p>admin@clinicflow.ai</p>
-          <span>Tenant: demo-clinic</span>
+          <span>{session?.tenantName ?? "Tenant: demo-clinic"}</span>
         </div>
       </aside>
 
@@ -79,21 +269,27 @@ export function App() {
             <h1>Run a premium clinic operation with AI in the workflow.</h1>
           </div>
           <div className="topbar-actions">
-            <a className="ghost-link" href="http://127.0.0.1:5057/health" target="_blank" rel="noreferrer">
+            <a className="ghost-link" href={`${API_BASE_URL}/health`} target="_blank" rel="noreferrer">
               API health
             </a>
-            <button>Book appointment</button>
+            <button onClick={() => void refreshDashboard()}>{isRefreshing ? "Refreshing..." : "Refresh data"}</button>
           </div>
         </header>
+
+        <div className="status-strip">
+          <span className="pill teal">{loading ? "Loading live data" : "Live backend connected"}</span>
+          {lastUpdated ? <span className="muted">Last sync {lastUpdated}</span> : null}
+          {error ? <span className="error-text">{error}</span> : null}
+        </div>
 
         <section className="hero-grid">
           <article className="hero-panel">
             <div className="hero-copy">
-              <span className="eyebrow">Today at Madrid Central</span>
+              <span className="eyebrow">Today at {appointments[0]?.clinicUnitName ?? "Madrid Central"}</span>
               <h2>Scheduling, CRM, SOAP and financial clarity in one calm interface.</h2>
               <p>
-                Designed to feel like a real vertical SaaS, not a generic dashboard.
-                The product highlights high-value clinic workflows and surfaces AI only where it saves time.
+                The dashboard below is now fed by the actual ClinicFlow API seed, including
+                appointments, patient CRM and operational metrics from the backend.
               </p>
             </div>
 
@@ -102,7 +298,7 @@ export function App() {
                 <article className={`metric-card ${metric.tone}`} key={metric.label}>
                   <p>{metric.label}</p>
                   <strong>{metric.value}</strong>
-                  <span>{metric.trend} this week</span>
+                  <span>{metric.trend}</span>
                 </article>
               ))}
             </div>
@@ -114,21 +310,19 @@ export function App() {
                 <p className="section-kicker">AI assistant</p>
                 <h3>Pre-consultation summary</h3>
               </div>
-              <span className="pill teal">Ready</span>
+              <span className="pill teal">{patientSummary ? "Live" : "Waiting"}</span>
             </div>
 
             <div className="summary-block">
-              <p className="summary-name">Marina Silva</p>
-              <p>
-                Stable progression with recurring blood pressure follow-up, high engagement
-                and no clinical alerts. Recommend preventive return scheduling and medication review.
+              <p className="summary-name">
+                {patients.find((patient) => patient.id === selectedPatientId)?.fullName ?? "No patient selected"}
               </p>
+              <p>{patientSummary?.clinicalSummary ?? "Pick a patient card to load an AI summary from the backend."}</p>
             </div>
 
             <div className="summary-tags">
-              <span>Cardiology</span>
-              <span>Low urgency</span>
-              <span>Return in 30 days</span>
+              <span>{patientSummary?.attentionPoints ?? "Operational summary"}</span>
+              <span>{patientSummary?.suggestedNextSteps ?? "Next steps will appear here"}</span>
             </div>
 
             <div className="automation-list">
@@ -149,25 +343,30 @@ export function App() {
                 <p className="section-kicker">Live schedule</p>
                 <h3>Front desk timeline</h3>
               </div>
-              <span className="pill orange">4 professionals online</span>
+              <span className="pill orange">{summary.activeProfessionals} professionals online</span>
             </div>
 
             <div className="timeline">
-              {timeline.map((item) => (
-                <div className="timeline-row" key={`${item.hour}-${item.patient}`}>
-                  <div className="timeline-time">{item.hour}</div>
-                  <div className="timeline-card">
-                    <div>
-                      <strong>{item.patient}</strong>
-                      <p>{item.professional}</p>
-                    </div>
-                    <div className="timeline-meta">
-                      <span className="pill dark">{item.status}</span>
-                      <span className="risk">No-show {item.risk}</span>
+              {appointments.length === 0 ? (
+                <div className="empty-state">No appointments loaded yet.</div>
+              ) : (
+                appointments.map((item) => (
+                  <div className="timeline-row" key={item.id}>
+                    <div className="timeline-time">{formatTime(item.startAtUtc)}</div>
+                    <div className="timeline-card">
+                      <div>
+                        <strong>{item.patientName}</strong>
+                        <p>{item.professionalName}</p>
+                        <p className="muted">{formatDate(item.startAtUtc)} · {item.clinicUnitName}</p>
+                      </div>
+                      <div className="timeline-meta">
+                        <span className="pill dark">{mapStatus(item.status)}</span>
+                        <span className="risk">No-show {item.noShowRiskScore}%</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </article>
 
@@ -175,9 +374,9 @@ export function App() {
             <div className="panel-header">
               <div>
                 <p className="section-kicker">Revenue pulse</p>
-                <h3>Collections this week</h3>
+                <h3>Live operational metrics</h3>
               </div>
-              <span className="pill blue">86% paid</span>
+              <span className="pill blue">{summary.confirmedAppointments} confirmed today</span>
             </div>
 
             <div className="finance-bars">
@@ -193,12 +392,12 @@ export function App() {
 
             <div className="finance-summary">
               <div>
-                <p>Collected</p>
-                <strong>EUR 18,420</strong>
+                <p>Collected this month</p>
+                <strong>{formatCurrency(summary.revenueMonth)}</strong>
               </div>
               <div>
-                <p>Pending</p>
-                <strong>EUR 2,640</strong>
+                <p>No-show rate</p>
+                <strong>{summary.noShowRate}%</strong>
               </div>
             </div>
           </article>
@@ -214,16 +413,23 @@ export function App() {
             </div>
 
             <div className="patient-list">
-              {patients.map((patient) => (
-                <div className="patient-card" key={patient.name}>
-                  <div>
-                    <strong>{patient.name}</strong>
-                    <span>{patient.specialty}</span>
+              {patients.length === 0 ? (
+                <div className="empty-state">No patients loaded yet.</div>
+              ) : (
+                patients.map((patient) => (
+                  <div className={`patient-card ${selectedPatientId === patient.id ? "selected" : ""}`} key={patient.id}>
+                    <div>
+                      <strong>{patient.fullName}</strong>
+                      <span>{patient.insurance || "Private"} · {patient.gender}</span>
+                    </div>
+                    <p>{patient.notes}</p>
+                    <p className="muted">{patient.email} · {patient.phone}</p>
+                    <button onClick={() => void loadPatientSummary(patient.id)}>
+                      {selectedPatientId === patient.id ? "AI summary loaded" : "Generate AI summary"}
+                    </button>
                   </div>
-                  <p>{patient.summary}</p>
-                  <button>{patient.action}</button>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </article>
 
@@ -238,15 +444,15 @@ export function App() {
             <div className="insight-stack">
               <div className="insight-card">
                 <strong>Multi-tenant by design</strong>
-                <p>Tenant-aware flows, clinic isolation and role-driven dashboards.</p>
+                <p>Authenticated tenant context is used to fetch dashboard, appointments and CRM data.</p>
               </div>
               <div className="insight-card">
                 <strong>Operational AI</strong>
-                <p>Summaries, reminders and no-show prediction attached to real workflow points.</p>
+                <p>The AI panel uses a real backend endpoint to summarize the selected patient record.</p>
               </div>
               <div className="insight-card">
-                <strong>Interview-grade narrative</strong>
-                <p>Backend depth, product intuition and modern SaaS UX in one repo.</p>
+                <strong>Backend + frontend integration</strong>
+                <p>The dashboard is no longer a mockup. It now consumes live seeded endpoints from ClinicFlow API.</p>
               </div>
             </div>
           </article>

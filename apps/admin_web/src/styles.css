@@ -197,6 +197,23 @@ button:hover {
   align-items: center;
 }
 
+.status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.muted {
+  color: #96adb0;
+  font-size: 0.88rem;
+}
+
+.error-text {
+  color: #ffb6b6;
+  font-size: 0.88rem;
+}
+
 .ghost-link {
   padding: 0.85rem 1.1rem;
   border-radius: 999px;
@@ -482,8 +499,20 @@ button:hover {
   padding: 1rem;
 }
 
+.patient-card.selected {
+  border: 1px solid rgba(115, 239, 211, 0.22);
+  background: rgba(115, 239, 211, 0.08);
+}
+
 .patient-card button {
   margin-top: 0.9rem;
+}
+
+.empty-state {
+  border-radius: 22px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  color: #9fb7bb;
 }
 
 @media (max-width: 1120px) {
