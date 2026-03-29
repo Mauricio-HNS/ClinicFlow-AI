@@ -3,6 +3,8 @@ import { useLanguage } from "./language/LanguageProvider";
 
 const API_BASE_URL = "http://127.0.0.1:5057";
 const SESSION_STORAGE_KEY = "clinicflow-admin-session";
+const AMBIENT_MEDICAL_VIDEO_URL = "https://cdn.coverr.co/videos/coverr-checking-blood-pressure-6184/1080p.mp4";
+const AMBIENT_MEDICAL_VIDEO_POSTER = "https://cdn.coverr.co/videos/coverr-checking-blood-pressure-6184/thumbnail?width=1280";
 
 type PlatformDashboard = {
   totalClients: number;
@@ -472,6 +474,17 @@ function findClinicAccessProfile(members: PlatformAccessMember[], email: string)
   return members.find((member) => member.email.toLowerCase() === email.trim().toLowerCase()) ?? null;
 }
 
+function AmbientVideoBackground({ tone = "soft" }: { tone?: "soft" | "strong" }) {
+  return (
+    <div className={`ambient-video ${tone}`}>
+      <video autoPlay muted loop playsInline poster={AMBIENT_MEDICAL_VIDEO_POSTER}>
+        <source src={AMBIENT_MEDICAL_VIDEO_URL} type="video/mp4" />
+      </video>
+      <div className="ambient-video-overlay" />
+    </div>
+  );
+}
+
 function LoginScreen({
   onLogin
 }: {
@@ -510,6 +523,7 @@ function LoginScreen({
 
   return (
     <main className="auth-shell">
+      <AmbientVideoBackground tone="strong" />
       <div className="auth-backdrop" />
       <section className="auth-layout">
         <article className="auth-brand-card">
@@ -1310,6 +1324,7 @@ export function App() {
 
     return (
       <main className="shell">
+        <AmbientVideoBackground />
         <section className="app-frame clinic-frame">
           <aside className="sidebar clinic-sidebar">
             <div className="sidebar-brand">
@@ -1902,6 +1917,7 @@ export function App() {
 
   return (
     <main className="shell">
+      <AmbientVideoBackground />
       <section className="app-frame">
         <aside className="sidebar">
           <div className="sidebar-brand">
