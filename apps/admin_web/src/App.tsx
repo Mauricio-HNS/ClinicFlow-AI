@@ -1,142 +1,132 @@
-import { startTransition, useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useLanguage } from "./language/LanguageProvider";
 
 const API_BASE_URL = "http://127.0.0.1:5057";
-const navItems = ["Dashboard", "Patients", "Professionals", "Scheduling", "Records", "Finance", "Automation"] as const;
-const automations = [
-  "AI patient summaries before consultation",
-  "Smart reminder copy for WhatsApp",
-  "Risk scoring for possible no-shows",
-  "Operational dashboard across clinic units"
-];
+const SESSION_STORAGE_KEY = "clinicflow-admin-session";
 
-type NavItem = (typeof navItems)[number];
+type PlatformDashboard = {
+  totalClients: number;
+  activeClients: number;
+  overdueClients: number;
+  suspendedClients: number;
+  mrr: number;
+  expiringThisWeek: number;
+};
 
-type Session = {
-  accessToken: string;
-  tenantId: string;
-  tenantName: string;
-  userId: string;
+type PlatformClient = {
+  id: string;
+  clientCode: string;
+  clinicName: string;
+  planName: string;
+  monthlyAmount: number;
+  billingStatus: string;
+  dueDate: string;
+  daysUntilCutoff: number;
+  isSuspended: boolean;
+  ownerName: string;
+  ownerEmail: string;
+  lastPaymentLabel: string;
+  notes: string;
+};
+
+type PlatformMessage = {
+  id: string;
+  clientId: string;
+  clinicName: string;
+  channel: string;
+  subject: string;
+  body: string;
+  sentAtUtc: string;
+};
+
+type PlatformAccessMember = {
+  id: string;
+  clientId: string;
   fullName: string;
+  email: string;
   role: string;
+  canViewDashboard: boolean;
+  canViewBilling: boolean;
+  canManagePatients: boolean;
+  canManageSchedule: boolean;
+  canManageSettings: boolean;
+  isActive: boolean;
 };
 
-type DashboardSummary = {
-  appointmentsToday: number;
-  confirmedAppointments: number;
-  revenueMonth: number;
-  noShowRate: number;
-  activePatients: number;
-  activeProfessionals: number;
+type MessageForm = {
+  clientId: string;
+  channel: string;
+  subject: string;
+  body: string;
 };
 
-type Appointment = {
-  id: string;
-  patientId: string;
-  patientName: string;
-  professionalId: string;
-  professionalName: string;
-  clinicUnitName: string;
-  startAtUtc: string;
-  endAtUtc: string;
-  status: number;
-  noShowRiskScore: number;
-};
-
-type Patient = {
-  id: string;
+type AccessMemberForm = {
   fullName: string;
-  birthDate: string;
-  gender: string;
-  phone: string;
   email: string;
-  insurance: string;
-  notes: string;
+  role: string;
+  canViewDashboard: boolean;
+  canViewBilling: boolean;
+  canManagePatients: boolean;
+  canManageSchedule: boolean;
+  canManageSettings: boolean;
 };
 
-type Professional = {
+type AppRole = "platform_admin" | "clinic_admin" | "staff";
+
+type SessionUser = {
   id: string;
-  fullName: string;
-  specialty: string;
-  licenseNumber: string;
-  appointmentDurationMinutes: number;
-  active: boolean;
-};
-
-type PatientSummary = {
-  patientId: string;
-  clinicalSummary: string;
-  attentionPoints: string;
-  suggestedNextSteps: string;
-};
-
-type PatientForm = {
-  fullName: string;
-  birthDate: string;
-  gender: string;
-  phone: string;
+  name: string;
   email: string;
-  document: string;
-  insurance: string;
-  notes: string;
+  role: AppRole;
+  clientId?: string;
+  password: string;
 };
 
-type AppointmentForm = {
-  patientId: string;
-  professionalId: string;
-  clinicUnitName: string;
-  startAtUtc: string;
-  notes: string;
-};
+type MenuPermission =
+  | "dashboard"
+  | "clients"
+  | "billing"
+  | "renewals"
+  | "suspensions"
+  | "messages"
+  | "notes"
+  | "alerts"
+  | "plans"
+  | "reports"
+  | "audit"
+  | "settings"
+  | "clinic_access";
 
-type ProfessionalForm = {
-  fullName: string;
-  specialty: string;
-  licenseNumber: string;
-  appointmentDurationMinutes: string;
-};
-
-const appointmentStatusOptions = [
-  { value: 1, label: "Scheduled" },
-  { value: 2, label: "Confirmed" },
-  { value: 3, label: "In progress" },
-  { value: 4, label: "Completed" },
-  { value: 5, label: "Cancelled" },
-  { value: 6, label: "No-show" }
+const demoUsers: SessionUser[] = [
+  {
+    id: "platform-admin",
+    name: "Maurício Henrique",
+    email: "admin@clinicflow.ai",
+    role: "platform_admin",
+    password: "clinicflow123"
+  },
+  {
+    id: "clinic-admin-rita",
+    name: "Rita Sousa",
+    email: "rita@clinivida.pt",
+    role: "clinic_admin",
+    clientId: "4abf12d8-5e43-4c6b-9f10-eaf4b5870001",
+    password: "clinica123"
+  },
+  {
+    id: "staff-luisa",
+    name: "Luisa Ramos",
+    email: "recepcao@clinivida.pt",
+    role: "staff",
+    clientId: "4abf12d8-5e43-4c6b-9f10-eaf4b5870001",
+    password: "equipa123"
+  }
 ];
 
-const defaultSummary: DashboardSummary = {
-  appointmentsToday: 0,
-  confirmedAppointments: 0,
-  revenueMonth: 0,
-  noShowRate: 0,
-  activePatients: 0,
-  activeProfessionals: 0
-};
-
-const emptyPatientForm: PatientForm = {
-  fullName: "",
-  birthDate: "",
-  gender: "Female",
-  phone: "",
-  email: "",
-  document: "",
-  insurance: "",
-  notes: ""
-};
-
-const emptyAppointmentForm: AppointmentForm = {
-  patientId: "",
-  professionalId: "",
-  clinicUnitName: "Madrid Central",
-  startAtUtc: "",
-  notes: ""
-};
-
-const emptyProfessionalForm: ProfessionalForm = {
-  fullName: "",
-  specialty: "",
-  licenseNumber: "",
-  appointmentDurationMinutes: "30"
+const rolePermissions: Record<AppRole, MenuPermission[]> = {
+  platform_admin: ["dashboard", "clients", "billing", "renewals", "suspensions", "messages", "notes", "alerts", "plans", "reports", "audit", "settings", "clinic_access"],
+  clinic_admin: ["dashboard", "clients", "billing", "messages", "notes", "settings", "clinic_access"],
+  staff: ["dashboard", "clients", "messages"]
 };
 
 async function fetchJson<T>(path: string, options?: RequestInit): Promise<T> {
@@ -144,804 +134,1218 @@ async function fetchJson<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const message = await response.text();
-    throw new Error(message || `API request failed with status ${response.status}`);
+    throw new Error(message || `Request failed with status ${response.status}`);
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
   }
 
   return response.json() as Promise<T>;
 }
 
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-IE", {
+function formatCurrency(value: number, locale: string) {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "EUR",
     maximumFractionDigits: 0
   }).format(value);
 }
 
-function formatTime(date: string) {
-  return new Intl.DateTimeFormat("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    timeZone: "UTC"
-  }).format(new Date(date));
-}
-
-function formatDate(date: string) {
-  return new Intl.DateTimeFormat("en-GB", {
+function formatDate(date: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "short",
     year: "numeric"
   }).format(new Date(date));
 }
 
-function mapStatus(status: number) {
-  switch (status) {
-    case 1:
-      return "Scheduled";
-    case 2:
-      return "Confirmed";
-    case 3:
-      return "In progress";
-    case 4:
-      return "Completed";
-    case 5:
-      return "Cancelled";
-    case 6:
-      return "No-show";
-    default:
-      return "Unknown";
+function formatDateTime(date: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(new Date(date));
+}
+
+function normalizeBillingStatus(status: string) {
+  const normalizedStatus = status.trim().toLowerCase();
+
+  if (normalizedStatus.includes("paid") || normalizedStatus.includes("pago")) return "paid";
+  if (normalizedStatus.includes("overdue") || normalizedStatus.includes("atras")) return "overdue";
+  if (normalizedStatus.includes("suspended") || normalizedStatus.includes("suspenso") || normalizedStatus.includes("suspendido")) return "suspended";
+  if (normalizedStatus.includes("trial") || normalizedStatus.includes("teste") || normalizedStatus.includes("prueba")) return "trialEnding";
+  return "unknown";
+}
+
+function statusTone(status: string) {
+  const normalizedStatus = normalizeBillingStatus(status);
+
+  if (normalizedStatus === "paid") return "green";
+  if (normalizedStatus === "overdue") return "yellow";
+  if (normalizedStatus === "suspended") return "pink";
+  return "blue";
+}
+
+function buildDefaultMessage(language: string) {
+  if (language === "en") {
+    return {
+      subject: "Payment reminder",
+      body: "Hello, your ClinicFlow subscription is close to interruption due to unpaid invoices. If you need help, reply to this message."
+    };
+  }
+
+  if (language === "es") {
+    return {
+      subject: "Recordatorio de pago",
+      body: "Hola, su suscripción de ClinicFlow está cerca de ser interrumpida por falta de pago. Si necesita ayuda, responda a este mensaje."
+    };
+  }
+
+  return {
+    subject: "Lembrete de pagamento",
+    body: "Olá, a sua assinatura do ClinicFlow está perto de ser interrompida por falta de pagamento. Se precisar de ajuda, responda a esta mensagem."
+  };
+}
+
+function getInitialSession() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const rawSession = window.localStorage.getItem(SESSION_STORAGE_KEY);
+
+  if (!rawSession) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(rawSession) as Omit<SessionUser, "password">;
+    return parsed;
+  } catch {
+    return null;
   }
 }
 
-function toUtcIso(localDateTime: string) {
-  return new Date(localDateTime).toISOString();
+function getLocalizedBillingStatus(status: string, dictionary: ReturnType<typeof useLanguage>["t"]) {
+  return dictionary.billingStatuses[normalizeBillingStatus(status)];
+}
+
+function cutoffLabel(daysUntilCutoff: number, dictionary: ReturnType<typeof useLanguage>["t"]) {
+  if (daysUntilCutoff <= 0) return dictionary.cutoffReady;
+  if (daysUntilCutoff === 1) return dictionary.cutoffOneDay;
+  return dictionary.cutoffManyDays(daysUntilCutoff);
+}
+
+function translateChannel(channel: string, dictionary: ReturnType<typeof useLanguage>["t"]) {
+  return channel.toLowerCase().includes("whatsapp") ? dictionary.channels.whatsapp : dictionary.channels.email;
+}
+
+function translateRole(role: string, dictionary: ReturnType<typeof useLanguage>["t"]) {
+  if (role === "ClinicAdmin") return dictionary.roles.clinicAdmin;
+  if (role === "Staff") return dictionary.roles.staff;
+  return role;
+}
+
+function translateAppRole(role: AppRole, dictionary: ReturnType<typeof useLanguage>["t"]) {
+  if (role === "platform_admin") return dictionary.rolePlatformAdmin;
+  if (role === "clinic_admin") return dictionary.roleClinicAdmin;
+  return dictionary.roleStaff;
+}
+
+function translateLastPaymentLabel(label: string, dictionary: ReturnType<typeof useLanguage>["t"]) {
+  const paidMatch = label.match(/^Paid on (.+)$/i);
+  if (paidMatch) return dictionary.paymentLabels.paidOn(paidMatch[1]);
+
+  const overdueMatch = label.match(/^Invoice overdue by (\d+) days?$/i);
+  if (overdueMatch) return dictionary.paymentLabels.overdueByDays(Number(overdueMatch[1]));
+
+  const trialMatch = label.match(/^Trial ends in (\d+) days?$/i);
+  if (trialMatch) return dictionary.paymentLabels.trialEndsInDays(Number(trialMatch[1]));
+
+  const suspendedMatch = label.match(/^Service suspended on (.+)$/i);
+  if (suspendedMatch) return dictionary.paymentLabels.suspendedOn(suspendedMatch[1]);
+
+  if (label === "1 month courtesy granted by admin") {
+    return dictionary.successGiftMonth;
+  }
+
+  return label;
+}
+
+function userInitials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
+
+function permissionPills(member: PlatformAccessMember, dictionary: ReturnType<typeof useLanguage>["t"]) {
+  return [
+    member.canViewDashboard ? dictionary.permissionsDashboard : null,
+    member.canViewBilling ? dictionary.permissionsBilling : null,
+    member.canManagePatients ? dictionary.permissionsPatients : null,
+    member.canManageSchedule ? dictionary.permissionsSchedule : null,
+    member.canManageSettings ? dictionary.permissionsSettings : null
+  ].filter(Boolean) as string[];
+}
+
+function findClinicAccessProfile(members: PlatformAccessMember[], email: string) {
+  return members.find((member) => member.email.toLowerCase() === email.trim().toLowerCase()) ?? null;
+}
+
+function LoginScreen({
+  onLogin
+}: {
+  onLogin: (user: Omit<SessionUser, "password">) => void;
+}) {
+  const { language, setLanguage, t, availableLanguages } = useLanguage();
+  const [showRecovery, setShowRecovery] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  function handleLogin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    const matchedUser = demoUsers.find((user) => user.email.toLowerCase() === email.trim().toLowerCase() && user.password === password);
+
+    if (!matchedUser) {
+      setError(t.loginInvalidCredentials);
+      return;
+    }
+
+    const { password: _, ...safeUser } = matchedUser;
+    window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(safeUser));
+    onLogin(safeUser);
+  }
+
+  function handleRecovery(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setSuccess(t.loginRecoverySuccess);
+  }
+
+  return (
+    <main className="auth-shell">
+      <div className="auth-backdrop" />
+      <section className="auth-layout">
+        <article className="auth-brand-card">
+          <p className="eyebrow">{t.loginEyebrow}</p>
+          <h1>{t.loginTitle}</h1>
+          <p>{t.loginDescription}</p>
+
+          <div className="auth-demo-list">
+            <p className="auth-section-title">{t.loginDemoTitle}</p>
+            {demoUsers.map((user) => (
+              <button
+                key={user.id}
+                type="button"
+                className="demo-account"
+                onClick={() => {
+                  setEmail(user.email);
+                  setPassword(user.password);
+                  setShowRecovery(false);
+                }}
+              >
+                <div className="demo-avatar">{userInitials(user.name)}</div>
+                <div>
+                  <strong>{user.name}</strong>
+                  <span>{user.email}</span>
+                  <span>{translateAppRole(user.role, t)}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </article>
+
+        <article className="auth-card">
+          <div className="auth-card-head">
+            <div className="sidebar-logo">CF</div>
+            <label className="language-field light">
+              <span>{t.languageFieldLabel}</span>
+              <select value={language} onChange={(event) => setLanguage(event.target.value as typeof language)}>
+                {availableLanguages.map((option) => (
+                  <option key={option.code} value={option.code}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          {!showRecovery ? (
+            <form className="stack-form" onSubmit={handleLogin}>
+              <label className="field-label">
+                <span>{t.loginEmailLabel}</span>
+                <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="admin@clinicflow.ai" />
+              </label>
+
+              <label className="field-label">
+                <span>{t.loginPasswordLabel}</span>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder={t.loginPasswordPlaceholder}
+                />
+              </label>
+
+              {error ? <p className="status-text error">{error}</p> : null}
+              {success ? <p className="status-text success">{success}</p> : null}
+
+              <button type="submit">{t.loginButton}</button>
+              <button type="button" className="ghost-action" onClick={() => setShowRecovery(true)}>
+                {t.loginForgotPassword}
+              </button>
+            </form>
+          ) : (
+            <form className="stack-form" onSubmit={handleRecovery}>
+              <div>
+                <p className="panel-kicker auth-kicker">{t.loginRecoveryTitle}</p>
+                <p className="auth-recovery-copy">{t.loginRecoveryDescription}</p>
+              </div>
+
+              <label className="field-label">
+                <span>{t.loginEmailLabel}</span>
+                <input value={recoveryEmail} onChange={(event) => setRecoveryEmail(event.target.value)} placeholder="nome@clinica.pt" />
+              </label>
+
+              {success ? <p className="status-text success">{success}</p> : null}
+
+              <button type="submit">{t.loginRecoveryButton}</button>
+              <button type="button" className="ghost-action" onClick={() => setShowRecovery(false)}>
+                {t.loginBackToAccess}
+              </button>
+            </form>
+          )}
+        </article>
+      </section>
+    </main>
+  );
 }
 
 export function App() {
-  const [activeView, setActiveView] = useState<NavItem>("Dashboard");
-  const [session, setSession] = useState<Session | null>(null);
-  const [summary, setSummary] = useState<DashboardSummary>(defaultSummary);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [patients, setPatients] = useState<Patient[]>([]);
-  const [professionals, setProfessionals] = useState<Professional[]>([]);
-  const [patientSummary, setPatientSummary] = useState<PatientSummary | null>(null);
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
-  const [patientForm, setPatientForm] = useState<PatientForm>(emptyPatientForm);
-  const [professionalForm, setProfessionalForm] = useState<ProfessionalForm>(emptyProfessionalForm);
-  const [appointmentForm, setAppointmentForm] = useState<AppointmentForm>(emptyAppointmentForm);
-  const [loading, setLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isSavingPatient, setIsSavingPatient] = useState(false);
-  const [isSavingAppointment, setIsSavingAppointment] = useState(false);
-  const [isSavingProfessional, setIsSavingProfessional] = useState(false);
+  const { language, setLanguage, t, availableLanguages } = useLanguage();
+  const [currentUser, setCurrentUser] = useState<Omit<SessionUser, "password"> | null>(getInitialSession);
+  const [activeMenu, setActiveMenu] = useState<MenuPermission>("clients");
+  const [dashboard, setDashboard] = useState<PlatformDashboard | null>(null);
+  const [clients, setClients] = useState<PlatformClient[]>([]);
+  const [messages, setMessages] = useState<PlatformMessage[]>([]);
+  const [accessMembers, setAccessMembers] = useState<PlatformAccessMember[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<string>("");
+  const [draftNote, setDraftNote] = useState("");
+  const defaultMessage = buildDefaultMessage(language);
+  const [messageForm, setMessageForm] = useState<MessageForm>({
+    clientId: "",
+    channel: "Email",
+    subject: defaultMessage.subject,
+    body: defaultMessage.body
+  });
+  const [accessForm, setAccessForm] = useState<AccessMemberForm>({
+    fullName: "",
+    email: "",
+    role: "Staff",
+    canViewDashboard: true,
+    canViewBilling: false,
+    canManagePatients: true,
+    canManageSchedule: true,
+    canManageSettings: false
+  });
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const menuSections = [
+    {
+      title: t.sidebarSections[0].title,
+      items: [
+        { label: t.sidebarSections[0].items[0], permission: "dashboard" as const },
+        { label: t.sidebarSections[0].items[1], permission: "clients" as const },
+        { label: t.sidebarSections[0].items[2], permission: "billing" as const }
+      ]
+    },
+    {
+      title: t.sidebarSections[1].title,
+      items: [
+        { label: t.sidebarSections[1].items[0], permission: "clients" as const },
+        { label: t.sidebarSections[1].items[1], permission: "billing" as const },
+        { label: t.sidebarSections[1].items[2], permission: "renewals" as const },
+        { label: t.sidebarSections[1].items[3], permission: "suspensions" as const }
+      ]
+    },
+    {
+      title: t.sidebarSections[2].title,
+      items: [
+        { label: t.sidebarSections[2].items[0], permission: "messages" as const },
+        { label: t.sidebarSections[2].items[1], permission: "notes" as const },
+        { label: t.sidebarSections[2].items[2], permission: "alerts" as const }
+      ]
+    },
+    {
+      title: t.sidebarSections[3].title,
+      items: [
+        { label: t.sidebarSections[3].items[0], permission: "plans" as const },
+        { label: t.sidebarSections[3].items[1], permission: "reports" as const },
+        { label: t.sidebarSections[3].items[2], permission: "audit" as const },
+        { label: t.sidebarSections[3].items[3], permission: "settings" as const }
+      ]
+    }
+  ];
+
+  const allowedPermissions = currentUser ? rolePermissions[currentUser.role] : [];
+  const visibleClients = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === "platform_admin") return clients;
+    return clients.filter((client) => client.id === currentUser.clientId);
+  }, [clients, currentUser]);
+
+  const selectedClient = useMemo(
+    () => visibleClients.find((client) => client.id === selectedClientId) ?? visibleClients[0] ?? null,
+    [visibleClients, selectedClientId]
+  );
+
+  const canManageClinicAccess = currentUser
+    ? currentUser.role === "platform_admin" || (currentUser.role === "clinic_admin" && currentUser.clientId === selectedClient?.id)
+    : false;
 
   useEffect(() => {
-    void refreshData();
-  }, []);
-
-  async function ensureSession() {
-    if (session) {
-      return session;
+    if (!currentUser) {
+      return;
     }
 
-    const currentSession = await fetchJson<Session>("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: "admin@clinicflow.ai",
-        password: "demo",
-        tenantSlug: "demo-clinic"
-      })
-    });
+    void refreshData(currentUser);
+  }, [currentUser]);
 
-    setSession(currentSession);
-    return currentSession;
-  }
+  useEffect(() => {
+    if (!selectedClient && visibleClients.length > 0) {
+      setSelectedClientId(visibleClients[0].id);
+      return;
+    }
 
-  async function refreshData() {
-    setLoading((current) => current && !session);
-    setIsRefreshing(true);
+    if (selectedClient) {
+      setDraftNote(selectedClient.notes);
+      setMessageForm((current) => ({
+        ...current,
+        clientId: selectedClient.id
+      }));
+    }
+  }, [visibleClients, selectedClient]);
+
+  useEffect(() => {
+    if (!selectedClient) {
+      setAccessMembers([]);
+      return;
+    }
+
+    void loadAccessMembers(selectedClient.id);
+  }, [selectedClient?.id]);
+
+  useEffect(() => {
+    setMessageForm((current) => ({
+      ...current,
+      subject: defaultMessage.subject,
+      body: defaultMessage.body
+    }));
+  }, [language]);
+
+  async function refreshData(user = currentUser) {
+    if (!user) return;
+
     setError(null);
+    setIsLoading(true);
 
     try {
-      const currentSession = await ensureSession();
-      const headers = {
-        "Content-Type": "application/json",
-        "X-Tenant-Id": currentSession.tenantId
-      };
-
-      const [dashboardData, appointmentsData, patientsData, professionalsData] = await Promise.all([
-        fetchJson<DashboardSummary>("/api/dashboard/summary", { headers }),
-        fetchJson<Appointment[]>("/api/appointments", { headers }),
-        fetchJson<Patient[]>("/api/patients", { headers }),
-        fetchJson<Professional[]>("/api/professionals", { headers })
+      const [dashboardData, clientData, messageData] = await Promise.all([
+        fetchJson<PlatformDashboard>("/api/platform/dashboard"),
+        fetchJson<PlatformClient[]>("/api/platform/clients"),
+        fetchJson<PlatformMessage[]>("/api/platform/messages")
       ]);
 
-      const preferredPatientId = selectedPatientId ?? patientsData[0]?.id ?? null;
-      const aiSummary = preferredPatientId
-        ? await fetchJson<PatientSummary>(`/api/ai/patient-summary/${preferredPatientId}`, {
-            method: "POST",
-            headers
-          })
-        : null;
+      setDashboard(dashboardData);
+      setClients(clientData);
+      setMessages(messageData);
 
-      startTransition(() => {
-        setSummary(dashboardData);
-        setAppointments(appointmentsData);
-        setPatients(patientsData);
-        setProfessionals(professionalsData);
-        setPatientSummary(aiSummary);
-        setSelectedPatientId(preferredPatientId);
-        setAppointmentForm((current) => ({
-          ...current,
-          patientId: current.patientId || patientsData[0]?.id || "",
-          professionalId: current.professionalId || professionalsData[0]?.id || ""
-        }));
-        setLastUpdated(new Date().toLocaleTimeString("en-GB", {
-          hour: "2-digit",
-          minute: "2-digit"
-        }));
-      });
-    } catch (refreshError) {
-      setError(refreshError instanceof Error ? refreshError.message : "Unable to load data.");
+      const firstVisibleClient = user.role === "platform_admin"
+        ? clientData[0]
+        : clientData.find((client) => client.id === user.clientId);
+
+      if (!selectedClientId && firstVisibleClient) {
+        setSelectedClientId(firstVisibleClient.id);
+      }
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : t.errorLoad);
     } finally {
-      setLoading(false);
-      setIsRefreshing(false);
+      setIsLoading(false);
     }
   }
 
-  async function loadPatientSummary(patientId: string) {
-    if (!session) {
-      return;
+  async function loadAccessMembers(clientId: string) {
+    try {
+      const memberData = await fetchJson<PlatformAccessMember[]>(`/api/platform/clients/${clientId}/access-members`);
+      setAccessMembers(memberData);
+    } catch {
+      setAccessMembers([]);
     }
+  }
 
-    setSelectedPatientId(patientId);
+  async function handleGiftMonth(clientId: string) {
+    setSuccess(null);
     setError(null);
 
     try {
-      const summaryResponse = await fetchJson<PatientSummary>(`/api/ai/patient-summary/${patientId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Tenant-Id": session.tenantId
-        }
-      });
-
-      setPatientSummary(summaryResponse);
-    } catch (summaryError) {
-      setError(summaryError instanceof Error ? summaryError.message : "Unable to load AI summary.");
+      await fetchJson(`/api/platform/clients/${clientId}/gift-month`, { method: "POST" });
+      setSuccess(t.successGiftMonth);
+      await refreshData();
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : t.errorGiftMonth);
     }
   }
 
-  async function handleCreatePatient(event: FormEvent<HTMLFormElement>) {
+  async function handleSuspend(clientId: string) {
+    setSuccess(null);
+    setError(null);
+
+    try {
+      await fetchJson(`/api/platform/clients/${clientId}/suspend`, { method: "POST" });
+      setSuccess(t.successSuspend);
+      await refreshData();
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : t.errorSuspend);
+    }
+  }
+
+  async function handleDelete(clientId: string) {
+    setSuccess(null);
+    setError(null);
+
+    try {
+      await fetchJson(`/api/platform/clients/${clientId}`, { method: "DELETE" });
+      setSuccess(t.successDelete);
+      setSelectedClientId("");
+      await refreshData();
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : t.errorDelete);
+    }
+  }
+
+  async function handleSaveNote(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!session) {
-      return;
-    }
+    if (!selectedClient) return;
 
-    setIsSavingPatient(true);
+    setSuccess(null);
     setError(null);
-    setSuccessMessage(null);
 
     try {
-      await fetchJson<Patient>("/api/patients", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Tenant-Id": session.tenantId
-        },
-        body: JSON.stringify(patientForm)
-      });
-
-      setPatientForm(emptyPatientForm);
-      setSuccessMessage("Patient created successfully.");
-      await refreshData();
-      setActiveView("Patients");
-    } catch (createError) {
-      setError(createError instanceof Error ? createError.message : "Unable to create patient.");
-    } finally {
-      setIsSavingPatient(false);
-    }
-  }
-
-  async function handleCreateAppointment(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!session || !appointmentForm.patientId || !appointmentForm.professionalId || !appointmentForm.startAtUtc) {
-      setError("Patient, professional and start time are required.");
-      return;
-    }
-
-    setIsSavingAppointment(true);
-    setError(null);
-    setSuccessMessage(null);
-
-    try {
-      await fetchJson<Appointment>("/api/appointments", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Tenant-Id": session.tenantId
-        },
-        body: JSON.stringify({
-          ...appointmentForm,
-          startAtUtc: toUtcIso(appointmentForm.startAtUtc)
-        })
-      });
-
-      setAppointmentForm((current) => ({
-        ...emptyAppointmentForm,
-        clinicUnitName: current.clinicUnitName,
-        patientId: current.patientId,
-        professionalId: current.professionalId
-      }));
-      setSuccessMessage("Appointment created successfully.");
-      await refreshData();
-      setActiveView("Scheduling");
-    } catch (createError) {
-      setError(createError instanceof Error ? createError.message : "Unable to create appointment.");
-    } finally {
-      setIsSavingAppointment(false);
-    }
-  }
-
-  async function handleCreateProfessional(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!session) {
-      return;
-    }
-
-    setIsSavingProfessional(true);
-    setError(null);
-    setSuccessMessage(null);
-
-    try {
-      await fetchJson<Professional>("/api/professionals", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Tenant-Id": session.tenantId
-        },
-        body: JSON.stringify({
-          ...professionalForm,
-          appointmentDurationMinutes: Number(professionalForm.appointmentDurationMinutes)
-        })
-      });
-
-      setProfessionalForm(emptyProfessionalForm);
-      setSuccessMessage("Professional created successfully.");
-      await refreshData();
-      setActiveView("Professionals");
-    } catch (createError) {
-      setError(createError instanceof Error ? createError.message : "Unable to create professional.");
-    } finally {
-      setIsSavingProfessional(false);
-    }
-  }
-
-  async function handleUpdateAppointmentStatus(appointmentId: string, status: number) {
-    if (!session) {
-      return;
-    }
-
-    setError(null);
-    setSuccessMessage(null);
-
-    try {
-      await fetchJson<Appointment>(`/api/appointments/${appointmentId}/status`, {
+      await fetchJson(`/api/platform/clients/${selectedClient.id}/note`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Tenant-Id": session.tenantId
-        },
-        body: JSON.stringify({
-          status,
-          cancellationReason: status === 5 ? "Cancelled from dashboard UI" : null
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes: draftNote })
       });
-
-      setSuccessMessage("Appointment status updated.");
+      setSuccess(t.successNote);
       await refreshData();
-    } catch (updateError) {
-      setError(updateError instanceof Error ? updateError.message : "Unable to update appointment.");
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : t.errorNote);
     }
   }
 
-  const metrics = [
-    { label: "Today's consultations", value: String(summary.appointmentsToday), trend: `${summary.confirmedAppointments} confirmed`, tone: "teal" },
-    { label: "Occupancy rate", value: `${summary.appointmentsToday === 0 ? 0 : Math.round((summary.confirmedAppointments / summary.appointmentsToday) * 100)}%`, trend: `${summary.activeProfessionals} active professionals`, tone: "orange" },
-    { label: "Monthly revenue", value: formatCurrency(summary.revenueMonth), trend: `${summary.activePatients} active patients`, tone: "blue" },
-    { label: "No-show watchlist", value: `${summary.noShowRate}%`, trend: "Derived from completed visits", tone: "rose" }
-  ];
+  async function handleSendMessage(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-  const financeBars = [
-    { label: "Today", value: Math.min(summary.appointmentsToday * 10, 100) || 8 },
-    { label: "Confirmed", value: Math.min(summary.confirmedAppointments * 14, 100) || 12 },
-    { label: "Patients", value: Math.min(summary.activePatients * 20, 100) || 16 },
-    { label: "Doctors", value: Math.min(summary.activeProfessionals * 24, 100) || 10 },
-    { label: "No-show", value: Math.min(Math.round(summary.noShowRate), 100) || 6 }
-  ];
+    if (!messageForm.clientId) return;
 
-  const selectedPatient = patients.find((patient) => patient.id === selectedPatientId) ?? null;
+    setSuccess(null);
+    setError(null);
 
-  return (
-    <main className="app-shell">
-      <aside className="sidebar">
-        <div className="brand">
-          <div className="brand-mark">CF</div>
-          <div>
-            <p>ClinicFlow AI</p>
-            <span>Multi-tenant clinic ops</span>
-          </div>
-        </div>
+    try {
+      await fetchJson("/api/platform/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(messageForm)
+      });
+      setSuccess(t.successMessage);
+      await refreshData();
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : t.errorMessage);
+    }
+  }
 
-        <nav className="sidebar-nav">
-          {navItems.map((item) => (
-            <button
-              className={item === activeView ? "nav-item active nav-button" : "nav-item nav-button"}
-              key={item}
-              onClick={() => setActiveView(item)}
-              type="button"
-            >
-              {item}
-            </button>
-          ))}
-        </nav>
+  async function handleCreateAccessMember(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-        <div className="login-card">
-          <p className="section-kicker">Demo access</p>
-          <h3>{session?.fullName ?? "Connecting..."}</h3>
-          <p>admin@clinicflow.ai</p>
-          <span>{session?.tenantName ?? "Tenant: demo-clinic"}</span>
-        </div>
-      </aside>
+    if (!selectedClient) return;
 
-      <section className="workspace">
-        <header className="topbar">
-          <div>
-            <p className="section-kicker">Operational command center</p>
-            <h1>
-              {activeView === "Dashboard" && "Run a premium clinic operation with AI in the workflow."}
-              {activeView === "Patients" && "Manage patient CRM with context-rich records."}
-              {activeView === "Professionals" && "Manage specialists, consultation duration and clinic availability."}
-              {activeView === "Scheduling" && "Book appointments with live professionals and conflict-aware slots."}
-              {activeView !== "Dashboard" && activeView !== "Patients" && activeView !== "Professionals" && activeView !== "Scheduling" && "ClinicFlow AI module preview."}
-            </h1>
-          </div>
-          <div className="topbar-actions">
-            <a className="ghost-link" href={`${API_BASE_URL}/health`} target="_blank" rel="noreferrer">
-              API health
-            </a>
-            <button onClick={() => void refreshData()}>{isRefreshing ? "Refreshing..." : "Refresh data"}</button>
-          </div>
-        </header>
+    setSuccess(null);
+    setError(null);
 
-        <div className="status-strip">
-          <span className="pill teal">{loading ? "Loading live data" : "Live backend connected"}</span>
-          {lastUpdated ? <span className="muted">Last sync {lastUpdated}</span> : null}
-          {successMessage ? <span className="success-text">{successMessage}</span> : null}
-          {error ? <span className="error-text">{error}</span> : null}
-        </div>
+    try {
+      await fetchJson(`/api/platform/clients/${selectedClient.id}/access-members`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(accessForm)
+      });
 
-        {activeView === "Dashboard" ? (
-          <>
-            <section className="hero-grid">
-              <article className="hero-panel">
-                <div className="hero-copy">
-                  <span className="eyebrow">Today at {appointments[0]?.clinicUnitName ?? "Madrid Central"}</span>
-                  <h2>Scheduling, CRM, SOAP and financial clarity in one calm interface.</h2>
-                  <p>
-                    The dashboard below is fed by the ClinicFlow API seed, including appointments,
-                    patient CRM and operational metrics from the backend.
-                  </p>
+      setSuccess(t.successAccessMember);
+      setAccessForm({
+        fullName: "",
+        email: "",
+        role: "Staff",
+        canViewDashboard: true,
+        canViewBilling: false,
+        canManagePatients: true,
+        canManageSchedule: true,
+        canManageSettings: false
+      });
+      await loadAccessMembers(selectedClient.id);
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : t.errorAccessMember);
+    }
+  }
+
+  function handleLogout() {
+    window.localStorage.removeItem(SESSION_STORAGE_KEY);
+    setCurrentUser(null);
+    setDashboard(null);
+    setClients([]);
+    setMessages([]);
+    setAccessMembers([]);
+    setSelectedClientId("");
+    setError(null);
+    setSuccess(null);
+  }
+
+  if (!currentUser) {
+    return <LoginScreen onLogin={setCurrentUser} />;
+  }
+
+  const clinicAccessProfile = currentUser.role === "platform_admin" ? null : findClinicAccessProfile(accessMembers, currentUser.email);
+
+  if (currentUser.role !== "platform_admin") {
+    const clinicMenu = [
+      { label: "Dashboard", enabled: true },
+      { label: "Agenda", enabled: clinicAccessProfile?.canManageSchedule ?? false },
+      { label: "Pacientes", enabled: clinicAccessProfile?.canManagePatients ?? false },
+      { label: "Médicos", enabled: clinicAccessProfile?.canManageSchedule ?? false },
+      { label: "Atendimentos", enabled: clinicAccessProfile?.canViewDashboard ?? false },
+      { label: "Prontuários", enabled: clinicAccessProfile?.canManagePatients ?? false },
+      { label: "Financeiro", enabled: clinicAccessProfile?.canViewBilling ?? false },
+      { label: "Convênios", enabled: clinicAccessProfile?.canViewBilling ?? false },
+      { label: "Exames", enabled: clinicAccessProfile?.canManagePatients ?? false },
+      { label: "Prescrições", enabled: clinicAccessProfile?.canManagePatients ?? false },
+      { label: "Chat / WhatsApp", enabled: true },
+      { label: "Relatórios", enabled: clinicAccessProfile?.canViewDashboard ?? false },
+      { label: "Configurações", enabled: clinicAccessProfile?.canManageSettings ?? false },
+      { label: "Usuários e permissões", enabled: currentUser.role === "clinic_admin" }
+    ];
+
+    const scheduleItems = [
+      { time: "09:00", patient: "Ana Souza", doctor: "Dr. Carlos", type: "Consulta", status: "Confirmado", tone: "green" },
+      { time: "09:30", patient: "João Lima", doctor: "Dra. Fernanda", type: "Retorno", status: "Aguardando", tone: "yellow" },
+      { time: "10:00", patient: "Pedro Alves", doctor: "Dr. Ricardo", type: "Exame", status: "Em atendimento", tone: "blue" },
+      { time: "10:30", patient: "Maria Costa", doctor: "Dra. Paula", type: "Consulta", status: "Cancelado", tone: "pink" },
+      { time: "11:00", patient: "Lucas Mendes", doctor: "Dr. André", type: "Check-up", status: "Confirmado", tone: "green" }
+    ];
+
+    const nextAppointments = [
+      { patient: "Mariana Lopes", doctor: "Dr. Felipe", time: "11:30", avatar: "ML" },
+      { patient: "Carlos Pereira", doctor: "Dra. Sofia", time: "12:00", avatar: "CP" }
+    ];
+
+    const alerts = [
+      { title: "3 pacientes faltosos", tone: "pink" },
+      { title: "Convênio XYZ vencido", tone: "yellow" },
+      { title: "8 retornos pendentes", tone: "blue" },
+      { title: "5 cobranças em aberto", tone: "green" }
+    ];
+
+    const quickActions = [
+      { label: "Novo paciente", tone: "blue", enabled: clinicAccessProfile?.canManagePatients ?? false },
+      { label: "Novo agendamento", tone: "green", enabled: clinicAccessProfile?.canManageSchedule ?? false },
+      { label: "Emitir receita", tone: "yellow", enabled: clinicAccessProfile?.canManagePatients ?? false },
+      { label: "Solicitar exame", tone: "pink", enabled: clinicAccessProfile?.canManagePatients ?? false },
+      { label: "Enviar mensagem", tone: "blue", enabled: true }
+    ];
+
+    const clinicStats = [
+      { label: "Consultas hoje", value: "42", tone: "blue" },
+      { label: "Pacientes aguardando", value: "8", tone: "green" },
+      { label: "Cancelamentos", value: "5", tone: "pink" },
+      { label: "Faturamento do mês", value: formatCurrency(selectedClient?.monthlyAmount ? selectedClient.monthlyAmount * 50 : 12450, t.locale), tone: "green" },
+      { label: "Ocupação da agenda", value: "92%", tone: "green" },
+      { label: "Novos pacientes", value: "16", tone: "green" },
+      { label: "Convênios pendentes", value: "7", tone: "yellow" },
+      { label: "Exames pendentes", value: "14", tone: "blue" }
+    ];
+
+    return (
+      <main className="shell">
+        <section className="app-frame clinic-frame">
+          <aside className="sidebar clinic-sidebar">
+            <div className="sidebar-brand">
+              <div className="sidebar-logo">CF</div>
+              <div>
+                <p>{selectedClient?.clinicName ?? "ClinicFlow"}</p>
+                <span>Painel de gestão clínica</span>
+              </div>
+            </div>
+
+            <div className="sidebar-stack clinic-nav">
+              {clinicMenu.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  className={item.label === "Dashboard" ? "sidebar-item active" : item.enabled ? "sidebar-item" : "sidebar-item locked"}
+                  disabled={!item.enabled}
+                  title={item.enabled ? item.label : t.menuLockedLabel}
+                >
+                  <span>{item.label}</span>
+                  {!item.enabled ? <small>{t.menuLockedLabel}</small> : null}
+                </button>
+              ))}
+            </div>
+
+            <div className="sidebar-foot">
+              <span>{currentUser.role === "clinic_admin" ? t.roleClinicAdmin : t.roleStaff}</span>
+              <strong>{selectedClient?.clientCode ?? "Sem cliente"}</strong>
+            </div>
+          </aside>
+
+          <section className="page clinic-page">
+            <div className="page-topbar">
+              <div className="topbar-copy">
+                <p className="eyebrow">Operação clínica</p>
+                <strong>{selectedClient?.clinicName ?? "Clínica ativa"}</strong>
+              </div>
+              <div className="session-card">
+                <div className="session-avatar">{userInitials(currentUser.name)}</div>
+                <div className="session-meta">
+                  <strong>{currentUser.name}</strong>
+                  <span>{currentUser.email}</span>
+                  <span>{translateAppRole(currentUser.role, t)}</span>
                 </div>
+                <button type="button" className="ghost-action small" onClick={handleLogout}>
+                  {t.topbarLogout}
+                </button>
+              </div>
+            </div>
 
-                <div className="stat-grid">
-                  {metrics.map((metric) => (
-                    <article className={`metric-card ${metric.tone}`} key={metric.label}>
-                      <p>{metric.label}</p>
-                      <strong>{metric.value}</strong>
-                      <span>{metric.trend}</span>
-                    </article>
-                  ))}
-                </div>
-              </article>
+            <section className="clinic-stat-grid">
+              {clinicStats.map((card) => (
+                <article className={`clinic-stat-card tone-${card.tone}`} key={card.label}>
+                  <strong>{card.value}</strong>
+                  <span>{card.label}</span>
+                </article>
+              ))}
+            </section>
 
-              <article className="hero-ai">
-                <div className="ai-header">
+            <section className="clinic-grid">
+              <article className="panel clinic-panel agenda-panel">
+                <div className="panel-header">
                   <div>
-                    <p className="section-kicker">AI assistant</p>
-                    <h3>Pre-consultation summary</h3>
+                    <p className="panel-kicker">Agenda</p>
+                    <h2>Agenda do dia</h2>
                   </div>
-                  <span className="pill teal">{patientSummary ? "Live" : "Waiting"}</span>
                 </div>
 
-                <div className="summary-block">
-                  <p className="summary-name">{selectedPatient?.fullName ?? "No patient selected"}</p>
-                  <p>{patientSummary?.clinicalSummary ?? "Pick a patient card to load an AI summary from the backend."}</p>
-                </div>
-
-                <div className="summary-tags">
-                  <span>{patientSummary?.attentionPoints ?? "Operational summary"}</span>
-                  <span>{patientSummary?.suggestedNextSteps ?? "Next steps will appear here"}</span>
-                </div>
-
-                <div className="automation-list">
-                  {automations.map((item) => (
-                    <div className="automation-item" key={item}>
-                      <span className="automation-dot" />
-                      <p>{item}</p>
+                <div className="schedule-list">
+                  {scheduleItems.map((item) => (
+                    <div className="schedule-row" key={`${item.time}-${item.patient}`}>
+                      <strong>{item.time}</strong>
+                      <div>
+                        <p>{item.patient}</p>
+                        <span>{item.doctor}</span>
+                      </div>
+                      <div className="schedule-meta">
+                        <span>{item.type}</span>
+                        <span className={`inline-status ${item.tone}`}>{item.status}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
               </article>
-            </section>
 
-            <section className="workspace-grid">
-              <article className="panel schedule-panel">
+              <article className="panel clinic-panel">
                 <div className="panel-header">
                   <div>
-                    <p className="section-kicker">Live schedule</p>
-                    <h3>Front desk timeline</h3>
+                    <p className="panel-kicker">Atendimento</p>
+                    <h2>Próximos atendimentos</h2>
                   </div>
-                  <span className="pill orange">{summary.activeProfessionals} professionals online</span>
                 </div>
 
-                <div className="timeline">
-                  {appointments.length === 0 ? (
-                    <div className="empty-state">No appointments loaded yet.</div>
+                <div className="next-appointments">
+                  {nextAppointments.map((appointment) => (
+                    <div className="next-card" key={`${appointment.patient}-${appointment.time}`}>
+                      <div className="next-avatar">{appointment.avatar}</div>
+                      <div>
+                        <strong>{appointment.patient}</strong>
+                        <p>{appointment.time} · {appointment.doctor}</p>
+                      </div>
+                      <button type="button" className="mini-action" disabled={!(clinicAccessProfile?.canManagePatients ?? false)}>
+                        Abrir prontuário
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="alert-block">
+                  <div className="panel-header compact">
+                    <div>
+                      <p className="panel-kicker">Atenção</p>
+                      <h2>Alertas importantes</h2>
+                    </div>
+                  </div>
+
+                  <div className="alert-list">
+                    {alerts.map((alert) => (
+                      <div className="alert-row" key={alert.title}>
+                        <span className={`alert-dot ${alert.tone}`} />
+                        <strong>{alert.title}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </article>
+
+              <section className="clinic-side-column">
+                <article className="panel clinic-panel">
+                  <div className="panel-header">
+                    <div>
+                      <p className="panel-kicker">Indicadores</p>
+                      <h2>Resumo operacional</h2>
+                    </div>
+                  </div>
+                  <div className="mini-chart">
+                    {[18, 26, 22, 31, 25, 34, 29].map((value, index) => (
+                      <div className="bar-wrap" key={value + index}>
+                        <div className="bar" style={{ height: `${value * 2}px` }} />
+                        <span>{["S", "T", "Q", "Q", "S", "S", "D"][index]}</span>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+
+                <article className="panel clinic-panel">
+                  <div className="panel-header compact">
+                    <div>
+                      <p className="panel-kicker">Ações</p>
+                      <h2>Ações rápidas</h2>
+                    </div>
+                  </div>
+                  <div className="quick-action-list">
+                    {quickActions.map((action) => (
+                      <button
+                        key={action.label}
+                        type="button"
+                        className={`quick-action tone-${action.tone}`}
+                        disabled={!action.enabled}
+                      >
+                        {action.label}
+                      </button>
+                    ))}
+                  </div>
+                </article>
+              </section>
+
+              <article className="panel clinic-panel suggestion-panel">
+                <div className="panel-header compact">
+                  <div>
+                    <p className="panel-kicker">IA operacional</p>
+                    <h2>Sugestão de encaixe</h2>
+                  </div>
+                </div>
+                <div className="suggestion-copy">
+                  <p>Horário disponível: <strong>11:45</strong></p>
+                  <p>Paciente prioritário: <strong>Laura Martins</strong></p>
+                  <p>Profissional sugerido: <strong>Dra. Fernanda</strong></p>
+                </div>
+              </article>
+
+              <article className="panel clinic-panel forecast-panel">
+                <div className="panel-header compact">
+                  <div>
+                    <p className="panel-kicker">Previsão</p>
+                    <h2>Risco de faltas</h2>
+                  </div>
+                </div>
+                <p className="forecast-copy">
+                  <strong>15%</strong> de risco estimado para amanhã, com maior atenção nas consultas após as 16:00.
+                </p>
+              </article>
+            </section>
+          </section>
+        </section>
+      </main>
+    );
+  }
+
+  const summaryCards = dashboard
+    ? [
+        { label: t.summaryClients, value: String(currentUser.role === "platform_admin" ? dashboard.totalClients : visibleClients.length) },
+        { label: t.summaryPaid, value: String(dashboard.activeClients) },
+        { label: t.summaryOverdue, value: String(dashboard.overdueClients) },
+        { label: t.summaryMrr, value: formatCurrency(dashboard.mrr, t.locale) }
+      ]
+    : [];
+
+  return (
+    <main className="shell">
+      <section className="app-frame">
+        <aside className="sidebar">
+          <div className="sidebar-brand">
+            <div className="sidebar-logo">CF</div>
+            <div>
+              <p>{t.brandingName}</p>
+              <span>{t.brandingTagline}</span>
+            </div>
+          </div>
+
+          <div className="sidebar-stack">
+            {menuSections.map((section) => (
+              <div className="sidebar-group" key={section.title}>
+                <p className="sidebar-title">{section.title}</p>
+                <div className="sidebar-items">
+                  {section.items.map((item) => {
+                    const allowed = allowedPermissions.includes(item.permission);
+                    const isActive = activeMenu === item.permission;
+
+                    return (
+                      <button
+                        key={item.label}
+                        type="button"
+                        className={isActive ? "sidebar-item active" : allowed ? "sidebar-item" : "sidebar-item locked"}
+                        disabled={!allowed}
+                        onClick={() => setActiveMenu(item.permission)}
+                        title={allowed ? item.label : t.menuLockedLabel}
+                      >
+                        <span>{item.label}</span>
+                        {!allowed ? <small>{t.menuLockedLabel}</small> : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="sidebar-foot">
+            <span>{t.sidebarFooterLabel}</span>
+            <strong>{t.sidebarFooterTitle}</strong>
+            <label className="language-field">
+              <span>{t.languageFieldLabel}</span>
+              <select value={language} onChange={(event) => setLanguage(event.target.value as typeof language)}>
+                {availableLanguages.map((option) => (
+                  <option key={option.code} value={option.code}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </aside>
+
+        <section className="page">
+          <div className="page-topbar">
+            <div className="topbar-copy">
+              <p className="eyebrow">{t.headerEyebrow}</p>
+              <strong>{t.topbarGreeting}</strong>
+            </div>
+            <div className="session-card">
+              <div className="session-avatar">{userInitials(currentUser.name)}</div>
+              <div className="session-meta">
+                <strong>{currentUser.name}</strong>
+                <span>{currentUser.email}</span>
+                <span>{translateAppRole(currentUser.role, t)}</span>
+              </div>
+              <button type="button" className="ghost-action small" onClick={handleLogout}>
+                {t.topbarLogout}
+              </button>
+            </div>
+          </div>
+
+          <header className="masthead">
+            <div className="masthead-copy">
+              <p className="eyebrow">{t.headerEyebrow}</p>
+              <h1>{t.headerTitle}</h1>
+              <p>{t.headerDescription}</p>
+            </div>
+          </header>
+
+          <section className="summary-grid">
+            {summaryCards.map((card) => (
+              <article className="summary-card" key={card.label}>
+                <span>{card.label}</span>
+                <strong>{card.value}</strong>
+              </article>
+            ))}
+          </section>
+
+          <div className="status-row">
+            <span className="status-chip blue">{isLoading ? t.loadingData : t.backendConnected}</span>
+            {dashboard ? <span className="status-chip yellow">{t.nearingCutoff(dashboard.expiringThisWeek)}</span> : null}
+            {success ? <span className="status-text success">{success}</span> : null}
+            {error ? <span className="status-text error">{error}</span> : null}
+          </div>
+
+          <section className="layout-grid">
+            <article className="panel panel-scroll">
+              <div className="panel-header">
+                <div>
+                  <p className="panel-kicker">{t.clientsKicker}</p>
+                  <h2>{t.clientsTitle}</h2>
+                </div>
+              </div>
+
+              <div className="list-stack">
+                {visibleClients.map((client) => (
+                  <button
+                    key={client.id}
+                    type="button"
+                    className={client.id === selectedClient?.id ? "list-card active" : "list-card"}
+                    onClick={() => setSelectedClientId(client.id)}
+                  >
+                    <div className="list-card-top">
+                      <strong>{client.clinicName}</strong>
+                      <span className={`badge ${statusTone(client.billingStatus)}`}>{getLocalizedBillingStatus(client.billingStatus, t)}</span>
+                    </div>
+                    <p>{client.clientCode} · {client.planName}</p>
+                    <p>{client.ownerName} · {client.ownerEmail}</p>
+                    <p className="small-text">{translateLastPaymentLabel(client.lastPaymentLabel, t)}</p>
+                  </button>
+                ))}
+              </div>
+            </article>
+
+            <section className="detail-column">
+              <article className="panel">
+                <div className="panel-header">
+                  <div>
+                    <p className="panel-kicker">{t.selectedAccountKicker}</p>
+                    <h2>{selectedClient?.clinicName ?? t.selectClientTitle}</h2>
+                  </div>
+                  {selectedClient ? (
+                    <span className={`badge ${statusTone(selectedClient.billingStatus)}`}>
+                      {getLocalizedBillingStatus(selectedClient.billingStatus, t)}
+                    </span>
+                  ) : null}
+                </div>
+
+                {selectedClient ? (
+                  <div className="detail-grid">
+                    <div className="detail-item">
+                      <span>{t.clientCodeLabel}</span>
+                      <strong>{selectedClient.clientCode}</strong>
+                    </div>
+                    <div className="detail-item">
+                      <span>{t.ownerLabel}</span>
+                      <strong>{selectedClient.ownerName}</strong>
+                    </div>
+                    <div className="detail-item">
+                      <span>{t.planLabel}</span>
+                      <strong>{selectedClient.planName}</strong>
+                    </div>
+                    <div className="detail-item">
+                      <span>{t.monthlyFeeLabel}</span>
+                      <strong>{formatCurrency(selectedClient.monthlyAmount, t.locale)}</strong>
+                    </div>
+                    <div className="detail-item">
+                      <span>{t.dueDateLabel}</span>
+                      <strong>{formatDate(selectedClient.dueDate, t.locale)}</strong>
+                    </div>
+                    <div className="detail-item">
+                      <span>{t.cutoffLabel}</span>
+                      <strong>{cutoffLabel(selectedClient.daysUntilCutoff, t)}</strong>
+                    </div>
+                    <div className="detail-item">
+                      <span>{t.lastStatusLabel}</span>
+                      <strong>{translateLastPaymentLabel(selectedClient.lastPaymentLabel, t)}</strong>
+                    </div>
+                    <div className="detail-item">
+                      <span>{t.accessResponsibleLabel}</span>
+                      <strong>{selectedClient.ownerEmail}</strong>
+                    </div>
+                  </div>
+                ) : null}
+
+                {selectedClient && currentUser.role === "platform_admin" ? (
+                  <div className="action-row">
+                    <button onClick={() => void handleGiftMonth(selectedClient.id)}>{t.giftMonthAction}</button>
+                    <button className="soft-yellow" onClick={() => void handleSuspend(selectedClient.id)}>{t.suspendAction}</button>
+                    <button className="soft-pink" onClick={() => void handleDelete(selectedClient.id)}>{t.deleteAction}</button>
+                  </div>
+                ) : null}
+              </article>
+
+              <article className="panel">
+                <div className="panel-header">
+                  <div>
+                    <p className="panel-kicker">{t.internalNoteKicker}</p>
+                    <h2>{t.internalNoteTitle}</h2>
+                  </div>
+                </div>
+
+                <form className="stack-form" onSubmit={handleSaveNote}>
+                  <textarea
+                    rows={5}
+                    value={draftNote}
+                    onChange={(event) => setDraftNote(event.target.value)}
+                    placeholder={t.internalNotePlaceholder}
+                    disabled={!selectedClient || !allowedPermissions.includes("notes")}
+                  />
+                  <button disabled={!selectedClient || !allowedPermissions.includes("notes")}>{t.saveNoteAction}</button>
+                </form>
+              </article>
+
+              <article className="panel">
+                <div className="panel-header">
+                  <div>
+                    <p className="panel-kicker">{t.accessKicker}</p>
+                    <h2>{t.accessTitle}</h2>
+                  </div>
+                </div>
+
+                <div className="access-list">
+                  {accessMembers.length === 0 ? (
+                    <p className="small-text">{t.accessEmpty}</p>
                   ) : (
-                    appointments.map((item) => (
-                      <div className="timeline-row" key={item.id}>
-                        <div className="timeline-time">{formatTime(item.startAtUtc)}</div>
-                        <div className="timeline-card">
+                    accessMembers.map((member) => (
+                      <div className="access-card" key={member.id}>
+                        <div className="access-top">
+                          <div className="access-avatar">{userInitials(member.fullName)}</div>
                           <div>
-                            <strong>{item.patientName}</strong>
-                            <p>{item.professionalName}</p>
-                            <p className="muted">{formatDate(item.startAtUtc)} · {item.clinicUnitName}</p>
+                            <strong>{member.fullName}</strong>
+                            <p>{member.email}</p>
+                            <p className="small-text">{translateRole(member.role, t)}</p>
                           </div>
-                          <div className="timeline-meta">
-                            <span className="pill dark">{mapStatus(item.status)}</span>
-                            <span className="risk">No-show {item.noShowRiskScore}%</span>
-                            <select
-                              className="status-select"
-                              value={item.status}
-                              onChange={(event) => void handleUpdateAppointmentStatus(item.id, Number(event.target.value))}
-                            >
-                              {appointmentStatusOptions.map((option) => (
-                                <option key={option.value} value={option.value}>{option.label}</option>
-                              ))}
-                            </select>
-                          </div>
+                        </div>
+                        <div className="permission-wrap">
+                          {permissionPills(member, t).map((permission) => (
+                            <span className="mini-badge" key={permission}>{permission}</span>
+                          ))}
                         </div>
                       </div>
                     ))
                   )}
                 </div>
-              </article>
 
-              <article className="panel finance-panel">
+                <form className="stack-form access-form" onSubmit={handleCreateAccessMember}>
+                  <p className="panel-kicker auth-kicker">{t.accessFormTitle}</p>
+                  <input
+                    value={accessForm.fullName}
+                    onChange={(event) => setAccessForm((current) => ({ ...current, fullName: event.target.value }))}
+                    placeholder={t.collaboratorNamePlaceholder}
+                    disabled={!canManageClinicAccess}
+                  />
+                  <input
+                    value={accessForm.email}
+                    onChange={(event) => setAccessForm((current) => ({ ...current, email: event.target.value }))}
+                    placeholder={t.collaboratorEmailPlaceholder}
+                    disabled={!canManageClinicAccess}
+                  />
+                  <select
+                    value={accessForm.role}
+                    onChange={(event) => setAccessForm((current) => ({ ...current, role: event.target.value }))}
+                    disabled={!canManageClinicAccess}
+                  >
+                    <option value="ClinicAdmin">{t.roles.clinicAdmin}</option>
+                    <option value="Staff">{t.roles.staff}</option>
+                  </select>
+
+                  <div className="checkbox-grid">
+                    <label><input type="checkbox" checked={accessForm.canViewDashboard} onChange={(event) => setAccessForm((current) => ({ ...current, canViewDashboard: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsDashboard}</label>
+                    <label><input type="checkbox" checked={accessForm.canViewBilling} onChange={(event) => setAccessForm((current) => ({ ...current, canViewBilling: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsBilling}</label>
+                    <label><input type="checkbox" checked={accessForm.canManagePatients} onChange={(event) => setAccessForm((current) => ({ ...current, canManagePatients: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsPatients}</label>
+                    <label><input type="checkbox" checked={accessForm.canManageSchedule} onChange={(event) => setAccessForm((current) => ({ ...current, canManageSchedule: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsSchedule}</label>
+                    <label><input type="checkbox" checked={accessForm.canManageSettings} onChange={(event) => setAccessForm((current) => ({ ...current, canManageSettings: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsSettings}</label>
+                  </div>
+
+                  <button disabled={!canManageClinicAccess || !selectedClient}>{t.collaboratorCreateAction}</button>
+                </form>
+              </article>
+            </section>
+
+            <section className="detail-column">
+              <article className="panel">
                 <div className="panel-header">
                   <div>
-                    <p className="section-kicker">Revenue pulse</p>
-                    <h3>Live operational metrics</h3>
+                    <p className="panel-kicker">{t.remindersKicker}</p>
+                    <h2>{t.remindersTitle}</h2>
                   </div>
-                  <span className="pill blue">{summary.confirmedAppointments} confirmed today</span>
                 </div>
 
-                <div className="finance-bars">
-                  {financeBars.map((bar) => (
-                    <div className="bar-column" key={bar.label}>
-                      <div className="bar-track">
-                        <div className="bar-fill" style={{ height: `${bar.value}%` }} />
+                <form className="stack-form" onSubmit={handleSendMessage}>
+                  <select
+                    value={messageForm.clientId}
+                    onChange={(event) => setMessageForm((current) => ({ ...current, clientId: event.target.value }))}
+                    disabled={!allowedPermissions.includes("messages")}
+                  >
+                    <option value="">{t.selectClientOption}</option>
+                    {visibleClients.map((client) => (
+                      <option key={client.id} value={client.id}>{client.clinicName}</option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={messageForm.channel}
+                    onChange={(event) => setMessageForm((current) => ({ ...current, channel: event.target.value }))}
+                    disabled={!allowedPermissions.includes("messages")}
+                  >
+                    <option value="Email">{t.channels.email}</option>
+                    <option value="WhatsApp">{t.channels.whatsapp}</option>
+                  </select>
+
+                  <input
+                    value={messageForm.subject}
+                    onChange={(event) => setMessageForm((current) => ({ ...current, subject: event.target.value }))}
+                    placeholder={t.subjectPlaceholder}
+                    disabled={!allowedPermissions.includes("messages")}
+                  />
+
+                  <textarea
+                    rows={5}
+                    value={messageForm.body}
+                    onChange={(event) => setMessageForm((current) => ({ ...current, body: event.target.value }))}
+                    placeholder={t.messagePlaceholder}
+                    disabled={!allowedPermissions.includes("messages")}
+                  />
+
+                  <button disabled={!messageForm.clientId || !allowedPermissions.includes("messages")}>{t.sendReminderAction}</button>
+                </form>
+              </article>
+
+              <article className="panel panel-scroll">
+                <div className="panel-header">
+                  <div>
+                    <p className="panel-kicker">{t.messagesKicker}</p>
+                    <h2>{t.messagesTitle}</h2>
+                  </div>
+                </div>
+
+                <div className="message-list">
+                  {messages
+                    .filter((message) => currentUser.role === "platform_admin" || message.clientId === currentUser.clientId)
+                    .map((message) => (
+                      <div className="message-card" key={message.id}>
+                        <div className="message-top">
+                          <strong>{message.clinicName}</strong>
+                          <span>{translateChannel(message.channel, t)}</span>
+                        </div>
+                        <p>{message.subject}</p>
+                        <p className="small-text">{message.body}</p>
+                        <p className="small-text">{formatDateTime(message.sentAtUtc, t.locale)}</p>
                       </div>
-                      <span>{bar.label}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="finance-summary">
-                  <div>
-                    <p>Collected this month</p>
-                    <strong>{formatCurrency(summary.revenueMonth)}</strong>
-                  </div>
-                  <div>
-                    <p>No-show rate</p>
-                    <strong>{summary.noShowRate}%</strong>
-                  </div>
+                    ))}
                 </div>
               </article>
             </section>
-          </>
-        ) : null}
-
-        {activeView === "Patients" ? (
-          <section className="workspace-grid secondary">
-            <article className="panel form-panel">
-              <div className="panel-header">
-                <div>
-                  <p className="section-kicker">Create patient</p>
-                  <h3>Reception workflow</h3>
-                </div>
-              </div>
-
-              <form className="module-form" onSubmit={(event) => void handleCreatePatient(event)}>
-                <label>
-                  Full name
-                  <input value={patientForm.fullName} onChange={(event) => setPatientForm({ ...patientForm, fullName: event.target.value })} required />
-                </label>
-                <label>
-                  Birth date
-                  <input type="date" value={patientForm.birthDate} onChange={(event) => setPatientForm({ ...patientForm, birthDate: event.target.value })} required />
-                </label>
-                <label>
-                  Gender
-                  <select value={patientForm.gender} onChange={(event) => setPatientForm({ ...patientForm, gender: event.target.value })}>
-                    <option>Female</option>
-                    <option>Male</option>
-                    <option>Other</option>
-                  </select>
-                </label>
-                <label>
-                  Phone
-                  <input value={patientForm.phone} onChange={(event) => setPatientForm({ ...patientForm, phone: event.target.value })} required />
-                </label>
-                <label>
-                  Email
-                  <input type="email" value={patientForm.email} onChange={(event) => setPatientForm({ ...patientForm, email: event.target.value })} required />
-                </label>
-                <label>
-                  Document
-                  <input value={patientForm.document} onChange={(event) => setPatientForm({ ...patientForm, document: event.target.value })} required />
-                </label>
-                <label>
-                  Insurance
-                  <input value={patientForm.insurance} onChange={(event) => setPatientForm({ ...patientForm, insurance: event.target.value })} />
-                </label>
-                <label className="full-span">
-                  Notes
-                  <textarea value={patientForm.notes} onChange={(event) => setPatientForm({ ...patientForm, notes: event.target.value })} rows={4} />
-                </label>
-                <button type="submit">{isSavingPatient ? "Saving..." : "Create patient"}</button>
-              </form>
-            </article>
-
-            <article className="panel patient-panel">
-              <div className="panel-header">
-                <div>
-                  <p className="section-kicker">Patient CRM</p>
-                  <h3>Live patient list</h3>
-                </div>
-                <span className="pill blue">{patients.length} patients</span>
-              </div>
-
-              <div className="patient-list">
-                {patients.map((patient) => (
-                  <div className={`patient-card ${selectedPatientId === patient.id ? "selected" : ""}`} key={patient.id}>
-                    <div>
-                      <strong>{patient.fullName}</strong>
-                      <span>{patient.insurance || "Private"} · {patient.gender}</span>
-                    </div>
-                    <p>{patient.notes}</p>
-                    <p className="muted">{patient.email} · {patient.phone}</p>
-                    <button type="button" onClick={() => void loadPatientSummary(patient.id)}>
-                      {selectedPatientId === patient.id ? "AI summary loaded" : "Generate AI summary"}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </article>
           </section>
-        ) : null}
-
-        {activeView === "Scheduling" ? (
-          <section className="workspace-grid secondary">
-            <article className="panel form-panel">
-              <div className="panel-header">
-                <div>
-                  <p className="section-kicker">Create appointment</p>
-                  <h3>Book a real consultation</h3>
-                </div>
-              </div>
-
-              <form className="module-form" onSubmit={(event) => void handleCreateAppointment(event)}>
-                <label>
-                  Patient
-                  <select value={appointmentForm.patientId} onChange={(event) => setAppointmentForm({ ...appointmentForm, patientId: event.target.value })} required>
-                    <option value="">Select patient</option>
-                    {patients.map((patient) => (
-                      <option key={patient.id} value={patient.id}>{patient.fullName}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Professional
-                  <select value={appointmentForm.professionalId} onChange={(event) => setAppointmentForm({ ...appointmentForm, professionalId: event.target.value })} required>
-                    <option value="">Select professional</option>
-                    {professionals.map((professional) => (
-                      <option key={professional.id} value={professional.id}>{professional.fullName} · {professional.specialty}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Clinic unit
-                  <input value={appointmentForm.clinicUnitName} onChange={(event) => setAppointmentForm({ ...appointmentForm, clinicUnitName: event.target.value })} required />
-                </label>
-                <label>
-                  Start time
-                  <input type="datetime-local" value={appointmentForm.startAtUtc} onChange={(event) => setAppointmentForm({ ...appointmentForm, startAtUtc: event.target.value })} required />
-                </label>
-                <label className="full-span">
-                  Notes
-                  <textarea value={appointmentForm.notes} onChange={(event) => setAppointmentForm({ ...appointmentForm, notes: event.target.value })} rows={4} />
-                </label>
-                <button type="submit">{isSavingAppointment ? "Saving..." : "Create appointment"}</button>
-              </form>
-            </article>
-
-            <article className="panel schedule-panel">
-              <div className="panel-header">
-                <div>
-                  <p className="section-kicker">Live schedule</p>
-                  <h3>Appointments from backend</h3>
-                </div>
-                <span className="pill orange">{appointments.length} bookings</span>
-              </div>
-
-              <div className="timeline">
-                {appointments.map((item) => (
-                  <div className="timeline-row" key={item.id}>
-                    <div className="timeline-time">{formatTime(item.startAtUtc)}</div>
-                    <div className="timeline-card">
-                      <div>
-                        <strong>{item.patientName}</strong>
-                        <p>{item.professionalName}</p>
-                        <p className="muted">{formatDate(item.startAtUtc)} · {item.clinicUnitName}</p>
-                      </div>
-                      <div className="timeline-meta">
-                        <span className="pill dark">{mapStatus(item.status)}</span>
-                        <span className="risk">No-show {item.noShowRiskScore}%</span>
-                        <select
-                          className="status-select"
-                          value={item.status}
-                          onChange={(event) => void handleUpdateAppointmentStatus(item.id, Number(event.target.value))}
-                        >
-                          {appointmentStatusOptions.map((option) => (
-                            <option key={option.value} value={option.value}>{option.label}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </article>
-          </section>
-        ) : null}
-
-        {activeView === "Professionals" ? (
-          <section className="workspace-grid secondary">
-            <article className="panel form-panel">
-              <div className="panel-header">
-                <div>
-                  <p className="section-kicker">Create professional</p>
-                  <h3>Clinic staff management</h3>
-                </div>
-              </div>
-
-              <form className="module-form" onSubmit={(event) => void handleCreateProfessional(event)}>
-                <label>
-                  Full name
-                  <input value={professionalForm.fullName} onChange={(event) => setProfessionalForm({ ...professionalForm, fullName: event.target.value })} required />
-                </label>
-                <label>
-                  Specialty
-                  <input value={professionalForm.specialty} onChange={(event) => setProfessionalForm({ ...professionalForm, specialty: event.target.value })} required />
-                </label>
-                <label>
-                  License number
-                  <input value={professionalForm.licenseNumber} onChange={(event) => setProfessionalForm({ ...professionalForm, licenseNumber: event.target.value })} required />
-                </label>
-                <label>
-                  Appointment duration
-                  <input type="number" min="10" step="5" value={professionalForm.appointmentDurationMinutes} onChange={(event) => setProfessionalForm({ ...professionalForm, appointmentDurationMinutes: event.target.value })} required />
-                </label>
-                <button type="submit">{isSavingProfessional ? "Saving..." : "Create professional"}</button>
-              </form>
-            </article>
-
-            <article className="panel patient-panel">
-              <div className="panel-header">
-                <div>
-                  <p className="section-kicker">Live professionals</p>
-                  <h3>Specialists connected to the clinic</h3>
-                </div>
-                <span className="pill orange">{professionals.length} professionals</span>
-              </div>
-
-              <div className="patient-list">
-                {professionals.map((professional) => (
-                  <div className="patient-card" key={professional.id}>
-                    <div>
-                      <strong>{professional.fullName}</strong>
-                      <span>{professional.specialty}</span>
-                    </div>
-                    <p>License {professional.licenseNumber}</p>
-                    <p className="muted">{professional.appointmentDurationMinutes} minute default consultation</p>
-                  </div>
-                ))}
-              </div>
-            </article>
-          </section>
-        ) : null}
-
-        {activeView !== "Dashboard" && activeView !== "Patients" && activeView !== "Professionals" && activeView !== "Scheduling" ? (
-          <section className="workspace-grid">
-            <article className="panel insight-panel">
-              <div className="panel-header">
-                <div>
-                  <p className="section-kicker">{activeView}</p>
-                  <h3>Module planned next</h3>
-                </div>
-              </div>
-              <div className="insight-stack">
-                <div className="insight-card">
-                  <strong>Foundation ready</strong>
-                  <p>This area can now be implemented on top of the same tenant-aware API session.</p>
-                </div>
-                <div className="insight-card">
-                  <strong>Current milestone</strong>
-                  <p>Patients and scheduling are already connected, which proves the end-to-end product loop.</p>
-                </div>
-              </div>
-            </article>
-          </section>
-        ) : null}
-
-        <section className="workspace-grid secondary">
-          <article className="panel insight-panel">
-            <div className="panel-header">
-              <div>
-                <p className="section-kicker">What makes it strong</p>
-                <h3>Portfolio differentiators</h3>
-              </div>
-            </div>
-            <div className="insight-stack">
-              <div className="insight-card">
-                <strong>Multi-tenant by design</strong>
-                <p>Authenticated tenant context is used to fetch dashboard, appointments and CRM data.</p>
-              </div>
-              <div className="insight-card">
-                <strong>Operational AI</strong>
-                <p>The AI panel uses a real backend endpoint to summarize the selected patient record.</p>
-              </div>
-              <div className="insight-card">
-                <strong>Frontend now performs real writes</strong>
-                <p>Reception can create patients and consultations from the UI using the ClinicFlow API.</p>
-              </div>
-            </div>
-          </article>
-
-          <article className="panel hero-ai">
-            <div className="ai-header">
-              <div>
-                <p className="section-kicker">Live data footprint</p>
-                <h3>Current connected modules</h3>
-              </div>
-            </div>
-            <div className="automation-list">
-              <div className="automation-item"><span className="automation-dot" /><p>Dashboard summary</p></div>
-              <div className="automation-item"><span className="automation-dot" /><p>Patients list and creation</p></div>
-              <div className="automation-item"><span className="automation-dot" /><p>Scheduling list and creation</p></div>
-              <div className="automation-item"><span className="automation-dot" /><p>Patient AI summary</p></div>
-            </div>
-          </article>
         </section>
       </section>
     </main>

@@ -11,7 +11,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSingleton<IClinicRepository, InMemoryClinicRepository>();
+builder.Services.AddSingleton<IPlatformAdminStore, InMemoryPlatformAdminStore>();
 builder.Services.AddScoped<ClinicFlowAppService>();
+builder.Services.AddScoped<PlatformAdminService>();
 
 builder.Services.AddCors(options =>
 {
