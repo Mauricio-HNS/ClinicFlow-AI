@@ -97,6 +97,102 @@ type MenuPermission =
   | "settings"
   | "clinic_access";
 
+type ClinicView =
+  | "dashboard"
+  | "agenda"
+  | "patients"
+  | "doctors"
+  | "attendance"
+  | "records"
+  | "finance"
+  | "insurance"
+  | "tests"
+  | "prescriptions"
+  | "chat"
+  | "reports"
+  | "settings"
+  | "permissions";
+
+type AppView = MenuPermission | ClinicView;
+
+type ClinicDashboardSummary = {
+  appointmentsToday: number;
+  confirmedAppointments: number;
+  revenueMonth: number;
+  noShowRate: number;
+  activePatients: number;
+  activeProfessionals: number;
+};
+
+type ClinicPatient = {
+  id: string;
+  tenantId: string;
+  fullName: string;
+  birthDate: string;
+  gender: string;
+  phone: string;
+  email: string;
+  insurance: string;
+  notes: string;
+};
+
+type ClinicProfessional = {
+  id: string;
+  tenantId: string;
+  fullName: string;
+  specialty: string;
+  licenseNumber: string;
+  appointmentDurationMinutes: number;
+  active: boolean;
+};
+
+type ClinicAppointment = {
+  id: string;
+  tenantId: string;
+  patientId: string;
+  patientName: string;
+  professionalId: string;
+  professionalName: string;
+  clinicUnitName: string;
+  startAtUtc: string;
+  endAtUtc: string;
+  status: number;
+  noShowRiskScore: number;
+};
+
+type ClinicPatientSummary = {
+  patientId: string;
+  clinicalSummary: string;
+  attentionPoints: string;
+  suggestedNextSteps: string;
+};
+
+type PatientFormState = {
+  fullName: string;
+  birthDate: string;
+  gender: string;
+  phone: string;
+  email: string;
+  document: string;
+  insurance: string;
+  notes: string;
+};
+
+type ProfessionalFormState = {
+  fullName: string;
+  specialty: string;
+  licenseNumber: string;
+  appointmentDurationMinutes: string;
+};
+
+type AppointmentFormState = {
+  patientId: string;
+  professionalId: string;
+  clinicUnitName: string;
+  startAtUtc: string;
+  notes: string;
+};
+
 const demoUsers: SessionUser[] = [
   {
     id: "platform-admin",
@@ -129,6 +225,34 @@ const rolePermissions: Record<AppRole, MenuPermission[]> = {
   staff: ["dashboard", "clients", "messages"]
 };
 
+const DEMO_TENANT_ID = "a84e7a32-6d4c-4a13-8b25-3f4d580cc111";
+
+const initialPatientForm: PatientFormState = {
+  fullName: "",
+  birthDate: "",
+  gender: "Female",
+  phone: "",
+  email: "",
+  document: "",
+  insurance: "",
+  notes: ""
+};
+
+const initialProfessionalForm: ProfessionalFormState = {
+  fullName: "",
+  specialty: "",
+  licenseNumber: "",
+  appointmentDurationMinutes: "30"
+};
+
+const initialAppointmentForm: AppointmentFormState = {
+  patientId: "",
+  professionalId: "",
+  clinicUnitName: "Madrid Central",
+  startAtUtc: "",
+  notes: ""
+};
+
 async function fetchJson<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, options);
 
@@ -142,6 +266,16 @@ async function fetchJson<T>(path: string, options?: RequestInit): Promise<T> {
   }
 
   return response.json() as Promise<T>;
+}
+
+async function fetchClinicJson<T>(path: string, options?: RequestInit): Promise<T> {
+  const headers = new Headers(options?.headers);
+  headers.set("X-Tenant-Id", DEMO_TENANT_ID);
+
+  return fetchJson<T>(path, {
+    ...options,
+    headers
+  });
 }
 
 function formatCurrency(value: number, locale: string) {
@@ -167,6 +301,47 @@ function formatDateTime(date: string, locale: string) {
     hour: "2-digit",
     minute: "2-digit"
   }).format(new Date(date));
+}
+
+function formatTime(date: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(new Date(date));
+}
+
+function appointmentStatusLabel(status: number) {
+  switch (status) {
+    case 1:
+      return "Agendada";
+    case 2:
+      return "Confirmada";
+    case 3:
+      return "Em atendimento";
+    case 4:
+      return "Concluída";
+    case 5:
+      return "Cancelada";
+    case 6:
+      return "Faltou";
+    default:
+      return "Sem status";
+  }
+}
+
+function appointmentTone(status: number) {
+  switch (status) {
+    case 2:
+    case 4:
+      return "green";
+    case 3:
+      return "blue";
+    case 5:
+    case 6:
+      return "pink";
+    default:
+      return "yellow";
+  }
 }
 
 function normalizeBillingStatus(status: string) {
@@ -435,11 +610,20 @@ function LoginScreen({
 export function App() {
   const { language, setLanguage, t, availableLanguages } = useLanguage();
   const [currentUser, setCurrentUser] = useState<Omit<SessionUser, "password"> | null>(getInitialSession);
-  const [activeMenu, setActiveMenu] = useState<MenuPermission>("clients");
+  const [activeMenu, setActiveMenu] = useState<AppView>("clients");
   const [dashboard, setDashboard] = useState<PlatformDashboard | null>(null);
   const [clients, setClients] = useState<PlatformClient[]>([]);
   const [messages, setMessages] = useState<PlatformMessage[]>([]);
   const [accessMembers, setAccessMembers] = useState<PlatformAccessMember[]>([]);
+  const [clinicSummary, setClinicSummary] = useState<ClinicDashboardSummary | null>(null);
+  const [clinicPatients, setClinicPatients] = useState<ClinicPatient[]>([]);
+  const [clinicProfessionals, setClinicProfessionals] = useState<ClinicProfessional[]>([]);
+  const [clinicAppointments, setClinicAppointments] = useState<ClinicAppointment[]>([]);
+  const [selectedClinicPatientId, setSelectedClinicPatientId] = useState<string>("");
+  const [clinicPatientSummary, setClinicPatientSummary] = useState<ClinicPatientSummary | null>(null);
+  const [patientForm, setPatientForm] = useState<PatientFormState>(initialPatientForm);
+  const [professionalForm, setProfessionalForm] = useState<ProfessionalFormState>(initialProfessionalForm);
+  const [appointmentForm, setAppointmentForm] = useState<AppointmentFormState>(initialAppointmentForm);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [draftNote, setDraftNote] = useState("");
   const defaultMessage = buildDefaultMessage(language);
@@ -460,6 +644,7 @@ export function App() {
     canManageSettings: false
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isClinicLoading, setIsClinicLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -522,6 +707,17 @@ export function App() {
     }
 
     void refreshData(currentUser);
+    if (currentUser.role !== "platform_admin") {
+      void refreshClinicData();
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser) {
+      return;
+    }
+
+    setActiveMenu(currentUser.role === "platform_admin" ? "clients" : "dashboard");
   }, [currentUser]);
 
   useEffect(() => {
@@ -538,6 +734,12 @@ export function App() {
       }));
     }
   }, [visibleClients, selectedClient]);
+
+  useEffect(() => {
+    if (!selectedClinicPatientId && clinicPatients[0]) {
+      setSelectedClinicPatientId(clinicPatients[0].id);
+    }
+  }, [clinicPatients, selectedClinicPatientId]);
 
   useEffect(() => {
     if (!selectedClient) {
@@ -584,6 +786,34 @@ export function App() {
       setError(loadError instanceof Error ? loadError.message : t.errorLoad);
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function refreshClinicData() {
+    setIsClinicLoading(true);
+
+    try {
+      const [summaryData, patientData, professionalData, appointmentData] = await Promise.all([
+        fetchClinicJson<ClinicDashboardSummary>("/api/dashboard/summary"),
+        fetchClinicJson<ClinicPatient[]>("/api/patients"),
+        fetchClinicJson<ClinicProfessional[]>("/api/professionals"),
+        fetchClinicJson<ClinicAppointment[]>("/api/appointments")
+      ]);
+
+      setClinicSummary(summaryData);
+      setClinicPatients(patientData);
+      setClinicProfessionals(professionalData);
+      setClinicAppointments(appointmentData);
+
+      setAppointmentForm((current) => ({
+        ...current,
+        patientId: current.patientId || patientData[0]?.id || "",
+        professionalId: current.professionalId || professionalData[0]?.id || ""
+      }));
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Não foi possível carregar os dados da clínica.");
+    } finally {
+      setIsClinicLoading(false);
     }
   }
 
@@ -710,6 +940,126 @@ export function App() {
     }
   }
 
+  async function handleCreateClinicPatient(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSuccess(null);
+    setError(null);
+
+    try {
+      await fetchClinicJson("/api/patients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: patientForm.fullName,
+          birthDate: patientForm.birthDate,
+          gender: patientForm.gender,
+          phone: patientForm.phone,
+          email: patientForm.email,
+          document: patientForm.document,
+          insurance: patientForm.insurance,
+          notes: patientForm.notes
+        })
+      });
+
+      setPatientForm(initialPatientForm);
+      setSuccess("Paciente criado com sucesso.");
+      await refreshClinicData();
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : "Não foi possível criar o paciente.");
+    }
+  }
+
+  async function handleCreateClinicProfessional(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSuccess(null);
+    setError(null);
+
+    try {
+      await fetchClinicJson("/api/professionals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: professionalForm.fullName,
+          specialty: professionalForm.specialty,
+          licenseNumber: professionalForm.licenseNumber,
+          appointmentDurationMinutes: Number(professionalForm.appointmentDurationMinutes)
+        })
+      });
+
+      setProfessionalForm(initialProfessionalForm);
+      setSuccess("Profissional criado com sucesso.");
+      await refreshClinicData();
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : "Não foi possível criar o profissional.");
+    }
+  }
+
+  async function handleCreateClinicAppointment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSuccess(null);
+    setError(null);
+
+    try {
+      await fetchClinicJson("/api/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patientId: appointmentForm.patientId,
+          professionalId: appointmentForm.professionalId,
+          clinicUnitName: appointmentForm.clinicUnitName,
+          startAtUtc: new Date(appointmentForm.startAtUtc).toISOString(),
+          notes: appointmentForm.notes
+        })
+      });
+
+      setAppointmentForm((current) => ({
+        ...initialAppointmentForm,
+        patientId: clinicPatients[0]?.id || current.patientId,
+        professionalId: clinicProfessionals[0]?.id || current.professionalId
+      }));
+      setSuccess("Agendamento criado com sucesso.");
+      await refreshClinicData();
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : "Não foi possível criar o agendamento.");
+    }
+  }
+
+  async function handleUpdateClinicAppointmentStatus(appointmentId: string, status: number) {
+    setSuccess(null);
+    setError(null);
+
+    try {
+      await fetchClinicJson(`/api/appointments/${appointmentId}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status,
+          cancellationReason: status === 5 ? "Cancelado pela clínica" : null
+        })
+      });
+
+      setSuccess("Status atualizado.");
+      await refreshClinicData();
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : "Não foi possível atualizar o status.");
+    }
+  }
+
+  async function handleGenerateClinicPatientSummary(patientId: string) {
+    setSuccess(null);
+    setError(null);
+
+    try {
+      const summary = await fetchClinicJson<ClinicPatientSummary>(`/api/ai/patient-summary/${patientId}`, {
+        method: "POST"
+      });
+      setClinicPatientSummary(summary);
+      setSuccess("Resumo de IA gerado.");
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : "Não foi possível gerar o resumo.");
+    }
+  }
+
   function handleLogout() {
     window.localStorage.removeItem(SESSION_STORAGE_KEY);
     setCurrentUser(null);
@@ -727,23 +1077,31 @@ export function App() {
   }
 
   const clinicAccessProfile = currentUser.role === "platform_admin" ? null : findClinicAccessProfile(accessMembers, currentUser.email);
+  const selectedClinicPatient = clinicPatients.find((patient) => patient.id === selectedClinicPatientId) ?? clinicPatients[0] ?? null;
 
   if (currentUser.role !== "platform_admin") {
     const clinicMenu = [
-      { label: "Dashboard", enabled: true },
-      { label: "Agenda", enabled: clinicAccessProfile?.canManageSchedule ?? false },
-      { label: "Pacientes", enabled: clinicAccessProfile?.canManagePatients ?? false },
-      { label: "Médicos", enabled: clinicAccessProfile?.canManageSchedule ?? false },
-      { label: "Atendimentos", enabled: clinicAccessProfile?.canViewDashboard ?? false },
-      { label: "Prontuários", enabled: clinicAccessProfile?.canManagePatients ?? false },
-      { label: "Financeiro", enabled: clinicAccessProfile?.canViewBilling ?? false },
-      { label: "Convênios", enabled: clinicAccessProfile?.canViewBilling ?? false },
-      { label: "Exames", enabled: clinicAccessProfile?.canManagePatients ?? false },
-      { label: "Prescrições", enabled: clinicAccessProfile?.canManagePatients ?? false },
-      { label: "Chat / WhatsApp", enabled: true },
-      { label: "Relatórios", enabled: clinicAccessProfile?.canViewDashboard ?? false },
-      { label: "Configurações", enabled: clinicAccessProfile?.canManageSettings ?? false },
-      { label: "Usuários e permissões", enabled: currentUser.role === "clinic_admin" }
+      { key: "dashboard", label: "Home", enabled: true },
+      { key: "agenda", label: "Agenda", enabled: clinicAccessProfile?.canManageSchedule ?? false },
+      { key: "patients", label: "Pacientes", enabled: clinicAccessProfile?.canManagePatients ?? false },
+      { key: "doctors", label: "Médicos", enabled: clinicAccessProfile?.canManageSchedule ?? false },
+      { key: "attendance", label: "Atendimentos", enabled: clinicAccessProfile?.canViewDashboard ?? false },
+      { key: "records", label: "Prontuários", enabled: clinicAccessProfile?.canManagePatients ?? false },
+      { key: "finance", label: "Financeiro", enabled: clinicAccessProfile?.canViewBilling ?? false },
+      { key: "insurance", label: "Convênios", enabled: clinicAccessProfile?.canViewBilling ?? false },
+      { key: "tests", label: "Exames", enabled: clinicAccessProfile?.canManagePatients ?? false },
+      { key: "prescriptions", label: "Prescrições", enabled: clinicAccessProfile?.canManagePatients ?? false },
+      { key: "chat", label: "Chat / WhatsApp", enabled: true },
+      { key: "reports", label: "Relatórios", enabled: clinicAccessProfile?.canViewDashboard ?? false },
+      { key: "settings", label: "Configurações", enabled: clinicAccessProfile?.canManageSettings ?? false },
+      { key: "permissions", label: "Usuários e permissões", enabled: currentUser.role === "clinic_admin" }
+    ];
+
+    const homeModules = [
+      { title: "Agenda organizada", description: "Veja horários, confirmações e encaixes sem expor dados clínicos na abertura." },
+      { title: "Pacientes e CRM", description: "Cadastros, observações e histórico básico reunidos em um espaço único." },
+      { title: "Atendimento clínico", description: "Prontuários, retornos e fluxo de consulta com acesso conforme o perfil." },
+      { title: "Financeiro e convênios", description: "Cobrança, pagamentos e pendências visíveis apenas para quem tem permissão." }
     ];
 
     const scheduleItems = [
@@ -785,6 +1143,154 @@ export function App() {
       { label: "Exames pendentes", value: "14", tone: "blue" }
     ];
 
+    const clinicPageContent: Record<string, { kicker: string; title: string; description: string; highlights: string[]; columns: Array<{ title: string; items: string[] }> }> = {
+      agenda: {
+        kicker: "Agenda clínica",
+        title: "Coordene horários, confirmações e encaixes",
+        description: "Uma visão organizada dos horários do dia, dos próximos blocos disponíveis e das ações de receção que mais exigem atenção.",
+        highlights: ["Agenda por profissional", "Bloqueios e encaixes", "Confirmações do dia"],
+        columns: [
+          { title: "Hoje", items: ["Consultas confirmadas e pendentes", "Encaixes sugeridos pela receção", "Blocos vazios para reposição"] },
+          { title: "Acompanhamento", items: ["Remarcações recentes", "Alertas de atraso", "Fila de atendimento"] },
+          { title: "Atalhos", items: ["Abrir calendário", "Criar agendamento", "Emitir lembrete"] }
+        ]
+      },
+      patients: {
+        kicker: "Pacientes",
+        title: "Mantenha o cadastro e o relacionamento sob controle",
+        description: "A área de pacientes concentra contactos, observações importantes, histórico básico e contexto útil para receção e atendimento.",
+        highlights: ["Cadastro único", "Observações internas", "Histórico resumido"],
+        columns: [
+          { title: "Cadastro", items: ["Dados pessoais", "Contactos e convénios", "Sinalização de prioridades"] },
+          { title: "Relacionamento", items: ["Últimos atendimentos", "Retornos recomendados", "Pendências de contacto"] },
+          { title: "Ações", items: ["Novo paciente", "Atualizar dados", "Enviar mensagem"] }
+        ]
+      },
+      doctors: {
+        kicker: "Equipe clínica",
+        title: "Organize médicos e profissionais por disponibilidade",
+        description: "Veja a equipa da clínica, a especialidade de cada profissional e o impacto direto que isso tem na agenda e na operação.",
+        highlights: ["Especialidades", "Disponibilidade semanal", "Capacidade de atendimento"],
+        columns: [
+          { title: "Profissionais", items: ["Lista da equipa ativa", "Carga horária por turno", "Cobertura por unidade"] },
+          { title: "Coordenação", items: ["Bloqueios de agenda", "Férias e ausências", "Duração média por consulta"] },
+          { title: "Ações", items: ["Adicionar profissional", "Editar agenda", "Rever capacidade"] }
+        ]
+      },
+      attendance: {
+        kicker: "Atendimentos",
+        title: "Acompanhe a operação clínica em tempo real",
+        description: "Entrada, chamada, atendimento e conclusão num fluxo claro para que a equipa saiba exatamente o que está a acontecer.",
+        highlights: ["Fila do dia", "Consultas em andamento", "Concluídos e pendências"],
+        columns: [
+          { title: "Fila", items: ["Pacientes aguardando", "Ordem de chamada", "Tempo médio de espera"] },
+          { title: "Execução", items: ["Em atendimento", "Atendimentos encerrados", "Pendências de registo"] },
+          { title: "Ações", items: ["Abrir atendimento", "Atualizar status", "Encerrar consulta"] }
+        ]
+      },
+      records: {
+        kicker: "Prontuários",
+        title: "Prontuário organizado e fácil de navegar",
+        description: "Tenha um espaço dedicado para evolução clínica, resumo de IA, retorno sugerido e notas essenciais por atendimento.",
+        highlights: ["Timeline clínica", "Resumo inteligente", "Acompanhamento contínuo"],
+        columns: [
+          { title: "Estrutura", items: ["SOAP e observações", "Histórico cronológico", "Resultados de exames"] },
+          { title: "IA", items: ["Resumo automático", "Pontos de atenção", "Sugestão de retorno"] },
+          { title: "Ações", items: ["Abrir prontuário", "Anexar documento", "Gerar resumo"] }
+        ]
+      },
+      finance: {
+        kicker: "Financeiro",
+        title: "Veja receitas, pendências e repasses com clareza",
+        description: "Um módulo financeiro limpo para cobranças, pagamentos, faturação do mês e visão rápida do que precisa de decisão.",
+        highlights: ["Receita do período", "Contas em aberto", "Conferência de pagamentos"],
+        columns: [
+          { title: "Receita", items: ["Consultas faturadas", "Recebimentos por forma de pagamento", "Resumo por período"] },
+          { title: "Pendências", items: ["Cobranças em aberto", "Convénios atrasados", "Receitas não conciliadas"] },
+          { title: "Ações", items: ["Lançar pagamento", "Emitir recibo", "Exportar relatório"] }
+        ]
+      },
+      insurance: {
+        kicker: "Convénios",
+        title: "Mantenha contratos, regras e pendências sob controlo",
+        description: "Acompanhe convénios ativos, vencimentos próximos e impactos operacionais sem misturar isso com a receção do dia.",
+        highlights: ["Planos ativos", "Vencimentos próximos", "Glosas e pendências"],
+        columns: [
+          { title: "Gestão", items: ["Convénios ativos", "Regras por operadora", "Status de documentação"] },
+          { title: "Atenção", items: ["Pendências de autorização", "Cobranças glosadas", "Renovações em análise"] },
+          { title: "Ações", items: ["Atualizar convénio", "Solicitar autorização", "Emitir contacto"] }
+        ]
+      },
+      tests: {
+        kicker: "Exames",
+        title: "Controle pedidos, resultados e próximos passos",
+        description: "Centralize exames pendentes, entregues e em análise para que a equipa encontre rapidamente o que precisa.",
+        highlights: ["Pedidos em aberto", "Resultados recebidos", "Seguimento pendente"],
+        columns: [
+          { title: "Pedidos", items: ["Solicitações recentes", "Exames por especialidade", "Prioridades clínicas"] },
+          { title: "Resultados", items: ["Laudos recebidos", "Pendências de validação", "Documentos anexados"] },
+          { title: "Ações", items: ["Solicitar exame", "Anexar laudo", "Notificar paciente"] }
+        ]
+      },
+      prescriptions: {
+        kicker: "Prescrições",
+        title: "Emissão organizada e acompanhamento do que foi prescrito",
+        description: "Um ambiente seguro para acompanhar prescrições emitidas, pendências e próximas ações clínicas.",
+        highlights: ["Receitas emitidas", "Renovações", "Histórico terapêutico"],
+        columns: [
+          { title: "Emissão", items: ["Receitas do dia", "Modelos padronizados", "Assinatura digital"] },
+          { title: "Seguimento", items: ["Renovações pendentes", "Acompanhamento do tratamento", "Alertas de revisão"] },
+          { title: "Ações", items: ["Emitir receita", "Reemitir prescrição", "Enviar ao paciente"] }
+        ]
+      },
+      chat: {
+        kicker: "Comunicação",
+        title: "WhatsApp e mensagens num fluxo profissional",
+        description: "Mensagens de confirmação, follow-up e contacto com pacientes e equipa num espaço de comunicação controlado.",
+        highlights: ["Lembretes automáticos", "Mensagens manuais", "Histórico recente"],
+        columns: [
+          { title: "Pacientes", items: ["Confirmação de consulta", "Pós-consulta", "Retorno pendente"] },
+          { title: "Equipe", items: ["Avisos internos", "Mudanças de agenda", "Orientações rápidas"] },
+          { title: "Ações", items: ["Enviar mensagem", "Ver histórico", "Criar template"] }
+        ]
+      },
+      reports: {
+        kicker: "Relatórios",
+        title: "Transforme operação em leitura executiva",
+        description: "Agrupe métricas operacionais, financeiras e clínicas em relatórios fáceis de interpretar e apresentar.",
+        highlights: ["Indicadores chave", "Ocupação e faltas", "Receita e produtividade"],
+        columns: [
+          { title: "Operação", items: ["Taxa de ocupação", "No-shows", "Tempo médio de espera"] },
+          { title: "Financeiro", items: ["Receita por período", "Recebimentos por origem", "Pendências"] },
+          { title: "Ações", items: ["Gerar relatório", "Comparar períodos", "Exportar PDF"] }
+        ]
+      },
+      settings: {
+        kicker: "Configurações",
+        title: "Ajuste o sistema conforme a rotina da clínica",
+        description: "Configurações gerais, regras operacionais, templates e parâmetros de funcionamento reunidos num espaço controlado.",
+        highlights: ["Preferências do sistema", "Templates de comunicação", "Parâmetros operacionais"],
+        columns: [
+          { title: "Geral", items: ["Dados da clínica", "Unidades e contactos", "Identidade visual"] },
+          { title: "Operação", items: ["Duração padrão", "Janelas de encaixe", "Políticas de cancelamento"] },
+          { title: "Ações", items: ["Editar preferências", "Atualizar templates", "Rever integrações"] }
+        ]
+      },
+      permissions: {
+        kicker: "Usuários e permissões",
+        title: "Defina claramente quem pode ver e alterar cada área",
+        description: "Um módulo interno de acesso para autorizar colaboradores, limitar áreas sensíveis e manter a segurança da clínica.",
+        highlights: ["Perfis ativos", "Permissões por função", "Histórico de acesso"],
+        columns: [
+          { title: "Perfis", items: ["Administrador da clínica", "Receção", "Médicos e equipa"] },
+          { title: "Controlo", items: ["Permissões por módulo", "Acesso a dados sensíveis", "Ativação e bloqueio"] },
+          { title: "Ações", items: ["Adicionar utilizador", "Editar permissões", "Rever auditoria"] }
+        ]
+      }
+    };
+
+    const currentClinicPage = clinicPageContent[activeMenu as string] ?? clinicPageContent.agenda;
+
     return (
       <main className="shell">
         <section className="app-frame clinic-frame">
@@ -802,13 +1308,14 @@ export function App() {
                 <button
                   key={item.label}
                   type="button"
-                  className={item.label === "Dashboard" ? "sidebar-item active" : item.enabled ? "sidebar-item" : "sidebar-item locked"}
-                  disabled={!item.enabled}
-                  title={item.enabled ? item.label : t.menuLockedLabel}
-                >
-                  <span>{item.label}</span>
-                  {!item.enabled ? <small>{t.menuLockedLabel}</small> : null}
-                </button>
+                    className={activeMenu === item.key ? "sidebar-item active" : item.enabled ? "sidebar-item" : "sidebar-item locked"}
+                    disabled={!item.enabled}
+                    title={item.enabled ? item.label : t.menuLockedLabel}
+                    onClick={() => item.enabled && setActiveMenu(item.key as MenuPermission)}
+                  >
+                    <span>{item.label}</span>
+                    {!item.enabled ? <small>{t.menuLockedLabel}</small> : null}
+                  </button>
               ))}
             </div>
 
@@ -837,149 +1344,525 @@ export function App() {
               </div>
             </div>
 
-            <section className="clinic-stat-grid">
-              {clinicStats.map((card) => (
-                <article className={`clinic-stat-card tone-${card.tone}`} key={card.label}>
-                  <strong>{card.value}</strong>
-                  <span>{card.label}</span>
-                </article>
-              ))}
-            </section>
-
-            <section className="clinic-grid">
-              <article className="panel clinic-panel agenda-panel">
-                <div className="panel-header">
-                  <div>
-                    <p className="panel-kicker">Agenda</p>
-                    <h2>Agenda do dia</h2>
-                  </div>
-                </div>
-
-                <div className="schedule-list">
-                  {scheduleItems.map((item) => (
-                    <div className="schedule-row" key={`${item.time}-${item.patient}`}>
-                      <strong>{item.time}</strong>
-                      <div>
-                        <p>{item.patient}</p>
-                        <span>{item.doctor}</span>
-                      </div>
-                      <div className="schedule-meta">
-                        <span>{item.type}</span>
-                        <span className={`inline-status ${item.tone}`}>{item.status}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </article>
-
-              <article className="panel clinic-panel">
-                <div className="panel-header">
-                  <div>
-                    <p className="panel-kicker">Atendimento</p>
-                    <h2>Próximos atendimentos</h2>
-                  </div>
-                </div>
-
-                <div className="next-appointments">
-                  {nextAppointments.map((appointment) => (
-                    <div className="next-card" key={`${appointment.patient}-${appointment.time}`}>
-                      <div className="next-avatar">{appointment.avatar}</div>
-                      <div>
-                        <strong>{appointment.patient}</strong>
-                        <p>{appointment.time} · {appointment.doctor}</p>
-                      </div>
-                      <button type="button" className="mini-action" disabled={!(clinicAccessProfile?.canManagePatients ?? false)}>
-                        Abrir prontuário
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="alert-block">
-                  <div className="panel-header compact">
-                    <div>
-                      <p className="panel-kicker">Atenção</p>
-                      <h2>Alertas importantes</h2>
-                    </div>
-                  </div>
-
-                  <div className="alert-list">
-                    {alerts.map((alert) => (
-                      <div className="alert-row" key={alert.title}>
-                        <span className={`alert-dot ${alert.tone}`} />
-                        <strong>{alert.title}</strong>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </article>
-
-              <section className="clinic-side-column">
-                <article className="panel clinic-panel">
-                  <div className="panel-header">
-                    <div>
-                      <p className="panel-kicker">Indicadores</p>
-                      <h2>Resumo operacional</h2>
-                    </div>
-                  </div>
-                  <div className="mini-chart">
-                    {[18, 26, 22, 31, 25, 34, 29].map((value, index) => (
-                      <div className="bar-wrap" key={value + index}>
-                        <div className="bar" style={{ height: `${value * 2}px` }} />
-                        <span>{["S", "T", "Q", "Q", "S", "S", "D"][index]}</span>
-                      </div>
-                    ))}
+            {activeMenu === "dashboard" ? (
+              <section className="clinic-home">
+                <article className="clinic-home-hero">
+                  <p className="eyebrow">Bem-vindo</p>
+                  <h1>{selectedClient?.clinicName ?? "Sua clínica"}</h1>
+                  <p>
+                    Uma entrada limpa para a operação do dia, com acesso controlado por perfil e sem expor informações sensíveis logo ao abrir o sistema.
+                  </p>
+                  <div className="home-hero-tags">
+                    <span>Ambiente seguro</span>
+                    <span>Acesso por perfil</span>
+                    <span>Operação organizada</span>
                   </div>
                 </article>
 
-                <article className="panel clinic-panel">
-                  <div className="panel-header compact">
-                    <div>
-                      <p className="panel-kicker">Ações</p>
-                      <h2>Ações rápidas</h2>
+                <article className="clinic-home-profile">
+                  <div className="home-profile-top">
+                    <div className="session-avatar">{userInitials(currentUser.name)}</div>
+                    <div className="session-meta">
+                      <strong>{currentUser.name}</strong>
+                      <span>{translateAppRole(currentUser.role, t)}</span>
+                      <span>{currentUser.email}</span>
                     </div>
                   </div>
-                  <div className="quick-action-list">
-                    {quickActions.map((action) => (
-                      <button
-                        key={action.label}
-                        type="button"
-                        className={`quick-action tone-${action.tone}`}
-                        disabled={!action.enabled}
-                      >
-                        {action.label}
+                  <div className="home-profile-banner">
+                    <span>Experiência inicial discreta</span>
+                    <strong>As áreas sensíveis aparecem apenas quando o utilizador entra no módulo adequado.</strong>
+                  </div>
+                  <div className="home-profile-grid">
+                    <div>
+                      <span>Código</span>
+                      <strong>{selectedClient?.clientCode ?? "Sem código"}</strong>
+                    </div>
+                    <div>
+                      <span>Responsável</span>
+                      <strong>{selectedClient?.ownerName ?? currentUser.name}</strong>
+                    </div>
+                  </div>
+                </article>
+
+                <section className="clinic-home-modules">
+                  {homeModules.map((module) => (
+                    <article className="home-module-card" key={module.title}>
+                      <p className="panel-kicker">Módulo</p>
+                      <h2>{module.title}</h2>
+                      <p>{module.description}</p>
+                    </article>
+                  ))}
+                </section>
+
+                <article className="clinic-home-actions">
+                  <div className="panel-header compact">
+                    <div>
+                      <p className="panel-kicker">Acesso rápido</p>
+                      <h2>Escolha por onde começar</h2>
+                    </div>
+                  </div>
+                  <div className="home-action-grid">
+                    {clinicMenu.filter((item) => item.enabled && item.key !== "dashboard").slice(0, 6).map((item) => (
+                      <button key={item.key} type="button" className="home-action-button" onClick={() => setActiveMenu(item.key as MenuPermission)}>
+                        {item.label}
                       </button>
                     ))}
                   </div>
                 </article>
               </section>
+            ) : (
+              <>
+                <section className="clinic-stat-grid">
+                  {clinicStats.map((card) => (
+                    <article className={`clinic-stat-card tone-${card.tone}`} key={card.label}>
+                      <strong>{card.value}</strong>
+                      <span>{card.label}</span>
+                    </article>
+                  ))}
+                </section>
 
-              <article className="panel clinic-panel suggestion-panel">
-                <div className="panel-header compact">
-                  <div>
-                    <p className="panel-kicker">IA operacional</p>
-                    <h2>Sugestão de encaixe</h2>
-                  </div>
-                </div>
-                <div className="suggestion-copy">
-                  <p>Horário disponível: <strong>11:45</strong></p>
-                  <p>Paciente prioritário: <strong>Laura Martins</strong></p>
-                  <p>Profissional sugerido: <strong>Dra. Fernanda</strong></p>
-                </div>
-              </article>
+                <section className="clinic-module-page">
+                  <article className="clinic-module-hero">
+                    <p className="eyebrow">{currentClinicPage.kicker}</p>
+                    <h1>{currentClinicPage.title}</h1>
+                    <p>{currentClinicPage.description}</p>
+                    <div className="home-hero-tags">
+                      {currentClinicPage.highlights.map((highlight) => (
+                        <span key={highlight}>{highlight}</span>
+                      ))}
+                    </div>
+                  </article>
 
-              <article className="panel clinic-panel forecast-panel">
-                <div className="panel-header compact">
-                  <div>
-                    <p className="panel-kicker">Previsão</p>
-                    <h2>Risco de faltas</h2>
-                  </div>
-                </div>
-                <p className="forecast-copy">
-                  <strong>15%</strong> de risco estimado para amanhã, com maior atenção nas consultas após as 16:00.
-                </p>
-              </article>
-            </section>
+                  {activeMenu === "agenda" && (
+                    <section className="clinic-module-grid">
+                      <article className="panel clinic-panel module-card">
+                        <div className="panel-header compact">
+                          <div>
+                            <p className="panel-kicker">Agenda</p>
+                            <h2>Consultas marcadas</h2>
+                          </div>
+                        </div>
+                        <div className="schedule-list">
+                          {clinicAppointments.map((appointment) => (
+                            <div className="schedule-row" key={appointment.id}>
+                              <strong>{formatTime(appointment.startAtUtc, t.locale)}</strong>
+                              <div>
+                                <p>{appointment.patientName}</p>
+                                <span>{appointment.professionalName}</span>
+                              </div>
+                              <div className="schedule-meta">
+                                <span>{appointment.clinicUnitName}</span>
+                                <span className={`inline-status ${appointmentTone(appointment.status)}`}>
+                                  {appointmentStatusLabel(appointment.status)}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </article>
+
+                      <article className="panel clinic-panel module-card">
+                        <div className="panel-header compact">
+                          <div>
+                            <p className="panel-kicker">Novo agendamento</p>
+                            <h2>Criar consulta</h2>
+                          </div>
+                        </div>
+                        <form className="stack-form" onSubmit={handleCreateClinicAppointment}>
+                          <select value={appointmentForm.patientId} onChange={(event) => setAppointmentForm((current) => ({ ...current, patientId: event.target.value }))}>
+                            {clinicPatients.map((patient) => (
+                              <option key={patient.id} value={patient.id}>{patient.fullName}</option>
+                            ))}
+                          </select>
+                          <select value={appointmentForm.professionalId} onChange={(event) => setAppointmentForm((current) => ({ ...current, professionalId: event.target.value }))}>
+                            {clinicProfessionals.map((professional) => (
+                              <option key={professional.id} value={professional.id}>{professional.fullName}</option>
+                            ))}
+                          </select>
+                          <input value={appointmentForm.clinicUnitName} onChange={(event) => setAppointmentForm((current) => ({ ...current, clinicUnitName: event.target.value }))} placeholder="Unidade" />
+                          <input type="datetime-local" value={appointmentForm.startAtUtc} onChange={(event) => setAppointmentForm((current) => ({ ...current, startAtUtc: event.target.value }))} />
+                          <textarea rows={4} value={appointmentForm.notes} onChange={(event) => setAppointmentForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Observações da consulta" />
+                          <button disabled={!appointmentForm.patientId || !appointmentForm.professionalId || !appointmentForm.startAtUtc}>Guardar agendamento</button>
+                        </form>
+                      </article>
+
+                      <article className="panel clinic-panel module-card">
+                        <div className="panel-header compact">
+                          <div>
+                            <p className="panel-kicker">Leitura rápida</p>
+                            <h2>Resumo do dia</h2>
+                          </div>
+                        </div>
+                        <div className="module-list">
+                          <div className="module-list-item"><span className="alert-dot blue" /><strong>{clinicSummary?.appointmentsToday ?? 0} consultas previstas hoje</strong></div>
+                          <div className="module-list-item"><span className="alert-dot green" /><strong>{clinicSummary?.confirmedAppointments ?? 0} confirmadas</strong></div>
+                          <div className="module-list-item"><span className="alert-dot yellow" /><strong>{clinicAppointments.filter((item) => item.noShowRiskScore >= 60).length} com risco elevado de falta</strong></div>
+                        </div>
+                      </article>
+                    </section>
+                  )}
+
+                  {activeMenu === "patients" && (
+                    <section className="clinic-module-grid">
+                      <article className="panel clinic-panel module-card">
+                        <div className="panel-header compact">
+                          <div>
+                            <p className="panel-kicker">Pacientes</p>
+                            <h2>Lista ativa</h2>
+                          </div>
+                        </div>
+                        <div className="message-list">
+                          {clinicPatients.map((patient) => (
+                            <div key={patient.id} className={patient.id === selectedClinicPatient?.id ? "list-card active" : "list-card"}>
+                              <div className="list-card-top">
+                                <strong>{patient.fullName}</strong>
+                                <span className="badge blue">{patient.insurance}</span>
+                              </div>
+                              <p>{patient.phone}</p>
+                              <p>{patient.email}</p>
+                              <div className="card-actions">
+                                <button type="button" className="mini-soft blue-soft" onClick={() => setSelectedClinicPatientId(patient.id)}>Selecionar</button>
+                                <button type="button" className="mini-soft green-soft" onClick={() => { setSelectedClinicPatientId(patient.id); setActiveMenu("records"); }}>Prontuário</button>
+                                <button type="button" className="mini-soft yellow-soft" onClick={() => { setSelectedClinicPatientId(patient.id); void handleGenerateClinicPatientSummary(patient.id); }}>Resumo IA</button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </article>
+
+                      <article className="panel clinic-panel module-card">
+                        <div className="panel-header compact">
+                          <div>
+                            <p className="panel-kicker">Novo paciente</p>
+                            <h2>Criar cadastro</h2>
+                          </div>
+                        </div>
+                        <form className="stack-form" onSubmit={handleCreateClinicPatient}>
+                          <input value={patientForm.fullName} onChange={(event) => setPatientForm((current) => ({ ...current, fullName: event.target.value }))} placeholder="Nome completo" />
+                          <input type="date" value={patientForm.birthDate} onChange={(event) => setPatientForm((current) => ({ ...current, birthDate: event.target.value }))} />
+                          <input value={patientForm.gender} onChange={(event) => setPatientForm((current) => ({ ...current, gender: event.target.value }))} placeholder="Género" />
+                          <input value={patientForm.phone} onChange={(event) => setPatientForm((current) => ({ ...current, phone: event.target.value }))} placeholder="Telefone" />
+                          <input value={patientForm.email} onChange={(event) => setPatientForm((current) => ({ ...current, email: event.target.value }))} placeholder="Email" />
+                          <input value={patientForm.document} onChange={(event) => setPatientForm((current) => ({ ...current, document: event.target.value }))} placeholder="Documento" />
+                          <input value={patientForm.insurance} onChange={(event) => setPatientForm((current) => ({ ...current, insurance: event.target.value }))} placeholder="Convénio" />
+                          <textarea rows={4} value={patientForm.notes} onChange={(event) => setPatientForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Observações" />
+                          <button disabled={!patientForm.fullName || !patientForm.birthDate}>Guardar paciente</button>
+                        </form>
+                      </article>
+
+                      <article className="panel clinic-panel module-card">
+                        <div className="panel-header compact">
+                          <div>
+                            <p className="panel-kicker">Perfil selecionado</p>
+                            <h2>{selectedClinicPatient?.fullName ?? "Sem paciente"}</h2>
+                          </div>
+                        </div>
+                        {selectedClinicPatient ? (
+                          <div className="module-list">
+                            <div className="module-list-item"><span className="alert-dot blue" /><strong>{selectedClinicPatient.phone}</strong></div>
+                            <div className="module-list-item"><span className="alert-dot green" /><strong>{selectedClinicPatient.email}</strong></div>
+                            <div className="module-list-item"><span className="alert-dot yellow" /><strong>{selectedClinicPatient.notes || "Sem observações registadas"}</strong></div>
+                            <div className="card-actions">
+                              <button type="button" className="mini-soft blue-soft" onClick={() => setActiveMenu("chat")}>Enviar mensagem</button>
+                              <button type="button" className="mini-soft pink-soft" onClick={() => setPatientForm((current) => ({ ...current, phone: "", email: "" }))}>Limpar contacto</button>
+                              <button type="button" className="mini-soft green-soft" onClick={() => setActiveMenu("agenda")}>Novo agendamento</button>
+                            </div>
+                          </div>
+                        ) : null}
+                      </article>
+                    </section>
+                  )}
+
+                  {activeMenu === "doctors" && (
+                    <section className="clinic-module-grid">
+                      <article className="panel clinic-panel module-card">
+                        <div className="panel-header compact">
+                          <div>
+                            <p className="panel-kicker">Profissionais</p>
+                            <h2>Equipe clínica</h2>
+                          </div>
+                        </div>
+                        <div className="module-list">
+                          {clinicProfessionals.map((professional) => (
+                            <div className="module-list-item" key={professional.id}>
+                              <span className="alert-dot green" />
+                              <strong>{professional.fullName} · {professional.specialty} · {professional.appointmentDurationMinutes} min</strong>
+                            </div>
+                          ))}
+                          <div className="card-actions">
+                            <button type="button" className="mini-soft blue-soft" onClick={() => setActiveMenu("agenda")}>Abrir agenda</button>
+                            <button type="button" className="mini-soft yellow-soft" onClick={() => setProfessionalForm(initialProfessionalForm)}>Novo profissional</button>
+                          </div>
+                        </div>
+                      </article>
+
+                      <article className="panel clinic-panel module-card">
+                        <div className="panel-header compact">
+                          <div>
+                            <p className="panel-kicker">Novo profissional</p>
+                            <h2>Adicionar à equipe</h2>
+                          </div>
+                        </div>
+                        <form className="stack-form" onSubmit={handleCreateClinicProfessional}>
+                          <input value={professionalForm.fullName} onChange={(event) => setProfessionalForm((current) => ({ ...current, fullName: event.target.value }))} placeholder="Nome completo" />
+                          <input value={professionalForm.specialty} onChange={(event) => setProfessionalForm((current) => ({ ...current, specialty: event.target.value }))} placeholder="Especialidade" />
+                          <input value={professionalForm.licenseNumber} onChange={(event) => setProfessionalForm((current) => ({ ...current, licenseNumber: event.target.value }))} placeholder="CRM / registro" />
+                          <input value={professionalForm.appointmentDurationMinutes} onChange={(event) => setProfessionalForm((current) => ({ ...current, appointmentDurationMinutes: event.target.value }))} placeholder="Duração padrão" />
+                          <button disabled={!professionalForm.fullName || !professionalForm.specialty}>Guardar profissional</button>
+                        </form>
+                      </article>
+
+                      <article className="panel clinic-panel module-card">
+                        <div className="panel-header compact">
+                          <div>
+                            <p className="panel-kicker">Capacidade</p>
+                            <h2>Visão rápida</h2>
+                          </div>
+                        </div>
+                        <div className="module-list">
+                          <div className="module-list-item"><span className="alert-dot blue" /><strong>{clinicProfessionals.length} profissionais ativos</strong></div>
+                          <div className="module-list-item"><span className="alert-dot yellow" /><strong>{clinicProfessionals.reduce((sum, item) => sum + item.appointmentDurationMinutes, 0)} minutos de duração padrão somados</strong></div>
+                        </div>
+                      </article>
+                    </section>
+                  )}
+
+                  {activeMenu === "attendance" && (
+                    <section className="clinic-module-grid">
+                      <article className="panel clinic-panel module-card full-module-span">
+                        <div className="panel-header compact">
+                          <div>
+                            <p className="panel-kicker">Fila clínica</p>
+                            <h2>Atendimentos e status</h2>
+                          </div>
+                        </div>
+                        <div className="schedule-list">
+                          {clinicAppointments.map((appointment) => (
+                            <div className="schedule-row extended" key={appointment.id}>
+                              <strong>{formatTime(appointment.startAtUtc, t.locale)}</strong>
+                              <div>
+                                <p>{appointment.patientName}</p>
+                                <span>{appointment.professionalName}</span>
+                              </div>
+                              <div className="schedule-meta">
+                                <span className={`inline-status ${appointmentTone(appointment.status)}`}>{appointmentStatusLabel(appointment.status)}</span>
+                              </div>
+                              <div className="row-actions">
+                                <button type="button" className="ghost-action small" onClick={() => void handleUpdateClinicAppointmentStatus(appointment.id, 2)}>Confirmar</button>
+                                <button type="button" className="ghost-action small" onClick={() => void handleUpdateClinicAppointmentStatus(appointment.id, 3)}>Iniciar</button>
+                                <button type="button" className="ghost-action small" onClick={() => void handleUpdateClinicAppointmentStatus(appointment.id, 4)}>Concluir</button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </article>
+                    </section>
+                  )}
+
+                  {activeMenu === "records" && (
+                    <section className="clinic-module-grid">
+                      <article className="panel clinic-panel module-card">
+                        <div className="panel-header compact">
+                          <div>
+                            <p className="panel-kicker">Prontuários</p>
+                            <h2>Escolha o paciente</h2>
+                          </div>
+                        </div>
+                        <div className="message-list">
+                          {clinicPatients.map((patient) => (
+                            <button key={patient.id} type="button" className={patient.id === selectedClinicPatient?.id ? "list-card active" : "list-card"} onClick={() => setSelectedClinicPatientId(patient.id)}>
+                              <div className="list-card-top">
+                                <strong>{patient.fullName}</strong>
+                                <span className="badge blue">{patient.insurance}</span>
+                              </div>
+                              <p>{patient.notes || "Sem notas clínicas adicionais"}</p>
+                            </button>
+                          ))}
+                        </div>
+                      </article>
+
+                      <article className="panel clinic-panel module-card">
+                        <div className="panel-header compact">
+                          <div>
+                            <p className="panel-kicker">IA clínica</p>
+                            <h2>Resumo do paciente</h2>
+                          </div>
+                        </div>
+                        <div className="module-list">
+                          <button type="button" onClick={() => selectedClinicPatient && void handleGenerateClinicPatientSummary(selectedClinicPatient.id)} disabled={!selectedClinicPatient}>
+                            Gerar resumo de IA
+                          </button>
+                          {clinicPatientSummary ? (
+                            <>
+                              <div className="module-list-item"><span className="alert-dot blue" /><strong>{clinicPatientSummary.clinicalSummary}</strong></div>
+                              <div className="module-list-item"><span className="alert-dot yellow" /><strong>{clinicPatientSummary.attentionPoints}</strong></div>
+                              <div className="module-list-item"><span className="alert-dot green" /><strong>{clinicPatientSummary.suggestedNextSteps}</strong></div>
+                            </>
+                          ) : null}
+                        </div>
+                      </article>
+
+                      <article className="panel clinic-panel module-card">
+                        <div className="panel-header compact">
+                          <div>
+                            <p className="panel-kicker">Histórico</p>
+                            <h2>Consultas do paciente</h2>
+                          </div>
+                        </div>
+                        <div className="module-list">
+                          {clinicAppointments.filter((appointment) => appointment.patientId === selectedClinicPatient?.id).map((appointment) => (
+                            <div className="module-list-item" key={appointment.id}>
+                              <span className={`alert-dot ${appointmentTone(appointment.status)}`} />
+                              <strong>{formatDateTime(appointment.startAtUtc, t.locale)} · {appointment.professionalName} · {appointmentStatusLabel(appointment.status)}</strong>
+                            </div>
+                          ))}
+                        </div>
+                      </article>
+                    </section>
+                  )}
+
+                  {activeMenu === "finance" && (
+                    <section className="clinic-module-grid">
+                      <article className="panel clinic-panel module-card">
+                        <div className="panel-header compact">
+                          <div>
+                            <p className="panel-kicker">Financeiro</p>
+                            <h2>Resumo atual</h2>
+                          </div>
+                        </div>
+                        <div className="module-list">
+                          <div className="module-list-item"><span className="alert-dot green" /><strong>{formatCurrency(clinicSummary?.revenueMonth ?? 0, t.locale)} de receita no mês</strong></div>
+                          <div className="module-list-item"><span className="alert-dot blue" /><strong>{clinicSummary?.appointmentsToday ?? 0} consultas planeadas hoje</strong></div>
+                          <div className="module-list-item"><span className="alert-dot pink" /><strong>{clinicSummary?.noShowRate ?? 0}% de taxa de faltas</strong></div>
+                          <div className="card-actions">
+                            <button type="button" className="mini-soft green-soft" onClick={() => setActiveMenu("reports")}>Ver relatório</button>
+                            <button type="button" className="mini-soft yellow-soft" onClick={() => setActiveMenu("insurance")}>Ver convênios</button>
+                          </div>
+                        </div>
+                      </article>
+
+                      <article className="panel clinic-panel module-card">
+                        <div className="panel-header compact">
+                          <div>
+                            <p className="panel-kicker">Recebimentos</p>
+                            <h2>Leitura executiva</h2>
+                          </div>
+                        </div>
+                        <div className="finance-visual">
+                          <div className="finance-bars">
+                            {[14, 22, 19, 31, 26, 30].map((value, index) => (
+                              <div className="finance-bar-column" key={value + index}>
+                                <div className="finance-bar-track"><div className="finance-bar-fill" style={{ height: `${value * 3}px` }} /></div>
+                                <span>{["S", "T", "Q", "Q", "S", "S"][index]}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="finance-donut"><div className="finance-donut-hole">{clinicSummary?.activePatients ?? 0}</div></div>
+                        </div>
+                      </article>
+
+                      <article className="panel clinic-panel module-card">
+                        <div className="panel-header compact">
+                          <div>
+                            <p className="panel-kicker">Pendências</p>
+                            <h2>O que rever</h2>
+                          </div>
+                        </div>
+                        <div className="module-list">
+                          <div className="module-list-item"><span className="alert-dot yellow" /><strong>3 convénios aguardam conferência</strong></div>
+                          <div className="module-list-item"><span className="alert-dot pink" /><strong>2 cobranças precisam de contacto</strong></div>
+                          <div className="module-list-item"><span className="alert-dot blue" /><strong>Receita média por consulta em revisão</strong></div>
+                        </div>
+                      </article>
+                    </section>
+                  )}
+
+                  {activeMenu === "permissions" && (
+                    <section className="clinic-module-grid">
+                      <article className="panel clinic-panel module-card">
+                        <div className="panel-header compact">
+                          <div>
+                            <p className="panel-kicker">Acessos</p>
+                            <h2>Utilizadores autorizados</h2>
+                          </div>
+                        </div>
+                        <div className="access-list">
+                          {accessMembers.map((member) => (
+                            <div className="access-card" key={member.id}>
+                              <div className="access-top">
+                                <div className="access-avatar">{userInitials(member.fullName)}</div>
+                                <div>
+                                  <strong>{member.fullName}</strong>
+                                  <p>{member.email}</p>
+                                  <p className="small-text">{translateRole(member.role, t)}</p>
+                                </div>
+                              </div>
+                              <div className="permission-wrap">
+                                {permissionPills(member, t).map((permission) => (
+                                  <span className="mini-badge" key={permission}>{permission}</span>
+                                ))}
+                              </div>
+                              <div className="card-actions">
+                                <button type="button" className="mini-soft blue-soft" onClick={() => setAccessForm((current) => ({ ...current, fullName: member.fullName, email: member.email, role: member.role }))}>Modificar</button>
+                                <button type="button" className="mini-soft pink-soft" onClick={() => setSuccess(`Revise o acesso de ${member.fullName} antes de remover.`)}>Remover</button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </article>
+
+                      <article className="panel clinic-panel module-card">
+                        <div className="panel-header compact">
+                          <div>
+                            <p className="panel-kicker">Novo acesso</p>
+                            <h2>Autorizar colaborador</h2>
+                          </div>
+                        </div>
+                        <form className="stack-form" onSubmit={handleCreateAccessMember}>
+                          <input value={accessForm.fullName} onChange={(event) => setAccessForm((current) => ({ ...current, fullName: event.target.value }))} placeholder={t.collaboratorNamePlaceholder} disabled={!canManageClinicAccess} />
+                          <input value={accessForm.email} onChange={(event) => setAccessForm((current) => ({ ...current, email: event.target.value }))} placeholder={t.collaboratorEmailPlaceholder} disabled={!canManageClinicAccess} />
+                          <select value={accessForm.role} onChange={(event) => setAccessForm((current) => ({ ...current, role: event.target.value }))} disabled={!canManageClinicAccess}>
+                            <option value="ClinicAdmin">{t.roles.clinicAdmin}</option>
+                            <option value="Staff">{t.roles.staff}</option>
+                          </select>
+                          <div className="checkbox-grid">
+                            <label><input type="checkbox" checked={accessForm.canViewDashboard} onChange={(event) => setAccessForm((current) => ({ ...current, canViewDashboard: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsDashboard}</label>
+                            <label><input type="checkbox" checked={accessForm.canViewBilling} onChange={(event) => setAccessForm((current) => ({ ...current, canViewBilling: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsBilling}</label>
+                            <label><input type="checkbox" checked={accessForm.canManagePatients} onChange={(event) => setAccessForm((current) => ({ ...current, canManagePatients: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsPatients}</label>
+                            <label><input type="checkbox" checked={accessForm.canManageSchedule} onChange={(event) => setAccessForm((current) => ({ ...current, canManageSchedule: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsSchedule}</label>
+                            <label><input type="checkbox" checked={accessForm.canManageSettings} onChange={(event) => setAccessForm((current) => ({ ...current, canManageSettings: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsSettings}</label>
+                          </div>
+                          <button disabled={!canManageClinicAccess}>{t.collaboratorCreateAction}</button>
+                        </form>
+                      </article>
+                    </section>
+                  )}
+
+                  {!["agenda", "patients", "doctors", "attendance", "records", "finance", "permissions"].includes(activeMenu) && (
+                    <section className="clinic-module-grid">
+                      {currentClinicPage.columns.map((column) => (
+                        <article className="panel clinic-panel module-card" key={column.title}>
+                          <div className="panel-header compact">
+                            <div>
+                              <p className="panel-kicker">Área interna</p>
+                              <h2>{column.title}</h2>
+                            </div>
+                          </div>
+                          <div className="module-list">
+                            {column.items.map((item) => (
+                              <div className="module-list-item" key={item}>
+                                <span className="alert-dot blue" />
+                                <strong>{item}</strong>
+                              </div>
+                            ))}
+                          </div>
+                        </article>
+                      ))}
+                    </section>
+                  )}
+                </section>
+              </>
+            )}
           </section>
         </section>
       </main>
