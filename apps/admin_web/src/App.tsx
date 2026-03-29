@@ -647,6 +647,7 @@ export function App() {
   const [isClinicLoading, setIsClinicLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [clinicSubView, setClinicSubView] = useState<Record<string, number>>({});
 
   const menuSections = [
     {
@@ -719,6 +720,16 @@ export function App() {
 
     setActiveMenu(currentUser.role === "platform_admin" ? "clients" : "dashboard");
   }, [currentUser]);
+
+  useEffect(() => {
+    if (typeof activeMenu === "string") {
+      setClinicSubView((current) => (
+        current[activeMenu] !== undefined
+          ? current
+          : { ...current, [activeMenu]: 0 }
+      ));
+    }
+  }, [activeMenu]);
 
   useEffect(() => {
     if (!selectedClient && visibleClients.length > 0) {
@@ -1290,6 +1301,7 @@ export function App() {
     };
 
     const currentClinicPage = clinicPageContent[activeMenu as string] ?? clinicPageContent.agenda;
+    const activeClinicTabIndex = clinicSubView[activeMenu as string] ?? 0;
 
     return (
       <main className="shell">
@@ -1433,131 +1445,89 @@ export function App() {
                     </div>
                   </article>
 
+                  <nav className="subscreen-nav" aria-label="Subáreas do módulo">
+                    {currentClinicPage.columns.map((column, index) => (
+                      <button
+                        key={column.title}
+                        type="button"
+                        className={activeClinicTabIndex === index ? "subscreen-pill active" : "subscreen-pill"}
+                        onClick={() => setClinicSubView((current) => ({ ...current, [activeMenu as string]: index }))}
+                      >
+                        <span>{column.title}</span>
+                        <small>{column.items[0]}</small>
+                      </button>
+                    ))}
+                  </nav>
+
                   {activeMenu === "agenda" && (
                     <section className="clinic-module-grid">
-                      <article className="panel clinic-panel module-card">
-                        <div className="panel-header compact">
-                          <div>
-                            <p className="panel-kicker">Agenda</p>
-                            <h2>Consultas marcadas</h2>
-                          </div>
-                        </div>
-                        <div className="schedule-list">
-                          {clinicAppointments.map((appointment) => (
-                            <div className="schedule-row" key={appointment.id}>
-                              <strong>{formatTime(appointment.startAtUtc, t.locale)}</strong>
-                              <div>
-                                <p>{appointment.patientName}</p>
-                                <span>{appointment.professionalName}</span>
+                      {activeClinicTabIndex === 0 && (
+                        <article className="panel clinic-panel module-card">
+                          <div className="panel-header compact"><div><p className="panel-kicker">Agenda</p><h2>Consultas marcadas</h2></div></div>
+                          <div className="schedule-list">
+                            {clinicAppointments.map((appointment) => (
+                              <div className="schedule-row" key={appointment.id}>
+                                <strong>{formatTime(appointment.startAtUtc, t.locale)}</strong>
+                                <div><p>{appointment.patientName}</p><span>{appointment.professionalName}</span></div>
+                                <div className="schedule-meta">
+                                  <span>{appointment.clinicUnitName}</span>
+                                  <span className={`inline-status ${appointmentTone(appointment.status)}`}>{appointmentStatusLabel(appointment.status)}</span>
+                                </div>
                               </div>
-                              <div className="schedule-meta">
-                                <span>{appointment.clinicUnitName}</span>
-                                <span className={`inline-status ${appointmentTone(appointment.status)}`}>
-                                  {appointmentStatusLabel(appointment.status)}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </article>
-
-                      <article className="panel clinic-panel module-card">
-                        <div className="panel-header compact">
-                          <div>
-                            <p className="panel-kicker">Novo agendamento</p>
-                            <h2>Criar consulta</h2>
-                          </div>
-                        </div>
-                        <form className="stack-form" onSubmit={handleCreateClinicAppointment}>
-                          <select value={appointmentForm.patientId} onChange={(event) => setAppointmentForm((current) => ({ ...current, patientId: event.target.value }))}>
-                            {clinicPatients.map((patient) => (
-                              <option key={patient.id} value={patient.id}>{patient.fullName}</option>
                             ))}
-                          </select>
-                          <select value={appointmentForm.professionalId} onChange={(event) => setAppointmentForm((current) => ({ ...current, professionalId: event.target.value }))}>
-                            {clinicProfessionals.map((professional) => (
-                              <option key={professional.id} value={professional.id}>{professional.fullName}</option>
-                            ))}
-                          </select>
-                          <input value={appointmentForm.clinicUnitName} onChange={(event) => setAppointmentForm((current) => ({ ...current, clinicUnitName: event.target.value }))} placeholder="Unidade" />
-                          <input type="datetime-local" value={appointmentForm.startAtUtc} onChange={(event) => setAppointmentForm((current) => ({ ...current, startAtUtc: event.target.value }))} />
-                          <textarea rows={4} value={appointmentForm.notes} onChange={(event) => setAppointmentForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Observações da consulta" />
-                          <button disabled={!appointmentForm.patientId || !appointmentForm.professionalId || !appointmentForm.startAtUtc}>Guardar agendamento</button>
-                        </form>
-                      </article>
-
-                      <article className="panel clinic-panel module-card">
-                        <div className="panel-header compact">
-                          <div>
-                            <p className="panel-kicker">Leitura rápida</p>
-                            <h2>Resumo do dia</h2>
                           </div>
-                        </div>
-                        <div className="module-list">
-                          <div className="module-list-item"><span className="alert-dot blue" /><strong>{clinicSummary?.appointmentsToday ?? 0} consultas previstas hoje</strong></div>
-                          <div className="module-list-item"><span className="alert-dot green" /><strong>{clinicSummary?.confirmedAppointments ?? 0} confirmadas</strong></div>
-                          <div className="module-list-item"><span className="alert-dot yellow" /><strong>{clinicAppointments.filter((item) => item.noShowRiskScore >= 60).length} com risco elevado de falta</strong></div>
-                        </div>
-                      </article>
+                        </article>
+                      )}
+                      {activeClinicTabIndex === 1 && (
+                        <article className="panel clinic-panel module-card">
+                          <div className="panel-header compact"><div><p className="panel-kicker">Acompanhamento</p><h2>Resumo do dia</h2></div></div>
+                          <div className="module-list">
+                            <div className="module-list-item"><span className="alert-dot blue" /><strong>{clinicSummary?.appointmentsToday ?? 0} consultas previstas hoje</strong></div>
+                            <div className="module-list-item"><span className="alert-dot green" /><strong>{clinicSummary?.confirmedAppointments ?? 0} confirmadas</strong></div>
+                            <div className="module-list-item"><span className="alert-dot yellow" /><strong>{clinicAppointments.filter((item) => item.noShowRiskScore >= 60).length} com risco elevado de falta</strong></div>
+                          </div>
+                        </article>
+                      )}
+                      {activeClinicTabIndex === 2 && (
+                        <article className="panel clinic-panel module-card">
+                          <div className="panel-header compact"><div><p className="panel-kicker">Atalhos</p><h2>Criar consulta</h2></div></div>
+                          <form className="stack-form" onSubmit={handleCreateClinicAppointment}>
+                            <select value={appointmentForm.patientId} onChange={(event) => setAppointmentForm((current) => ({ ...current, patientId: event.target.value }))}>{clinicPatients.map((patient) => <option key={patient.id} value={patient.id}>{patient.fullName}</option>)}</select>
+                            <select value={appointmentForm.professionalId} onChange={(event) => setAppointmentForm((current) => ({ ...current, professionalId: event.target.value }))}>{clinicProfessionals.map((professional) => <option key={professional.id} value={professional.id}>{professional.fullName}</option>)}</select>
+                            <input value={appointmentForm.clinicUnitName} onChange={(event) => setAppointmentForm((current) => ({ ...current, clinicUnitName: event.target.value }))} placeholder="Unidade" />
+                            <input type="datetime-local" value={appointmentForm.startAtUtc} onChange={(event) => setAppointmentForm((current) => ({ ...current, startAtUtc: event.target.value }))} />
+                            <textarea rows={4} value={appointmentForm.notes} onChange={(event) => setAppointmentForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Observações da consulta" />
+                            <button disabled={!appointmentForm.patientId || !appointmentForm.professionalId || !appointmentForm.startAtUtc}>Guardar agendamento</button>
+                          </form>
+                        </article>
+                      )}
                     </section>
                   )}
 
                   {activeMenu === "patients" && (
                     <section className="clinic-module-grid">
-                      <article className="panel clinic-panel module-card">
-                        <div className="panel-header compact">
-                          <div>
-                            <p className="panel-kicker">Pacientes</p>
-                            <h2>Lista ativa</h2>
-                          </div>
-                        </div>
-                        <div className="message-list">
-                          {clinicPatients.map((patient) => (
-                            <div key={patient.id} className={patient.id === selectedClinicPatient?.id ? "list-card active" : "list-card"}>
-                              <div className="list-card-top">
-                                <strong>{patient.fullName}</strong>
-                                <span className="badge blue">{patient.insurance}</span>
+                      {activeClinicTabIndex === 0 && (
+                        <article className="panel clinic-panel module-card">
+                          <div className="panel-header compact"><div><p className="panel-kicker">Pacientes</p><h2>Lista ativa</h2></div></div>
+                          <div className="message-list">
+                            {clinicPatients.map((patient) => (
+                              <div key={patient.id} className={patient.id === selectedClinicPatient?.id ? "list-card active" : "list-card"}>
+                                <div className="list-card-top"><strong>{patient.fullName}</strong><span className="badge blue">{patient.insurance}</span></div>
+                                <p>{patient.phone}</p>
+                                <p>{patient.email}</p>
+                                <div className="card-actions">
+                                  <button type="button" className="mini-soft blue-soft" onClick={() => setSelectedClinicPatientId(patient.id)}>Selecionar</button>
+                                  <button type="button" className="mini-soft green-soft" onClick={() => { setSelectedClinicPatientId(patient.id); setActiveMenu("records"); }}>Prontuário</button>
+                                  <button type="button" className="mini-soft yellow-soft" onClick={() => { setSelectedClinicPatientId(patient.id); void handleGenerateClinicPatientSummary(patient.id); }}>Resumo IA</button>
+                                </div>
                               </div>
-                              <p>{patient.phone}</p>
-                              <p>{patient.email}</p>
-                              <div className="card-actions">
-                                <button type="button" className="mini-soft blue-soft" onClick={() => setSelectedClinicPatientId(patient.id)}>Selecionar</button>
-                                <button type="button" className="mini-soft green-soft" onClick={() => { setSelectedClinicPatientId(patient.id); setActiveMenu("records"); }}>Prontuário</button>
-                                <button type="button" className="mini-soft yellow-soft" onClick={() => { setSelectedClinicPatientId(patient.id); void handleGenerateClinicPatientSummary(patient.id); }}>Resumo IA</button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </article>
-
-                      <article className="panel clinic-panel module-card">
-                        <div className="panel-header compact">
-                          <div>
-                            <p className="panel-kicker">Novo paciente</p>
-                            <h2>Criar cadastro</h2>
+                            ))}
                           </div>
-                        </div>
-                        <form className="stack-form" onSubmit={handleCreateClinicPatient}>
-                          <input value={patientForm.fullName} onChange={(event) => setPatientForm((current) => ({ ...current, fullName: event.target.value }))} placeholder="Nome completo" />
-                          <input type="date" value={patientForm.birthDate} onChange={(event) => setPatientForm((current) => ({ ...current, birthDate: event.target.value }))} />
-                          <input value={patientForm.gender} onChange={(event) => setPatientForm((current) => ({ ...current, gender: event.target.value }))} placeholder="Género" />
-                          <input value={patientForm.phone} onChange={(event) => setPatientForm((current) => ({ ...current, phone: event.target.value }))} placeholder="Telefone" />
-                          <input value={patientForm.email} onChange={(event) => setPatientForm((current) => ({ ...current, email: event.target.value }))} placeholder="Email" />
-                          <input value={patientForm.document} onChange={(event) => setPatientForm((current) => ({ ...current, document: event.target.value }))} placeholder="Documento" />
-                          <input value={patientForm.insurance} onChange={(event) => setPatientForm((current) => ({ ...current, insurance: event.target.value }))} placeholder="Convénio" />
-                          <textarea rows={4} value={patientForm.notes} onChange={(event) => setPatientForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Observações" />
-                          <button disabled={!patientForm.fullName || !patientForm.birthDate}>Guardar paciente</button>
-                        </form>
-                      </article>
-
-                      <article className="panel clinic-panel module-card">
-                        <div className="panel-header compact">
-                          <div>
-                            <p className="panel-kicker">Perfil selecionado</p>
-                            <h2>{selectedClinicPatient?.fullName ?? "Sem paciente"}</h2>
-                          </div>
-                        </div>
-                        {selectedClinicPatient ? (
+                        </article>
+                      )}
+                      {activeClinicTabIndex === 1 && selectedClinicPatient && (
+                        <article className="panel clinic-panel module-card">
+                          <div className="panel-header compact"><div><p className="panel-kicker">Relacionamento</p><h2>{selectedClinicPatient.fullName}</h2></div></div>
                           <div className="module-list">
                             <div className="module-list-item"><span className="alert-dot blue" /><strong>{selectedClinicPatient.phone}</strong></div>
                             <div className="module-list-item"><span className="alert-dot green" /><strong>{selectedClinicPatient.email}</strong></div>
@@ -1568,244 +1538,264 @@ export function App() {
                               <button type="button" className="mini-soft green-soft" onClick={() => setActiveMenu("agenda")}>Novo agendamento</button>
                             </div>
                           </div>
-                        ) : null}
-                      </article>
+                        </article>
+                      )}
+                      {activeClinicTabIndex === 2 && (
+                        <article className="panel clinic-panel module-card">
+                          <div className="panel-header compact"><div><p className="panel-kicker">Ações</p><h2>Criar cadastro</h2></div></div>
+                          <form className="stack-form" onSubmit={handleCreateClinicPatient}>
+                            <input value={patientForm.fullName} onChange={(event) => setPatientForm((current) => ({ ...current, fullName: event.target.value }))} placeholder="Nome completo" />
+                            <input type="date" value={patientForm.birthDate} onChange={(event) => setPatientForm((current) => ({ ...current, birthDate: event.target.value }))} />
+                            <input value={patientForm.gender} onChange={(event) => setPatientForm((current) => ({ ...current, gender: event.target.value }))} placeholder="Género" />
+                            <input value={patientForm.phone} onChange={(event) => setPatientForm((current) => ({ ...current, phone: event.target.value }))} placeholder="Telefone" />
+                            <input value={patientForm.email} onChange={(event) => setPatientForm((current) => ({ ...current, email: event.target.value }))} placeholder="Email" />
+                            <input value={patientForm.document} onChange={(event) => setPatientForm((current) => ({ ...current, document: event.target.value }))} placeholder="Documento" />
+                            <input value={patientForm.insurance} onChange={(event) => setPatientForm((current) => ({ ...current, insurance: event.target.value }))} placeholder="Convénio" />
+                            <textarea rows={4} value={patientForm.notes} onChange={(event) => setPatientForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Observações" />
+                            <button disabled={!patientForm.fullName || !patientForm.birthDate}>Guardar paciente</button>
+                          </form>
+                        </article>
+                      )}
                     </section>
                   )}
 
                   {activeMenu === "doctors" && (
                     <section className="clinic-module-grid">
-                      <article className="panel clinic-panel module-card">
-                        <div className="panel-header compact">
-                          <div>
-                            <p className="panel-kicker">Profissionais</p>
-                            <h2>Equipe clínica</h2>
-                          </div>
-                        </div>
-                        <div className="module-list">
-                          {clinicProfessionals.map((professional) => (
-                            <div className="module-list-item" key={professional.id}>
-                              <span className="alert-dot green" />
-                              <strong>{professional.fullName} · {professional.specialty} · {professional.appointmentDurationMinutes} min</strong>
+                      {activeClinicTabIndex === 0 && (
+                        <article className="panel clinic-panel module-card">
+                          <div className="panel-header compact"><div><p className="panel-kicker">Profissionais</p><h2>Equipe clínica</h2></div></div>
+                          <div className="module-list">
+                            {clinicProfessionals.map((professional) => (
+                              <div className="module-list-item" key={professional.id}><span className="alert-dot green" /><strong>{professional.fullName} · {professional.specialty} · {professional.appointmentDurationMinutes} min</strong></div>
+                            ))}
+                            <div className="card-actions">
+                              <button type="button" className="mini-soft blue-soft" onClick={() => setActiveMenu("agenda")}>Abrir agenda</button>
+                              <button type="button" className="mini-soft yellow-soft" onClick={() => setClinicSubView((current) => ({ ...current, doctors: 2 }))}>Novo profissional</button>
                             </div>
-                          ))}
-                          <div className="card-actions">
-                            <button type="button" className="mini-soft blue-soft" onClick={() => setActiveMenu("agenda")}>Abrir agenda</button>
-                            <button type="button" className="mini-soft yellow-soft" onClick={() => setProfessionalForm(initialProfessionalForm)}>Novo profissional</button>
                           </div>
-                        </div>
-                      </article>
-
-                      <article className="panel clinic-panel module-card">
-                        <div className="panel-header compact">
-                          <div>
-                            <p className="panel-kicker">Novo profissional</p>
-                            <h2>Adicionar à equipe</h2>
+                        </article>
+                      )}
+                      {activeClinicTabIndex === 1 && (
+                        <article className="panel clinic-panel module-card">
+                          <div className="panel-header compact"><div><p className="panel-kicker">Coordenação</p><h2>Visão rápida</h2></div></div>
+                          <div className="module-list">
+                            <div className="module-list-item"><span className="alert-dot blue" /><strong>{clinicProfessionals.length} profissionais ativos</strong></div>
+                            <div className="module-list-item"><span className="alert-dot yellow" /><strong>{clinicProfessionals.reduce((sum, item) => sum + item.appointmentDurationMinutes, 0)} minutos de duração padrão somados</strong></div>
                           </div>
-                        </div>
-                        <form className="stack-form" onSubmit={handleCreateClinicProfessional}>
-                          <input value={professionalForm.fullName} onChange={(event) => setProfessionalForm((current) => ({ ...current, fullName: event.target.value }))} placeholder="Nome completo" />
-                          <input value={professionalForm.specialty} onChange={(event) => setProfessionalForm((current) => ({ ...current, specialty: event.target.value }))} placeholder="Especialidade" />
-                          <input value={professionalForm.licenseNumber} onChange={(event) => setProfessionalForm((current) => ({ ...current, licenseNumber: event.target.value }))} placeholder="CRM / registro" />
-                          <input value={professionalForm.appointmentDurationMinutes} onChange={(event) => setProfessionalForm((current) => ({ ...current, appointmentDurationMinutes: event.target.value }))} placeholder="Duração padrão" />
-                          <button disabled={!professionalForm.fullName || !professionalForm.specialty}>Guardar profissional</button>
-                        </form>
-                      </article>
-
-                      <article className="panel clinic-panel module-card">
-                        <div className="panel-header compact">
-                          <div>
-                            <p className="panel-kicker">Capacidade</p>
-                            <h2>Visão rápida</h2>
-                          </div>
-                        </div>
-                        <div className="module-list">
-                          <div className="module-list-item"><span className="alert-dot blue" /><strong>{clinicProfessionals.length} profissionais ativos</strong></div>
-                          <div className="module-list-item"><span className="alert-dot yellow" /><strong>{clinicProfessionals.reduce((sum, item) => sum + item.appointmentDurationMinutes, 0)} minutos de duração padrão somados</strong></div>
-                        </div>
-                      </article>
+                        </article>
+                      )}
+                      {activeClinicTabIndex === 2 && (
+                        <article className="panel clinic-panel module-card">
+                          <div className="panel-header compact"><div><p className="panel-kicker">Ações</p><h2>Adicionar à equipe</h2></div></div>
+                          <form className="stack-form" onSubmit={handleCreateClinicProfessional}>
+                            <input value={professionalForm.fullName} onChange={(event) => setProfessionalForm((current) => ({ ...current, fullName: event.target.value }))} placeholder="Nome completo" />
+                            <input value={professionalForm.specialty} onChange={(event) => setProfessionalForm((current) => ({ ...current, specialty: event.target.value }))} placeholder="Especialidade" />
+                            <input value={professionalForm.licenseNumber} onChange={(event) => setProfessionalForm((current) => ({ ...current, licenseNumber: event.target.value }))} placeholder="CRM / registro" />
+                            <input value={professionalForm.appointmentDurationMinutes} onChange={(event) => setProfessionalForm((current) => ({ ...current, appointmentDurationMinutes: event.target.value }))} placeholder="Duração padrão" />
+                            <button disabled={!professionalForm.fullName || !professionalForm.specialty}>Guardar profissional</button>
+                          </form>
+                        </article>
+                      )}
                     </section>
                   )}
 
                   {activeMenu === "attendance" && (
                     <section className="clinic-module-grid">
-                      <article className="panel clinic-panel module-card full-module-span">
-                        <div className="panel-header compact">
-                          <div>
-                            <p className="panel-kicker">Fila clínica</p>
-                            <h2>Atendimentos e status</h2>
+                      <article className={`panel clinic-panel module-card ${activeClinicTabIndex === 0 ? "full-module-span" : ""}`}>
+                        <div className="panel-header compact"><div><p className="panel-kicker">Atendimentos</p><h2>{activeClinicTabIndex === 0 ? "Fila de atendimentos" : activeClinicTabIndex === 1 ? "Execução do dia" : "Ações rápidas"}</h2></div></div>
+                        {activeClinicTabIndex === 0 && (
+                          <div className="schedule-list">
+                            {clinicAppointments.map((appointment) => (
+                              <div className="schedule-row extended" key={appointment.id}>
+                                <strong>{formatTime(appointment.startAtUtc, t.locale)}</strong>
+                                <div><p>{appointment.patientName}</p><span>{appointment.professionalName}</span></div>
+                                <div className="schedule-meta"><span className={`inline-status ${appointmentTone(appointment.status)}`}>{appointmentStatusLabel(appointment.status)}</span></div>
+                                <div className="row-actions">
+                                  <button type="button" className="ghost-action small" onClick={() => void handleUpdateClinicAppointmentStatus(appointment.id, 2)}>Confirmar</button>
+                                  <button type="button" className="ghost-action small" onClick={() => void handleUpdateClinicAppointmentStatus(appointment.id, 3)}>Iniciar</button>
+                                  <button type="button" className="ghost-action small" onClick={() => void handleUpdateClinicAppointmentStatus(appointment.id, 4)}>Concluir</button>
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                        </div>
-                        <div className="schedule-list">
-                          {clinicAppointments.map((appointment) => (
-                            <div className="schedule-row extended" key={appointment.id}>
-                              <strong>{formatTime(appointment.startAtUtc, t.locale)}</strong>
-                              <div>
-                                <p>{appointment.patientName}</p>
-                                <span>{appointment.professionalName}</span>
-                              </div>
-                              <div className="schedule-meta">
-                                <span className={`inline-status ${appointmentTone(appointment.status)}`}>{appointmentStatusLabel(appointment.status)}</span>
-                              </div>
-                              <div className="row-actions">
-                                <button type="button" className="ghost-action small" onClick={() => void handleUpdateClinicAppointmentStatus(appointment.id, 2)}>Confirmar</button>
-                                <button type="button" className="ghost-action small" onClick={() => void handleUpdateClinicAppointmentStatus(appointment.id, 3)}>Iniciar</button>
-                                <button type="button" className="ghost-action small" onClick={() => void handleUpdateClinicAppointmentStatus(appointment.id, 4)}>Concluir</button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                        )}
+                        {activeClinicTabIndex === 1 && (
+                          <div className="module-list">
+                            <div className="module-list-item"><span className="alert-dot green" /><strong>{clinicAppointments.filter((item) => item.status === 3).length} em atendimento agora</strong></div>
+                            <div className="module-list-item"><span className="alert-dot blue" /><strong>{clinicAppointments.filter((item) => item.status === 4).length} concluídas</strong></div>
+                            <div className="module-list-item"><span className="alert-dot pink" /><strong>{clinicAppointments.filter((item) => item.status === 6).length} faltas registadas</strong></div>
+                          </div>
+                        )}
+                        {activeClinicTabIndex === 2 && (
+                          <div className="card-actions">
+                            <button type="button" className="mini-soft green-soft" onClick={() => setActiveMenu("agenda")}>Novo encaixe</button>
+                            <button type="button" className="mini-soft blue-soft" onClick={() => setActiveMenu("records")}>Abrir prontuários</button>
+                            <button type="button" className="mini-soft yellow-soft" onClick={() => setActiveMenu("chat")}>Enviar lembretes</button>
+                          </div>
+                        )}
                       </article>
                     </section>
                   )}
 
                   {activeMenu === "records" && (
                     <section className="clinic-module-grid">
-                      <article className="panel clinic-panel module-card">
-                        <div className="panel-header compact">
-                          <div>
-                            <p className="panel-kicker">Prontuários</p>
-                            <h2>Escolha o paciente</h2>
+                      {activeClinicTabIndex === 0 && (
+                        <article className="panel clinic-panel module-card">
+                          <div className="panel-header compact"><div><p className="panel-kicker">Estrutura</p><h2>Escolha o paciente</h2></div></div>
+                          <div className="message-list">
+                            {clinicPatients.map((patient) => (
+                              <button key={patient.id} type="button" className={patient.id === selectedClinicPatient?.id ? "list-card active" : "list-card"} onClick={() => setSelectedClinicPatientId(patient.id)}>
+                                <div className="list-card-top"><strong>{patient.fullName}</strong><span className="badge blue">{patient.insurance}</span></div>
+                                <p>{patient.notes || "Sem notas clínicas adicionais"}</p>
+                              </button>
+                            ))}
                           </div>
-                        </div>
-                        <div className="message-list">
-                          {clinicPatients.map((patient) => (
-                            <button key={patient.id} type="button" className={patient.id === selectedClinicPatient?.id ? "list-card active" : "list-card"} onClick={() => setSelectedClinicPatientId(patient.id)}>
-                              <div className="list-card-top">
-                                <strong>{patient.fullName}</strong>
-                                <span className="badge blue">{patient.insurance}</span>
-                              </div>
-                              <p>{patient.notes || "Sem notas clínicas adicionais"}</p>
-                            </button>
-                          ))}
-                        </div>
-                      </article>
-
-                      <article className="panel clinic-panel module-card">
-                        <div className="panel-header compact">
-                          <div>
-                            <p className="panel-kicker">IA clínica</p>
-                            <h2>Resumo do paciente</h2>
-                          </div>
-                        </div>
-                        <div className="module-list">
-                          <button type="button" onClick={() => selectedClinicPatient && void handleGenerateClinicPatientSummary(selectedClinicPatient.id)} disabled={!selectedClinicPatient}>
-                            Gerar resumo de IA
-                          </button>
-                          {clinicPatientSummary ? (
-                            <>
+                        </article>
+                      )}
+                      {activeClinicTabIndex === 1 && (
+                        <article className="panel clinic-panel module-card">
+                          <div className="panel-header compact"><div><p className="panel-kicker">IA</p><h2>Resumo do paciente</h2></div></div>
+                          <div className="module-list">
+                            <button type="button" onClick={() => selectedClinicPatient && void handleGenerateClinicPatientSummary(selectedClinicPatient.id)} disabled={!selectedClinicPatient}>Gerar resumo de IA</button>
+                            {clinicPatientSummary ? <>
                               <div className="module-list-item"><span className="alert-dot blue" /><strong>{clinicPatientSummary.clinicalSummary}</strong></div>
                               <div className="module-list-item"><span className="alert-dot yellow" /><strong>{clinicPatientSummary.attentionPoints}</strong></div>
                               <div className="module-list-item"><span className="alert-dot green" /><strong>{clinicPatientSummary.suggestedNextSteps}</strong></div>
-                            </>
-                          ) : null}
-                        </div>
-                      </article>
-
-                      <article className="panel clinic-panel module-card">
-                        <div className="panel-header compact">
-                          <div>
-                            <p className="panel-kicker">Histórico</p>
-                            <h2>Consultas do paciente</h2>
+                            </> : null}
                           </div>
-                        </div>
-                        <div className="module-list">
-                          {clinicAppointments.filter((appointment) => appointment.patientId === selectedClinicPatient?.id).map((appointment) => (
-                            <div className="module-list-item" key={appointment.id}>
-                              <span className={`alert-dot ${appointmentTone(appointment.status)}`} />
-                              <strong>{formatDateTime(appointment.startAtUtc, t.locale)} · {appointment.professionalName} · {appointmentStatusLabel(appointment.status)}</strong>
-                            </div>
-                          ))}
-                        </div>
-                      </article>
+                        </article>
+                      )}
+                      {activeClinicTabIndex === 2 && (
+                        <article className="panel clinic-panel module-card">
+                          <div className="panel-header compact"><div><p className="panel-kicker">Ações</p><h2>Consultas do paciente</h2></div></div>
+                          <div className="module-list">
+                            {clinicAppointments.filter((appointment) => appointment.patientId === selectedClinicPatient?.id).map((appointment) => (
+                              <div className="module-list-item" key={appointment.id}>
+                                <span className={`alert-dot ${appointmentTone(appointment.status)}`} />
+                                <strong>{formatDateTime(appointment.startAtUtc, t.locale)} · {appointment.professionalName} · {appointmentStatusLabel(appointment.status)}</strong>
+                              </div>
+                            ))}
+                          </div>
+                        </article>
+                      )}
                     </section>
                   )}
 
                   {activeMenu === "finance" && (
                     <section className="clinic-module-grid">
-                      <article className="panel clinic-panel module-card">
-                        <div className="panel-header compact">
-                          <div>
-                            <p className="panel-kicker">Financeiro</p>
-                            <h2>Resumo atual</h2>
+                      {activeClinicTabIndex === 0 && (
+                        <article className="panel clinic-panel module-card">
+                          <div className="panel-header compact"><div><p className="panel-kicker">Receita</p><h2>Resumo atual</h2></div></div>
+                          <div className="module-list">
+                            <div className="module-list-item"><span className="alert-dot green" /><strong>{formatCurrency(clinicSummary?.revenueMonth ?? 0, t.locale)} de receita no mês</strong></div>
+                            <div className="module-list-item"><span className="alert-dot blue" /><strong>{clinicSummary?.appointmentsToday ?? 0} consultas planeadas hoje</strong></div>
+                            <div className="module-list-item"><span className="alert-dot pink" /><strong>{clinicSummary?.noShowRate ?? 0}% de taxa de faltas</strong></div>
+                            <div className="card-actions">
+                              <button type="button" className="mini-soft green-soft" onClick={() => setActiveMenu("reports")}>Ver relatório</button>
+                              <button type="button" className="mini-soft yellow-soft" onClick={() => setActiveMenu("insurance")}>Ver convênios</button>
+                            </div>
                           </div>
-                        </div>
-                        <div className="module-list">
-                          <div className="module-list-item"><span className="alert-dot green" /><strong>{formatCurrency(clinicSummary?.revenueMonth ?? 0, t.locale)} de receita no mês</strong></div>
-                          <div className="module-list-item"><span className="alert-dot blue" /><strong>{clinicSummary?.appointmentsToday ?? 0} consultas planeadas hoje</strong></div>
-                          <div className="module-list-item"><span className="alert-dot pink" /><strong>{clinicSummary?.noShowRate ?? 0}% de taxa de faltas</strong></div>
-                          <div className="card-actions">
-                            <button type="button" className="mini-soft green-soft" onClick={() => setActiveMenu("reports")}>Ver relatório</button>
-                            <button type="button" className="mini-soft yellow-soft" onClick={() => setActiveMenu("insurance")}>Ver convênios</button>
+                        </article>
+                      )}
+                      {activeClinicTabIndex === 1 && (
+                        <article className="panel clinic-panel module-card">
+                          <div className="panel-header compact"><div><p className="panel-kicker">Pendências</p><h2>Leitura executiva</h2></div></div>
+                          <div className="finance-visual">
+                            <div className="finance-bars">
+                              {[14, 22, 19, 31, 26, 30].map((value, index) => (
+                                <div className="finance-bar-column" key={value + index}>
+                                  <div className="finance-bar-track"><div className="finance-bar-fill" style={{ height: `${value * 3}px` }} /></div>
+                                  <span>{["S", "T", "Q", "Q", "S", "S"][index]}</span>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="finance-donut"><div className="finance-donut-hole">{clinicSummary?.activePatients ?? 0}</div></div>
                           </div>
-                        </div>
-                      </article>
-
-                      <article className="panel clinic-panel module-card">
-                        <div className="panel-header compact">
-                          <div>
-                            <p className="panel-kicker">Recebimentos</p>
-                            <h2>Leitura executiva</h2>
+                        </article>
+                      )}
+                      {activeClinicTabIndex === 2 && (
+                        <article className="panel clinic-panel module-card">
+                          <div className="panel-header compact"><div><p className="panel-kicker">Ações</p><h2>O que rever</h2></div></div>
+                          <div className="module-list">
+                            <div className="module-list-item"><span className="alert-dot yellow" /><strong>3 convénios aguardam conferência</strong></div>
+                            <div className="module-list-item"><span className="alert-dot pink" /><strong>2 cobranças precisam de contacto</strong></div>
+                            <div className="module-list-item"><span className="alert-dot blue" /><strong>Receita média por consulta em revisão</strong></div>
                           </div>
-                        </div>
-                        <div className="finance-visual">
-                          <div className="finance-bars">
-                            {[14, 22, 19, 31, 26, 30].map((value, index) => (
-                              <div className="finance-bar-column" key={value + index}>
-                                <div className="finance-bar-track"><div className="finance-bar-fill" style={{ height: `${value * 3}px` }} /></div>
-                                <span>{["S", "T", "Q", "Q", "S", "S"][index]}</span>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="finance-donut"><div className="finance-donut-hole">{clinicSummary?.activePatients ?? 0}</div></div>
-                        </div>
-                      </article>
-
-                      <article className="panel clinic-panel module-card">
-                        <div className="panel-header compact">
-                          <div>
-                            <p className="panel-kicker">Pendências</p>
-                            <h2>O que rever</h2>
-                          </div>
-                        </div>
-                        <div className="module-list">
-                          <div className="module-list-item"><span className="alert-dot yellow" /><strong>3 convénios aguardam conferência</strong></div>
-                          <div className="module-list-item"><span className="alert-dot pink" /><strong>2 cobranças precisam de contacto</strong></div>
-                          <div className="module-list-item"><span className="alert-dot blue" /><strong>Receita média por consulta em revisão</strong></div>
-                        </div>
-                      </article>
+                        </article>
+                      )}
                     </section>
                   )}
 
                   {activeMenu === "permissions" && (
                     <section className="clinic-module-grid">
+                      {activeClinicTabIndex === 0 && (
+                        <article className="panel clinic-panel module-card">
+                          <div className="panel-header compact"><div><p className="panel-kicker">Perfis</p><h2>Utilizadores autorizados</h2></div></div>
+                          <div className="access-list">
+                            {accessMembers.map((member) => (
+                              <div className="access-card" key={member.id}>
+                                <div className="access-top">
+                                  <div className="access-avatar">{userInitials(member.fullName)}</div>
+                                  <div><strong>{member.fullName}</strong><p>{member.email}</p><p className="small-text">{translateRole(member.role, t)}</p></div>
+                                </div>
+                                <div className="permission-wrap">{permissionPills(member, t).map((permission) => <span className="mini-badge" key={permission}>{permission}</span>)}</div>
+                                <div className="card-actions">
+                                  <button type="button" className="mini-soft blue-soft" onClick={() => setAccessForm((current) => ({ ...current, fullName: member.fullName, email: member.email, role: member.role }))}>Modificar</button>
+                                  <button type="button" className="mini-soft pink-soft" onClick={() => setSuccess(`Revise o acesso de ${member.fullName} antes de remover.`)}>Remover</button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </article>
+                      )}
+                      {activeClinicTabIndex === 1 && (
+                        <article className="panel clinic-panel module-card">
+                          <div className="panel-header compact"><div><p className="panel-kicker">Controlo</p><h2>Visão de permissões</h2></div></div>
+                          <div className="module-list">
+                            <div className="module-list-item"><span className="alert-dot blue" /><strong>{accessMembers.filter((item) => item.canViewDashboard).length} com acesso ao dashboard</strong></div>
+                            <div className="module-list-item"><span className="alert-dot green" /><strong>{accessMembers.filter((item) => item.canManagePatients).length} com gestão de pacientes</strong></div>
+                            <div className="module-list-item"><span className="alert-dot yellow" /><strong>{accessMembers.filter((item) => item.canViewBilling).length} com leitura financeira</strong></div>
+                          </div>
+                        </article>
+                      )}
+                      {activeClinicTabIndex === 2 && (
+                        <article className="panel clinic-panel module-card">
+                          <div className="panel-header compact"><div><p className="panel-kicker">Ações</p><h2>Autorizar colaborador</h2></div></div>
+                          <form className="stack-form" onSubmit={handleCreateAccessMember}>
+                            <input value={accessForm.fullName} onChange={(event) => setAccessForm((current) => ({ ...current, fullName: event.target.value }))} placeholder={t.collaboratorNamePlaceholder} disabled={!canManageClinicAccess} />
+                            <input value={accessForm.email} onChange={(event) => setAccessForm((current) => ({ ...current, email: event.target.value }))} placeholder={t.collaboratorEmailPlaceholder} disabled={!canManageClinicAccess} />
+                            <select value={accessForm.role} onChange={(event) => setAccessForm((current) => ({ ...current, role: event.target.value }))} disabled={!canManageClinicAccess}>
+                              <option value="ClinicAdmin">{t.roles.clinicAdmin}</option>
+                              <option value="Staff">{t.roles.staff}</option>
+                            </select>
+                            <div className="checkbox-grid">
+                              <label><input type="checkbox" checked={accessForm.canViewDashboard} onChange={(event) => setAccessForm((current) => ({ ...current, canViewDashboard: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsDashboard}</label>
+                              <label><input type="checkbox" checked={accessForm.canViewBilling} onChange={(event) => setAccessForm((current) => ({ ...current, canViewBilling: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsBilling}</label>
+                              <label><input type="checkbox" checked={accessForm.canManagePatients} onChange={(event) => setAccessForm((current) => ({ ...current, canManagePatients: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsPatients}</label>
+                              <label><input type="checkbox" checked={accessForm.canManageSchedule} onChange={(event) => setAccessForm((current) => ({ ...current, canManageSchedule: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsSchedule}</label>
+                              <label><input type="checkbox" checked={accessForm.canManageSettings} onChange={(event) => setAccessForm((current) => ({ ...current, canManageSettings: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsSettings}</label>
+                            </div>
+                            <button disabled={!canManageClinicAccess}>{t.collaboratorCreateAction}</button>
+                          </form>
+                        </article>
+                      )}
+                    </section>
+                  )}
+
+                  {!["agenda", "patients", "doctors", "attendance", "records", "finance", "permissions"].includes(activeMenu) && (
+                    <section className="clinic-module-grid">
                       <article className="panel clinic-panel module-card">
                         <div className="panel-header compact">
                           <div>
-                            <p className="panel-kicker">Acessos</p>
-                            <h2>Utilizadores autorizados</h2>
+                            <p className="panel-kicker">Área interna</p>
+                            <h2>{currentClinicPage.columns[activeClinicTabIndex]?.title ?? currentClinicPage.columns[0].title}</h2>
                           </div>
                         </div>
-                        <div className="access-list">
-                          {accessMembers.map((member) => (
-                            <div className="access-card" key={member.id}>
-                              <div className="access-top">
-                                <div className="access-avatar">{userInitials(member.fullName)}</div>
-                                <div>
-                                  <strong>{member.fullName}</strong>
-                                  <p>{member.email}</p>
-                                  <p className="small-text">{translateRole(member.role, t)}</p>
-                                </div>
-                              </div>
-                              <div className="permission-wrap">
-                                {permissionPills(member, t).map((permission) => (
-                                  <span className="mini-badge" key={permission}>{permission}</span>
-                                ))}
-                              </div>
-                              <div className="card-actions">
-                                <button type="button" className="mini-soft blue-soft" onClick={() => setAccessForm((current) => ({ ...current, fullName: member.fullName, email: member.email, role: member.role }))}>Modificar</button>
-                                <button type="button" className="mini-soft pink-soft" onClick={() => setSuccess(`Revise o acesso de ${member.fullName} antes de remover.`)}>Remover</button>
-                              </div>
+                        <div className="module-list">
+                          {(currentClinicPage.columns[activeClinicTabIndex]?.items ?? currentClinicPage.columns[0].items).map((item) => (
+                            <div className="module-list-item" key={item}>
+                              <span className={`alert-dot ${activeClinicTabIndex === 0 ? "blue" : activeClinicTabIndex === 1 ? "green" : "yellow"}`} />
+                              <strong>{item}</strong>
                             </div>
                           ))}
                         </div>
@@ -1814,50 +1804,39 @@ export function App() {
                       <article className="panel clinic-panel module-card">
                         <div className="panel-header compact">
                           <div>
-                            <p className="panel-kicker">Novo acesso</p>
-                            <h2>Autorizar colaborador</h2>
+                            <p className="panel-kicker">Operação</p>
+                            <h2>Próximo passo recomendado</h2>
                           </div>
                         </div>
-                        <form className="stack-form" onSubmit={handleCreateAccessMember}>
-                          <input value={accessForm.fullName} onChange={(event) => setAccessForm((current) => ({ ...current, fullName: event.target.value }))} placeholder={t.collaboratorNamePlaceholder} disabled={!canManageClinicAccess} />
-                          <input value={accessForm.email} onChange={(event) => setAccessForm((current) => ({ ...current, email: event.target.value }))} placeholder={t.collaboratorEmailPlaceholder} disabled={!canManageClinicAccess} />
-                          <select value={accessForm.role} onChange={(event) => setAccessForm((current) => ({ ...current, role: event.target.value }))} disabled={!canManageClinicAccess}>
-                            <option value="ClinicAdmin">{t.roles.clinicAdmin}</option>
-                            <option value="Staff">{t.roles.staff}</option>
-                          </select>
-                          <div className="checkbox-grid">
-                            <label><input type="checkbox" checked={accessForm.canViewDashboard} onChange={(event) => setAccessForm((current) => ({ ...current, canViewDashboard: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsDashboard}</label>
-                            <label><input type="checkbox" checked={accessForm.canViewBilling} onChange={(event) => setAccessForm((current) => ({ ...current, canViewBilling: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsBilling}</label>
-                            <label><input type="checkbox" checked={accessForm.canManagePatients} onChange={(event) => setAccessForm((current) => ({ ...current, canManagePatients: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsPatients}</label>
-                            <label><input type="checkbox" checked={accessForm.canManageSchedule} onChange={(event) => setAccessForm((current) => ({ ...current, canManageSchedule: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsSchedule}</label>
-                            <label><input type="checkbox" checked={accessForm.canManageSettings} onChange={(event) => setAccessForm((current) => ({ ...current, canManageSettings: event.target.checked }))} disabled={!canManageClinicAccess} /> {t.permissionsSettings}</label>
+                        <div className="module-list">
+                          <div className="module-list-item">
+                            <span className="alert-dot blue" />
+                            <strong>{(currentClinicPage.columns[activeClinicTabIndex]?.items ?? [])[0] ?? "Rever o fluxo principal deste módulo"}</strong>
                           </div>
-                          <button disabled={!canManageClinicAccess}>{t.collaboratorCreateAction}</button>
-                        </form>
+                          <div className="module-list-item">
+                            <span className="alert-dot green" />
+                            <strong>{(currentClinicPage.columns[activeClinicTabIndex]?.items ?? [])[1] ?? "Atualizar a operação interna desta área"}</strong>
+                          </div>
+                          <div className="module-list-item">
+                            <span className="alert-dot yellow" />
+                            <strong>{(currentClinicPage.columns[activeClinicTabIndex]?.items ?? [])[2] ?? "Confirmar o que precisa de decisão"}</strong>
+                          </div>
+                        </div>
                       </article>
-                    </section>
-                  )}
 
-                  {!["agenda", "patients", "doctors", "attendance", "records", "finance", "permissions"].includes(activeMenu) && (
-                    <section className="clinic-module-grid">
-                      {currentClinicPage.columns.map((column) => (
-                        <article className="panel clinic-panel module-card" key={column.title}>
-                          <div className="panel-header compact">
-                            <div>
-                              <p className="panel-kicker">Área interna</p>
-                              <h2>{column.title}</h2>
-                            </div>
+                      <article className="panel clinic-panel module-card">
+                        <div className="panel-header compact">
+                          <div>
+                            <p className="panel-kicker">Ações rápidas</p>
+                            <h2>Use esta subtela para avançar</h2>
                           </div>
-                          <div className="module-list">
-                            {column.items.map((item) => (
-                              <div className="module-list-item" key={item}>
-                                <span className="alert-dot blue" />
-                                <strong>{item}</strong>
-                              </div>
-                            ))}
-                          </div>
-                        </article>
-                      ))}
+                        </div>
+                        <div className="card-actions">
+                          <button type="button" className="mini-soft blue-soft">Abrir detalhe</button>
+                          <button type="button" className="mini-soft green-soft">Atualizar área</button>
+                          <button type="button" className="mini-soft yellow-soft">Enviar orientação</button>
+                        </div>
+                      </article>
                     </section>
                   )}
                 </section>
