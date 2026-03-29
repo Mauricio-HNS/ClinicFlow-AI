@@ -648,6 +648,7 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [clinicSubView, setClinicSubView] = useState<Record<string, number>>({});
+  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
 
   const menuSections = [
     {
@@ -730,6 +731,10 @@ export function App() {
       ));
     }
   }, [activeMenu]);
+
+  useEffect(() => {
+    setIsLanguageMenuOpen(false);
+  }, [activeMenu, currentUser]);
 
   useEffect(() => {
     if (!selectedClient && visibleClients.length > 0) {
@@ -1343,16 +1348,54 @@ export function App() {
                 <p className="eyebrow">Operação clínica</p>
                 <strong>{selectedClient?.clinicName ?? "Clínica ativa"}</strong>
               </div>
-              <div className="session-card">
-                <div className="session-avatar">{userInitials(currentUser.name)}</div>
-                <div className="session-meta">
-                  <strong>{currentUser.name}</strong>
-                  <span>{currentUser.email}</span>
-                  <span>{translateAppRole(currentUser.role, t)}</span>
-                </div>
-                <button type="button" className="ghost-action small" onClick={handleLogout}>
-                  {t.topbarLogout}
+              <div className="topbar-actions">
+                <button
+                  type="button"
+                  className="icon-action"
+                  aria-label="Configurações"
+                  onClick={() => setActiveMenu("settings")}
+                >
+                  <span aria-hidden="true">⚙</span>
                 </button>
+                <div className={isLanguageMenuOpen ? "language-menu open" : "language-menu"}>
+                  <button
+                    type="button"
+                    className="icon-action"
+                    aria-label={t.languageFieldLabel}
+                    onClick={() => setIsLanguageMenuOpen((current) => !current)}
+                  >
+                    <span aria-hidden="true">◌</span>
+                  </button>
+                  {isLanguageMenuOpen ? (
+                    <div className="language-popover">
+                      {availableLanguages.map((option) => (
+                        <button
+                          key={option.code}
+                          type="button"
+                          className={language === option.code ? "language-option active" : "language-option"}
+                          onClick={() => {
+                            setLanguage(option.code);
+                            setIsLanguageMenuOpen(false);
+                          }}
+                        >
+                          <strong>{option.label}</strong>
+                          <span>{option.code.toUpperCase()}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+                <div className="session-card">
+                  <div className="session-avatar">{userInitials(currentUser.name)}</div>
+                  <div className="session-meta">
+                    <strong>{currentUser.name}</strong>
+                    <span>{currentUser.email}</span>
+                    <span>{translateAppRole(currentUser.role, t)}</span>
+                  </div>
+                  <button type="button" className="ghost-action small" onClick={handleLogout}>
+                    {t.topbarLogout}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1900,16 +1943,6 @@ export function App() {
           <div className="sidebar-foot">
             <span>{t.sidebarFooterLabel}</span>
             <strong>{t.sidebarFooterTitle}</strong>
-            <label className="language-field">
-              <span>{t.languageFieldLabel}</span>
-              <select value={language} onChange={(event) => setLanguage(event.target.value as typeof language)}>
-                {availableLanguages.map((option) => (
-                  <option key={option.code} value={option.code}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
           </div>
         </aside>
 
@@ -1919,16 +1952,46 @@ export function App() {
               <p className="eyebrow">{t.headerEyebrow}</p>
               <strong>{t.topbarGreeting}</strong>
             </div>
-            <div className="session-card">
-              <div className="session-avatar">{userInitials(currentUser.name)}</div>
-              <div className="session-meta">
-                <strong>{currentUser.name}</strong>
-                <span>{currentUser.email}</span>
-                <span>{translateAppRole(currentUser.role, t)}</span>
+            <div className="topbar-actions">
+              <div className={isLanguageMenuOpen ? "language-menu open" : "language-menu"}>
+                <button
+                  type="button"
+                  className="icon-action"
+                  aria-label={t.languageFieldLabel}
+                  onClick={() => setIsLanguageMenuOpen((current) => !current)}
+                >
+                  <span aria-hidden="true">◌</span>
+                </button>
+                {isLanguageMenuOpen ? (
+                  <div className="language-popover">
+                    {availableLanguages.map((option) => (
+                      <button
+                        key={option.code}
+                        type="button"
+                        className={language === option.code ? "language-option active" : "language-option"}
+                        onClick={() => {
+                          setLanguage(option.code);
+                          setIsLanguageMenuOpen(false);
+                        }}
+                      >
+                        <strong>{option.label}</strong>
+                        <span>{option.code.toUpperCase()}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
               </div>
-              <button type="button" className="ghost-action small" onClick={handleLogout}>
-                {t.topbarLogout}
-              </button>
+              <div className="session-card">
+                <div className="session-avatar">{userInitials(currentUser.name)}</div>
+                <div className="session-meta">
+                  <strong>{currentUser.name}</strong>
+                  <span>{currentUser.email}</span>
+                  <span>{translateAppRole(currentUser.role, t)}</span>
+                </div>
+                <button type="button" className="ghost-action small" onClick={handleLogout}>
+                  {t.topbarLogout}
+                </button>
+              </div>
             </div>
           </div>
 
