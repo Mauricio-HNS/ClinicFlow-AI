@@ -1,6 +1,21 @@
 # ClinicFlow AI
 
-AI-powered multi-tenant SaaS for clinics, designed to look strong on GitHub, in portfolio reviews and in technical interviews.
+ClinicFlow AI is a multi-tenant clinic management SaaS positioned around scheduling, patient CRM, operational dashboards and AI-assisted clinical workflows.
+
+## Why this repository is valuable
+
+- multi-tenant SaaS narrative
+- clinic operations domain with real business flows
+- backend architecture plus admin web shell
+- AI-assisted product direction instead of generic CRUD only
+
+## Current scope
+
+- authentication entry point
+- tenant-aware patient and professional management
+- appointment lifecycle
+- dashboard summary
+- AI phase 1 endpoints for patient summaries and confirmation messages
 
 ## Screenshots
 
@@ -12,78 +27,23 @@ AI-powered multi-tenant SaaS for clinics, designed to look strong on GitHub, in 
 
 ![ClinicFlow AI mobile view](docs/screenshots/clinicflow-mobile.png)
 
-## Product Vision
+## Repository structure
 
-ClinicFlow AI combines:
+```text
+apps/admin_web/        # React admin shell
+backend/               # ClinicFlow backend modules
+docs/                  # screenshots and architectural context
+infra/                 # infrastructure-oriented files
+```
 
-- smart scheduling and slot conflict control
-- patient CRM
-- AI-assisted patient summaries
-- WhatsApp-ready confirmation message generation
-- financial and operational dashboarding
-- multi-tenant SaaS foundations
+## Backend modules
 
-The project is being rebuilt inside this repository with a cleaner architecture and a stronger SaaS narrative. The older marketplace code remains in the repo for now, but the new foundation lives in the `ClinicFlow` modules below.
+- `backend/src/ClinicFlow.Api`
+- `backend/src/ClinicFlow.Domain`
+- `backend/src/ClinicFlow.Application`
+- `backend/src/ClinicFlow.Infrastructure`
 
-## Current Foundation
-
-### Backend
-
-New backend foundation in [backend/src/ClinicFlow.Api](/Users/mauriciohenrique/Documents/New%20project/backend/src/ClinicFlow.Api) with:
-
-- modular monolith structure
-- tenant-aware domain model
-- demo seed for one clinic tenant
-- appointment conflict detection
-- dashboard summary endpoint
-- AI phase 1 endpoints for patient summary and confirmation message generation
-
-Supporting layers:
-
-- [backend/src/ClinicFlow.Domain](/Users/mauriciohenrique/Documents/New%20project/backend/src/ClinicFlow.Domain)
-- [backend/src/ClinicFlow.Application](/Users/mauriciohenrique/Documents/New%20project/backend/src/ClinicFlow.Application)
-- [backend/src/ClinicFlow.Infrastructure](/Users/mauriciohenrique/Documents/New%20project/backend/src/ClinicFlow.Infrastructure)
-
-### Frontend
-
-New admin web shell in [apps/admin_web](/Users/mauriciohenrique/Documents/New%20project/apps/admin_web), prepared for React + TypeScript + Vite and already styled around the ClinicFlow AI positioning.
-
-## MVP Scope
-
-The current MVP direction is:
-
-1. Authentication and tenant isolation
-2. Patients
-3. Professionals
-4. Scheduling and status lifecycle
-5. Financial summary
-6. AI phase 1
-
-## API Snapshot
-
-Implemented initial endpoints:
-
-- `POST /api/auth/login`
-- `GET /api/patients`
-- `POST /api/patients`
-- `GET /api/professionals`
-- `POST /api/professionals`
-- `GET /api/appointments`
-- `POST /api/appointments`
-- `PUT /api/appointments/{appointmentId}/status`
-- `GET /api/dashboard/summary`
-- `POST /api/ai/patient-summary/{patientId}`
-- `POST /api/ai/message-generate/{appointmentId}`
-
-Tenant isolation for business endpoints currently uses the `X-Tenant-Id` header.
-
-Demo login:
-
-- `tenantSlug`: `demo-clinic`
-- `email`: `admin@clinicflow.ai`
-- `password`: any value for now
-
-## How To Run
+## Local run
 
 ### Backend
 
@@ -91,10 +51,6 @@ Demo login:
 cd backend/src/ClinicFlow.Api
 dotnet run
 ```
-
-Health check:
-
-- `GET /health`
 
 ### Frontend
 
@@ -104,16 +60,14 @@ npm install
 npm run dev
 ```
 
-The frontend expects the backend health endpoint at `http://localhost:5057/health` in the current static demo shell.
+## Current positioning
 
-## Recommended Next Steps
+ClinicFlow AI is already shaped as a portfolio-ready SaaS foundation, with a clearer path toward PostgreSQL, JWT auth, richer medical workflows and stronger OpenAI-powered features.
 
-1. Replace in-memory persistence with PostgreSQL + EF Core.
-2. Add JWT + refresh token and policy-based authorization.
-3. Connect the React admin web to the API.
-4. Add medical records and payments persistence.
-5. Introduce real OpenAI workflows for summaries, triage and no-show reasoning.
+## Recommended next steps
 
-## Recruiter Positioning
-
-Built a multi-tenant AI-powered clinic management SaaS with intelligent scheduling, patient CRM, financial dashboards, automated notifications, and LLM-driven clinical summarization using ASP.NET Core, React, PostgreSQL-ready architecture, and AI workflow endpoints.
+1. replace in-memory persistence with PostgreSQL
+2. add JWT and role-based authorization
+3. connect the admin web shell to the API in a fuller way
+4. introduce medical records and payment persistence
+5. expand AI workflows beyond phase 1

@@ -1,21 +1,29 @@
 # ClinicFlow Backend
 
-Backend foundation for the ClinicFlow AI SaaS.
+Backend foundation for ClinicFlow AI, a multi-tenant clinic management SaaS with AI-assisted workflows.
 
-## Architecture
+## Current backend scope
 
-- `ClinicFlow.Domain`: entities and enums for tenants, users, patients, professionals, appointments and payments
-- `ClinicFlow.Application`: DTOs, repository abstraction and MVP application service
-- `ClinicFlow.Infrastructure`: in-memory seeded repository used for the first executable slice
-- `ClinicFlow.Api`: HTTP API with tenant header resolution and controller endpoints
+- tenant-aware domain model
+- patients, professionals and appointments
+- dashboard summary
+- AI endpoints for patient summary and message generation
+- in-memory persistence for the first executable slice
 
-## Demo Tenant
+## Project structure
 
-- Tenant slug: `demo-clinic`
-- User email: `admin@clinicflow.ai`
-- Password: placeholder for now
+- `ClinicFlow.Domain`
+- `ClinicFlow.Application`
+- `ClinicFlow.Infrastructure`
+- `ClinicFlow.Api`
 
-## Main Endpoints
+## Demo tenant
+
+- slug: `demo-clinic`
+- email: `admin@clinicflow.ai`
+- password: placeholder for now
+
+## Main endpoints
 
 - `POST /api/auth/login`
 - `GET /api/patients`
@@ -25,10 +33,10 @@ Backend foundation for the ClinicFlow AI SaaS.
 - `POST /api/ai/patient-summary/{patientId}`
 - `POST /api/ai/message-generate/{appointmentId}`
 
-## Next Backend Upgrades
+## Next backend upgrades
 
 1. PostgreSQL persistence
 2. JWT auth and refresh tokens
 3. audit logging
 4. background reminders
-5. OpenAI service integration
+5. stronger OpenAI service integration
