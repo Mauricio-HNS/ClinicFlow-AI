@@ -1,5 +1,15 @@
 # ClinicFlow AI
 
+**Clinic operations SaaS foundation with tenant-aware workflows and early AI-assisted features.**
+
+This project focuses on appointment management, patient and professional records, operational dashboards and an API-first backend. The repository contains a React admin interface and modular backend areas for API, domain, application and infrastructure.
+
+**Portfolio status:** an early-stage product foundation, not a certified clinical system. Persistence, authentication/authorization depth, fuller frontend-to-API integration and expanded AI workflows are identified as next steps. Do not use it for real patient care or store real patient data without appropriate security, privacy, clinical validation and compliance work.
+
+**Engineering themes:** .NET backend architecture, SaaS domain modelling, tenant boundaries, React integration and responsible AI-assisted workflows.
+
+---
+
 ClinicFlow AI is a multi-tenant clinic management SaaS positioned around scheduling, patient CRM, operational dashboards and AI-assisted clinical workflows.
 
 ## Why this repository is valuable
